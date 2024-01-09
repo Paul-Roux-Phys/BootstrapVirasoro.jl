@@ -3,6 +3,9 @@ uuid = "ca6c609c-7c6b-4ea6-be06-ee6e3ced7d6c"
 authors = ["Paul_Roux"]
 version = "1.0.0-DEV"
 
+[deps]
+Match = "7eb4fadd-790c-5f42-8a69-bfa0b872bfbf"
+
 [compat]
 julia = "1.9"
 
