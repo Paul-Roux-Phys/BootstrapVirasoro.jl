@@ -31,7 +31,7 @@ $$
 $$
 
 The Kac parametrisation for conformal weights is
-$$ p_{(r,s)}=\frac{1}{2}(b r - b^{-1}s)$$
+$$ P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)$$
 
 where $r,s$ are arbitrary numbers. We say the field is degenerate if $r,s\in \mathbb Z$ and rs>0. In terms of $r,s$, the dimension $\Delta$ is written
 

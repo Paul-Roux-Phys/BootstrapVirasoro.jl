@@ -1,4 +1,4 @@
-# Virasoro Bootstrap
+# Julia Virasoro Bootstrap
 
 This repository contains a set of Julia notebooks which aim at solving bootstrap equations for 2D Conformal Field Theories (CFTs) with Virasoro symmetry. Bootstrap equations can be
 
@@ -7,8 +7,9 @@ This repository contains a set of Julia notebooks which aim at solving bootstrap
 
 ## Notebooks
 
-* CFTdata.ipynb ; defines the central charge, conformal dimensions and fields in various parametrisations
-* 
+* CFTdata.jl ; defines the central charge, conformal dimensions and fields in various parametrisations
+* ConformalBlocks.jl ; computes the conformal blocks
+* SpecialFunctions.jl ; computes necessary special functions
 
 
 

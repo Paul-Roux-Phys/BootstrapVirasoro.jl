@@ -1,10 +1,13 @@
-#==================
+#===========================================================================================
 
 ConformalBlocks.jl contains a module ConformalBlocks that computes series expansions for 
 Virasoro four-point conformal blocks on the sphere and Virasoro one-point conformal blocks 
 on the torus
 
-==================#
+Written by Paul Roux, adapting a Python code written by Sylvain Ribault & Rongvoram 
+Nivesvivat
+
+===========================================================================================#
 
 
 """
@@ -13,13 +16,14 @@ Series expansion of four-point blocks on the sphere
 module FourPointBlocksSphere
 
 include("CFTdata.jl")
+
 using Match, .CFTData, EllipticFunctions
 
 
 #===========================================================================================
 Exports
 ===========================================================================================#
-#export fourpointblock_sphere
+export FourPointBlockSphere
 
 #===========================================================================================
 Struct for the conformal blocks
@@ -29,11 +33,13 @@ Struct for the conformal blocks
 Object representing a four-point conformal block. The block is represented as the series 
 of coefficients of H in Zamolodchikov's recursive formula
 """
-struct FourPointBlock{T}
+struct FourPointBlockSphere{T}
 
     seriescoefficients::Vector{T}
     channel::String
-    prefactor::Function(::T)::T
+    channelField::Field{T}
+    extFields::Vector{Field{T}}
+    prefactor::T
 
 end
 
@@ -41,7 +47,7 @@ end
 Get t- and u- channel blocks from s-channel block
 ===========================================================================================#
 
-"""Give total prefactor to get t- or u-channel blocks from s-channel block"""
+"""Prefactor to get t- or u-channel blocks from s-channel block"""
 function channelprefactor(block, x)
     @match block.channel begin
         "s" => 1
@@ -50,7 +56,7 @@ function channelprefactor(block, x)
     end
 end
 
-"""Give cross-ratio at which to evaluate the s-channel block to get t- or u-channel block"""
+"""Cross-ratio at which to evaluate the s-channel block to get t- or u-channel block"""
 function crossratio(channel, x)
     @match channel begin
         "s" => x
@@ -60,7 +66,7 @@ function crossratio(channel, x)
 end
 
 """Permute the external fields to get t- or u-channel blocks from s-channel block"""
-function permutationΔext(channel,Δs)
+function permutationΔext(channel, Vs)
     @match channel begin
         "s" => [Δs[1],Δs[2],Δs[3],Δs[4]]
         "t" => [Δs[1],Δs[4],Δs[3],Δs[2]]
@@ -69,30 +75,40 @@ function permutationΔext(channel,Δs)
 end
 
 #===========================================================================================
-Set prefactors, relate the various parameters
+Set prefactors, relate the x and the elliptic nome q
 ===========================================================================================#
 """Nome `q` from the cross-ratio `x`"""
-function qfromx(x)
-    return exp(-π*ellipticK(1-x)/ellipticK(x))
-end
+qfromx(x) = exp(-π*ellipticK(1-x) / ellipticK(x))
+
+xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
 
 """Prefactor for getting the block F from H"""
-function blockprefactor(block, x)
-    e1 = block.
-end
+function blockprefactor(block, charge, x)
 
+    e0 = - block.extFields[1]["δ"][1] - block.extFields[2]["δ"][1] - (charge["c"]-1)/24
+    e1 = - block.extFields[1]["δ"][1] - block.extFields[4]["δ"][1] - (charge["c"]-1)/24
+    e2 = sum(block.extFields[i]["δ"][1] for i in 1:4) + (charge["c"]-1)/24
+
+    q=qfromx(x)
+
+    return x^e0 * (1-x)^e1 * jtheta3(0,q)^(-4*e2) * (16*q)^block.channelField[δ][1]
+end
 
 #===========================================================================================
 Implement Zamolodchikov's recursion
 ===========================================================================================#
+function Rmn(block, )
+
+    for r in n-1:-2:0
+
+    end
 end
 
+#===========================================================================================
+Block constructor
+===========================================================================================#
 
-
-
-#=============================================================
-
-=============================================================#
+end
 
 
 

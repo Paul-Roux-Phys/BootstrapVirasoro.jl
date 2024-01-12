@@ -80,17 +80,17 @@ $$
 
 In addition to $x$, we use the elliptic nome $q$ such that 
 $$
-x = \frac{\theta_2(q)^4}{\theta_3(q)^4}
+x = \frac{\theta_2(q)^4}{\theta_3(q)^4}, \quad q = e^{-\pi\frac{K(1-x)}{ K(x)}}
 $$
 where 
 $$
 \theta_3(q) = \sum_{n\in\mathbb{Z}} q^{n^2} \quad , \quad \theta_2(q) = 2q^\frac14\sum_{n=0}^\infty q^{n(n+1)}
 $$
-are Jacobi special $\theta$-functions.
+are Jacobi special $\theta$-functions, and $K(x)$ is the elliptic $K$ function.
 
 ### Expression
 
-Our $s$-channel conformal block is 
+Our chiral $s$-channel conformal block is
 $$
  \mathcal{F}^{(s)}_{\delta}(x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2} 
 (16q)^{\delta} H(q,\delta)
@@ -108,13 +108,19 @@ The coefficient $C_{m,n}^N$ has the recursive representation
 $$
 C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
 $$
-The residue $R_{m,n}$ is given by 
+An expression for the $R_{m,n}$ can be found on [https://en.wikipedia.org/wiki/Virasoro_conformal_block](this wikipedia article. It can be rewritten
 $$
  R_{m,n} = -\frac{1}{2}\frac{1}{D_{mn}} 
  \prod_{r\overset{2}{=} 1-m}^{m-1} 
  \prod_{s\overset{2}{=}1-n}^{n-1} 
  \sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2} 
 \sqrt{(\delta_3-\delta_4)^2 -2\delta_{(r,s)}(\delta_3+\delta_4) + \delta_{(r,s)}^2}
+$$
+where we do not actually take square roots, because each factor appears twice, except the $(r,s)=(0,0)$ factor which is however a perfect square. The normalization factor is
+$$
+D_{m,n} = -mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right) 
+\prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
+\prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2
 $$
 where we do not actually take square roots, because each factor appears twice, except the $(r,s)=(0,0)$ factor which is however a perfect square. The normalization factor is 
 $$
