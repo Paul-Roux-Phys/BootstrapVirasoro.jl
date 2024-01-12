@@ -17,7 +17,7 @@ module FourPointBlocksSphere
 
 include("CFTdata.jl")
 
-using Match, .CFTData, EllipticFunctions
+using Match, .CFTData, EllipticFunctions, Memoize
 
 
 #===========================================================================================
@@ -97,7 +97,28 @@ end
 #===========================================================================================
 Implement Zamolodchikov's recursion
 ===========================================================================================#
-function Rmn(block, )
+"""Compute the normalisation factor D_mn, cache the result"""
+@memoize function double_prod_in_Dmn(m, n, B)
+    if m < 2 || n < 2
+        return 1
+    elseif m >= 2
+        return prod(((m-1)^2*B - s^2/B) for s in 1:n-1)^2 * double_prod_in_Dmn(m-1, n, B)
+    else # n >= 2
+        return prod((r^2*B - (n-1)^2/B) for r in 1:m-1)^2 * double_prod_in_Dmn(m, n-1, B)
+    end
+end
+
+"""Compute the normalisation factor Dmn"""
+@memoize function Dmn(m, n, B) 
+
+    f1 = prod(r^2*B * (r^2*B - n^2/B) for r in 1:m-1)
+    f2 = prod(s^2/B * (s^2/B - m^2*B) for s in 1:n-1)
+    f3 = double_prod_in_Dmn(m, n, B)
+
+    return -m*n*f1*f2*f3
+end
+
+@memoize function Rmn(block, )
 
     for r in n-1:-2:0
 
