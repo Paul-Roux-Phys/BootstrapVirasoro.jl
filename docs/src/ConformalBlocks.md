@@ -1,33 +1,48 @@
 # Virasoro conformal blocks
 
-The file ConformalBlocks.jl implements Zamolodchikov's recursion formula for computing four-point conformal blocks on the sphere and one-point conformal blocks on the torus.
+The file [ConformalBlocks.jl](../../src/ConformalBlocks.jl) implements Zamolodchikov's recursion formula for computing four-point conformal blocks on the sphere and one-point conformal blocks on the torus.
 
-It uses structures from CFTdata.jl.
+It uses structures from [CFTdata.jl](../../src/CFTData.jl).
 
-The module ConformalBlocks exports two methods, SphereFourPointBlock and TorusOnePointBlock 
 
 ## Four-point conformal blocks on the sphere
 
+The module `FourPointBlocksSphere` exports
+
+* a struct `FourPointBlockSphere` that encapsulates the data needed to compute a 4pt conformal block, namely a channel, four external fields and the field propagating in the channel
+* a function `F_four_point_sphere(block, charge, x)` which computes the value of the non-chiral block $\mathcal F_{\Delta}^{(s)}(\Delta_i | x)$ as defined in the paragraph [Background Material](#four-point-blocks-on-the-sphere) below.
+
+## One-point conformal blocks on the torus
+
+The module `OnePointBlocksTorus` exports
+
+* a struct `OnePointBlockTorus` that encapsulates the data needed to compute a 4pt conformal block, namely an external field.
+* a function `F_one_point_torus'(block, q)` which computes the value of the non-chiral block $\mathcal F_{\Delta}^{\text{torus}}(\Delta | q)$ as defined in the paragraph [Background Material](#one-point-blocks-on-the-torus) below.
+
+## Background material
+
+### Four-point blocks on the sphere
+
 Computation of any four-point correlation function reduces to the computation of
 
-$$ \mathcal F(x) = \langle V_{1}(x,\bar x) V_{2}(0) V_{3}(\infty) V_{4}(1) \rangle $$
+$$ \mathcal F(x) = \langle V_{1}(x) V_{2}(0) V_{3}(\infty) V_{4}(1) \rangle $$
 
 Conformal blocks encode the universal part of correlation functions. More precisely, by performing the OPE of $V_{1}$ with $V_{2}$ and $V_{3}$ with $V_{4}$ (s-channel), or $1\leftrightarrow 4, 2\leftrightarrow 3$ (t-channel) or $1\leftrightarrow 3, 2\leftrightarrow 4$ (u-channel), $\mathcal F(x)$ can be written as
 
 $$ \mathcal F(x) = \sum_{s \in \mathcal S^{(s)}} \frac{C_{12s}C_{s34}}{B_s} \mathcal F_\Delta^{(s)}(\Delta_i | x)$$
 
-where $\mathcal S^{(s)}$ over a basis of the $s$-channel spectrum $\mathcal S^{(s)}$, $B_s$ are two-point structure constants and $C_{ijk}$ are three-point structure constants. Analogous expressions can be written for the $t$- and $u$- channels. The functions $\mathcal F_{\Delta}^{(s)}(\Delta_i | x)$ are called $s$-channel conformal blocks (resp. t,u).
+where $\sum_{\mathcal S^{(s)}}$ is a sum over a basis of the $s$-channel spectrum $\mathcal S^{(s)}$, $B_s$ are two-point structure constants and $C_{ijk}$ are three-point structure constants. Analogous expressions can be written for the $t$- and $u$- channels. The functions $\mathcal F_{\Delta}^{(s)}(\Delta_i | x)$ are called $s$-channel conformal blocks (resp. t,u).
 
 Conformal blocks factorise into holomorphic and anti-holomorphic parts, and they are characterized by the normalisation conditions
 
-$$ 
-\begin{align*}
- \mathcal{F}^{(s)}_\Delta(x) & \underset{x\to 0}{=} \left| x^{\Delta-\Delta_1-\Delta_2}\right|^2 \left(1+O(x)\right)
+$$
+\begin{align}
+ \mathcal{F}^{(s)}_\Delta(x) & \underset{x\to 0}{=} \left| x^{\Delta-\Delta_1-\Delta_2}\right|^2 \left(1+O(x)\right) \nonumber
  \\
- \mathcal{F}^{(t)}_\Delta(x) & \underset{x\to 1}{=} \left|(1-x)^{\Delta-\Delta_1-\Delta_4}\right|^2 \left(1+O(1-x)\right)
+ \mathcal{F}^{(t)}_\Delta(x) & \underset{x\to 1}{=} \left|(1-x)^{\Delta-\Delta_1-\Delta_4}\right|^2 \left(1+O(1-x)\right) \nonumber
  \\
  \mathcal{F}^{(u)}_\Delta(x) & \underset{x\to \infty}{=} \left|\left(\frac{1}{x}\right)^{\Delta+\Delta_1-\Delta_3} \right|^2\left(1+O\left(\frac{1}{x}\right)\right)
-\end{align*}
+\end{align}
 $$
 (we omit the $\Delta_i$ dependence in the notation $\mathcal{F}^{(u)}_\Delta(x)$).
 
@@ -76,7 +91,7 @@ $$
  \end{array}
  $$ -->
 
-### Notations
+#### Notations
 
 In addition to $x$, we use the elliptic nome $q$ such that 
 $$
@@ -88,7 +103,7 @@ $$
 $$
 are Jacobi special $\theta$-functions, and $K(x)$ is the elliptic $K$ function.
 
-### Expression
+#### Expression
 
 Our chiral $s$-channel conformal block is
 $$
@@ -108,9 +123,9 @@ The coefficient $C_{m,n}^N$ has the recursive representation
 $$
 C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
 $$
-An expression for the $R_{m,n}$ can be found on [https://en.wikipedia.org/wiki/Virasoro_conformal_block](this wikipedia article. It can be rewritten
+An expression for the $R_{m,n}$ can be found on [this wikipedia article](https://en.wikipedia.org/wiki/Virasoro_conformal_block). It can be rewritten
 $$
- R_{m,n} = -\frac{1}{2}\frac{1}{D_{mn}} 
+ R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}} 
  \prod_{r\overset{2}{=} 1-m}^{m-1} 
  \prod_{s\overset{2}{=}1-n}^{n-1} 
  \sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2} 
@@ -118,17 +133,11 @@ $$
 $$
 where we do not actually take square roots, because each factor appears twice, except the $(r,s)=(0,0)$ factor which is however a perfect square. The normalization factor is
 $$
-D_{m,n} = -mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right) 
+D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right) 
 \prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
 \prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2
 $$
-where we do not actually take square roots, because each factor appears twice, except the $(r,s)=(0,0)$ factor which is however a perfect square. The normalization factor is 
-$$
-D_{m,n} = -mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right) 
-\prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
-\prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2
-$$
-If $R_{m,n}=0$, we compute a finite regularization of $R_{m,n}$. This is never used for computing chiral conformal blocks, but only for computing non-chiral logarithmic blocks. The regularization of vanising factors is 
+If $R_{m,n}=0$, we compute a finite regularization of $R_{m,n}$. This is never used for computing chiral conformal blocks, but only for computing non-chiral logarithmic blocks. The regularization of vanishing factors is 
 $$
 \left(\delta_2-\delta_1\right)_\text{reg} = 2p_2
 $$
@@ -136,13 +145,13 @@ $$
 \left((\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2\right)_\text{reg} = 8p_1p_2p_{(r,s)}
 $$
 
+#### Degenerate blocks
 
-### Degenerate blocks
+In the case $\delta_1 = \delta_{(r_1,s_1)}$ and $\delta_2 = \delta_{(r_2,s_2)}$ with $r_i,s_i\in\mathbb{N}^*$, we have
 
-In the case $\delta_1 = \delta_{(r_1,s_1)}$ and $\delta_2 = \delta_{(r_2,s_2)}$ with $r_i,s_i\in\mathbb{N}^*$, we have 
 $$
-\left\{\begin{array}{l} m\in |r_1-r_2|+1+2\mathbb{N} 
-\\ n \in |s_1-s_2| + 1+2\mathbb{N} \end{array} \right. \quad 
+\left\{\begin{array}{l} m\in |r_1-r_2|+1+2\mathbb{N}
+\\ n \in |s_1-s_2| + 1+2\mathbb{N} \end{array} \right. \quad
 \Rightarrow \quad R_{m,n} = 0
 $$
 and similarly if the fields with numbers $3$ and $4$ are degenerate. Thanks to $R_{m,n}=0$ thus $C_{m,n}^N=0$, the block $\mathcal{F}^{(s)}_{\delta_{(m,n)}}(x)$ is finite and can be computed exactly.
@@ -155,7 +164,7 @@ $$
 $$
 and similarly if the fields with numbers $3$ and $4$ are degenerate. In particular, for $\delta_i = \delta_{(0,\frac12)}$, we have $m\in 2\mathbb{N}+1\Rightarrow R_{m,n}=0$.
 
-### Derivative and regularization
+#### Derivative and regularization
 
 For the purpose of computing conformal blocks for logarithmic channel representations, we need to compute derivatives of conformal blocks with respect to the channel dimension, and regularized values of blocks at their poles. Taking the derivative amounts to 
 $$
@@ -167,3 +176,11 @@ $$
 $$
 The code can formally compute a regularization of the block's derivative, but this 
 regularization is a priori not meaningful.
+
+### One point blocks on the torus
+
+One-point conformal blocks on the torus can be written as
+
+$$
+\mathcal{F}^\text{torus}_{\Delta}(\Delta_1|q) = q^{\Delta-\frac{c-1}{24}}\eta(q)^{-1}H^\text{torus}_{\Delta}(\Delta_1|q)
+$$

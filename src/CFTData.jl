@@ -94,7 +94,7 @@ function CentralCharge(parameter = "c", value = 1)
 end
 
 """Display an object of type CentralCharge"""
-function Base.show(io::IO, charge::CentralCharge{T}) where {T}
+function Base.show(io::IO, charge::CentralCharge)
     println("Central charge :")
     for (key, value) in charge.values
         println(io, "$key = $value")
@@ -102,7 +102,7 @@ function Base.show(io::IO, charge::CentralCharge{T}) where {T}
 end
 
 """Display the value of the central charge in LaTeX format"""
-function Base.show(io::IO, ::MIME"text/latex", charge::CentralCharge{T}, parameter) where {T}
+function Base.show(io::IO, ::MIME"text/latex", charge::CentralCharge, parameter)
     if parameter=="β"
         print("\\beta = ")
     else
@@ -212,13 +212,13 @@ function Field(
     charge::CentralCharge = CentralCharge("c", 1),
     parameter = "Δ",
     leftvalue = 0, rightvalue = 0;
-    Kac=false, r = 0, s = 0,
-    logarithmic=false, degenerate=false, diagonal=false
+    Kac = false, r = 0, s = 0,
+    logarithmic = false, degenerate = false, diagonal = false
 )
 
     T=typeof(charge.values["c"])   #dimensions have the same type as central charges
     if degenerate
-        Kac=true
+        Kac = true
     end
     if Kac
         pleft = 1/2*(charge["b"]*r - 1/charge["b"]*s)
@@ -268,7 +268,7 @@ function Base.show(io::IO,field::Field)
 end
 
 """Display dimension of field in latex format"""
-function Base.show(io::IO,::MIME"text/latex", field::Field{T},parameter) where {T}
+function Base.show(io::IO,::MIME"text/latex", field::Field,parameter)
     if field.isdiagonal
         if parameter == "Δ"
             print("\\Delta = ")
