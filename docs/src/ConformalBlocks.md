@@ -4,7 +4,6 @@ The file [ConformalBlocks.jl](../../src/ConformalBlocks.jl) implements Zamolodch
 
 It uses structures from [CFTdata.jl](../../src/CFTData.jl).
 
-
 ## Four-point conformal blocks on the sphere
 
 The module `FourPointBlocksSphere` exports
@@ -46,15 +45,14 @@ $$
 $$
 (we omit the $\Delta_i$ dependence in the notation $\mathcal{F}^{(u)}_\Delta(x)$).
 
-
-Together with the invariance of $\left\langle \prod_{i=1}^4 V_{\Delta_i}(z_i) \right\rangle$ under permutations, this leads to the relations 
+Together with the invariance of $\left\langle \prod_{i=1}^4 V_{\Delta_i}(z_i) \right\rangle$ under permutations, this leads to the relations
 $$
 \begin{align*}
-\mathcal{F}^{(t)}_{\Delta}(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x) 
+\mathcal{F}^{(t)}_{\Delta}(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
 &= (-1)^{S_1+S_2+S_3+S_4}
 \mathcal{F}^{(s)}_{\Delta}(\Delta_1,\Delta_4,\Delta_3,\Delta_2|1-x)
 \\
-\mathcal{F}^{(u)}_\Delta(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x) 
+\mathcal{F}^{(u)}_\Delta(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
 &= (-1)^{S_1+S_2+S_3+S_4}
 \left|x^{-2\Delta_1}\right|^2 \mathcal{F}^{(s)}_\Delta(\Delta_1,\Delta_3,\Delta_2,\Delta_4|\tfrac{1}{x})
 \end{align*}
@@ -93,11 +91,11 @@ $$
 
 #### Notations
 
-In addition to $x$, we use the elliptic nome $q$ such that 
+In addition to $x$, we use the elliptic nome $q$ such that
 $$
 x = \frac{\theta_2(q)^4}{\theta_3(q)^4}, \quad q = e^{-\pi\frac{K(1-x)}{ K(x)}}
 $$
-where 
+where
 $$
 \theta_3(q) = \sum_{n\in\mathbb{Z}} q^{n^2} \quad , \quad \theta_2(q) = 2q^\frac14\sum_{n=0}^\infty q^{n(n+1)}
 $$
@@ -107,13 +105,13 @@ are Jacobi special $\theta$-functions, and $K(x)$ is the elliptic $K$ function.
 
 Our chiral $s$-channel conformal block is
 $$
- \mathcal{F}^{(s)}_{\delta}(x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2} 
+ \mathcal{F}^{(s)}_{\delta}(x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2}
 (16q)^{\delta} H(q,\delta)
 $$
-where we use the exponents 
+where we use the exponents
 $$
-E_0 = -\delta_1-\delta_2-\frac{c-1}{24} \quad , \quad E_1 = -\delta_1-\delta_4-\frac{c-1}{24} \quad , 
-\quad E_2 = \delta_1+\delta_2+\delta_3+\delta_4+\frac{c-1}{24} 
+E_0 = -\delta_1-\delta_2-\frac{c-1}{24} \quad , \quad E_1 = -\delta_1-\delta_4-\frac{c-1}{24} \quad ,
+\quad E_2 = \delta_1+\delta_2+\delta_3+\delta_4+\frac{c-1}{24}
 $$
 The non-trivial coefficient is the series
 $$
@@ -125,19 +123,19 @@ C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{
 $$
 An expression for the $R_{m,n}$ can be found on [this wikipedia article](https://en.wikipedia.org/wiki/Virasoro_conformal_block). It can be rewritten
 $$
- R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}} 
- \prod_{r\overset{2}{=} 1-m}^{m-1} 
- \prod_{s\overset{2}{=}1-n}^{n-1} 
- \sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2} 
+ R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}}
+ \prod_{r\overset{2}{=} 1-m}^{m-1}
+ \prod_{s\overset{2}{=}1-n}^{n-1}
+ \sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2}
 \sqrt{(\delta_3-\delta_4)^2 -2\delta_{(r,s)}(\delta_3+\delta_4) + \delta_{(r,s)}^2}
 $$
 where we do not actually take square roots, because each factor appears twice, except the $(r,s)=(0,0)$ factor which is however a perfect square. The normalization factor is
 $$
-D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right) 
+D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
 \prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
 \prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2
 $$
-If $R_{m,n}=0$, we compute a finite regularization of $R_{m,n}$. This is never used for computing chiral conformal blocks, but only for computing non-chiral logarithmic blocks. The regularization of vanishing factors is 
+If $R_{m,n}=0$, we compute a finite regularization of $R_{m,n}$. This is never used for computing chiral conformal blocks, but only for computing non-chiral logarithmic blocks. The regularization of vanishing factors is
 $$
 \left(\delta_2-\delta_1\right)_\text{reg} = 2p_2
 $$
@@ -158,15 +156,15 @@ and similarly if the fields with numbers $3$ and $4$ are degenerate. Thanks to $
 
 This can be generalized to fractional indices $r_i,s_i$. In this case, we have to add the following restriction, which was redundant for positive integer indices:
 $$
-\left\{\begin{array}{l} m\in |r_1+r_2|+1+2\mathbb{N} 
-\\ n \in |s_1+s_2| + 1+2\mathbb{N} \end{array} \right. \quad 
+\left\{\begin{array}{l} m\in |r_1+r_2|+1+2\mathbb{N}
+\\ n \in |s_1+s_2| + 1+2\mathbb{N} \end{array} \right. \quad
 \Rightarrow \quad R_{m,n} = 0
 $$
 and similarly if the fields with numbers $3$ and $4$ are degenerate. In particular, for $\delta_i = \delta_{(0,\frac12)}$, we have $m\in 2\mathbb{N}+1\Rightarrow R_{m,n}=0$.
 
 #### Derivative and regularization
 
-For the purpose of computing conformal blocks for logarithmic channel representations, we need to compute derivatives of conformal blocks with respect to the channel dimension, and regularized values of blocks at their poles. Taking the derivative amounts to 
+For the purpose of computing conformal blocks for logarithmic channel representations, we need to compute derivatives of conformal blocks with respect to the channel dimension, and regularized values of blocks at their poles. Taking the derivative amounts to
 $$
 H(q, \delta) \to \log(16q) H(q,\delta) +\frac{\partial}{\partial\delta} H(q, \delta)
 $$
@@ -174,13 +172,23 @@ And the regularization we are interested in amounts to
 $$
 \left.\frac{1}{\delta-\delta_{(m,n)}}\right|_{\delta=\delta_{(m,n)}} = \log(16q)-\frac{1}{4\delta_{(m,n)}}
 $$
-The code can formally compute a regularization of the block's derivative, but this 
-regularization is a priori not meaningful.
+The code can formally compute a regularization of the block's derivative, but this regularization is a priori not meaningful.
 
 ### One point blocks on the torus
 
-One-point conformal blocks on the torus can be written as
+A chiral one-point conformal block on the torus can be written as
 
 $$
 \mathcal{F}^\text{torus}_{\Delta}(\Delta_1|q) = q^{\Delta-\frac{c-1}{24}}\eta(q)^{-1}H^\text{torus}_{\Delta}(\Delta_1|q)
+$$
+
+where $\eta$ is the Dedekind eta function, $q$ is related to the torus' modular parater $\tau$ via $q=e^{2i\pi \tau}$, $c$ is the central charge and the non-trivial factor $H^{\text{torus}}_{\Delta}(\Delta_1|q)$ can be computed by a recursion formula. Explicitly,
+
+TODO: translate the recursion formula from the wikipedia article to an explicit formula for H
+$$
+$$
+
+where the coefficients $R_{mn}^{\text{torus}}$ can be computed via
+TODO: find a formula for $R_{mn}$ based on the formula from the wikipedia article.
+$$
 $$
