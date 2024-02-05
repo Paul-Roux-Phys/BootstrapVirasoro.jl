@@ -14,13 +14,22 @@ include("CFTData.jl")
 using .CFTData
 export CentralCharge, Field
 
+#===========================================================================================
+Correlation functions
+===========================================================================================#
+include("CorrelationFunctions.jl")
+using .FourPointCorrelationFunctions
+export FourPointCorrelation
 
 #===========================================================================================
 Conformal blocks
 ===========================================================================================#
 include("ConformalBlocks.jl")
-using .FourPointBlocksSphere, .OnePointBlocksTorus
-#export 
+using .FourPointBlocksSphere
+export FourPointBlockSphere, F_four_point_sphere
+
+using .OnePointBlocksTorus
+export OnePointBlocksTorus, F_one_point_torus
 
 
 #===========================================================================================

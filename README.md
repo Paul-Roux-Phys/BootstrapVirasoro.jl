@@ -10,4 +10,3 @@ This repository contains a Julia package which aims at solving bootstrap equatio
 * [CFTdata.jl](docs/src/CFTData.md) ; defines the central charge, conformal dimensions and fields in various parametrisations
 * [ConformalBlocks.jl](docs/src/ConformalBlocks.md) ; computes the conformal blocks
 * [SpecialFunctions.jl](docs/src/SpecialFunctions.md) ; computes necessary special functions
-

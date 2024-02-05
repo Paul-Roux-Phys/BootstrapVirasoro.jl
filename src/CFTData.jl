@@ -1,6 +1,6 @@
 #==================
 
-CFTdata.jl contains a module CFTdata that provides types representing
+CFTData.jl contains a module CFTData that provides types representing
 central charges and fields in 2D CFTs with Virasoro symmetry.
 
 Written by Paul Roux, adapting a Python code written by Sylvain Ribault & Rongvoram 
@@ -16,7 +16,7 @@ module CFTData
 
 using Match;
 
-export CentralCharge,Field
+export CentralCharge, Field
 
 """print complex numbers in latex format"""
 function Base.show(io::IO,::MIME"text/latex",z::Complex)
@@ -55,15 +55,15 @@ end
 
 """
     CentralCharge{T}
-Object representing the central charge. 
+Object representing the central charge.
 Contains the values of the 4 parameters representing it.
 """
 struct CentralCharge{T}
 
-    #= T is the type of the parameters; either Complex{Float64} or Complex{BigFloat} 
+    #= T is the type of the parameters; either Complex{Float64} or Complex{BigFloat}
        for arbitrary precision. =#
     values::Dict{String, T}
-    
+
 end
 
 """
@@ -71,10 +71,10 @@ end
 
 Constructor function for the CentralCharge type.
 
-Given one of the four parameters `"c"`, `"b"`, `"β"`, `"B"` and its value, 
+Given one of the four parameters `"c"`, `"b"`, `"β"`, `"B"` and its value,
 creates an object CentralCharge{T} where T is the type of `value`.
 
-#Example 
+#Example
 ```julia-repl
 julia> setprecision(BigFloat, 20, base=10)
 julia> charge = CentralCharge("β", sqrt(big(2)))
@@ -303,4 +303,4 @@ end
 """Overload []"""
 Base.getindex(field::Field,key) = field.values[key];
 
-end
+end # end module
