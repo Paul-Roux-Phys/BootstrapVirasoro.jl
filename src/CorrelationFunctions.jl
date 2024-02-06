@@ -7,21 +7,32 @@ Nivesvivat
 
 module FourPointCorrelationFunctions
 
-using ..CFTData
+export FourPointCorrelation, computeCNmn
 
+using ..CFTData
+using Match
+import Memoization: @memoize
+
+"""Struct representing a four-point function. Contains
+* a central charge
+* 4 external fields
+"""
 struct FourPointCorrelation{T}
-    Fields::Vector{Field{T}}
+    charge::CentralCharge{T}
+    fields::Vector{Field{T}}
 end
 
-export FourPointCorrelation, computeCNmn
+function FourPointCorrelation(charge::CentralCharge{T}, V1, V2, V3, V4) where {T}
+    return FourPointCorrelation{T}(charge, [V1, V2, V3, V4])
+end
 
 """Display a four-point function"""
 function Base.show(io::IO, corr::FourPointCorrelation)
     println("Four-point correlation function: < V_1 V_2 V_3 V_4 > where ")
-    print("V_1 = "); show(corr.Fields[1])
-    print("V_2 = "); show(corr.Fields[2])
-    print("V_3 = "); show(corr.Fields[3])
-    print("V_4 = "); show(corr.Fields[4])
+    print("V_1 = "); show(corr.fields[1])
+    print("V_2 = "); show(corr.fields[2])
+    print("V_3 = "); show(corr.fields[3])
+    print("V_4 = "); show(corr.fields[4])
 end
 
 # explicit names for the indices of left and right dimensions
@@ -36,10 +47,8 @@ double_prod_in_Dmn(m, n, B) = prod(prod((r^2*B - s^2/B)^2 for s in 1:n-1) for r 
 
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
-
 function Dmn(m, n, B) 
-
-    if m == 1 && n == 1
+    if m == 1 && n == 1 # treat cases m = 1, n=1 separately
         return 1
     elseif m == 1
         return n * prod(s^2/B * (s^2/B - m^2*B) for s in 1:n-1)
@@ -53,23 +62,22 @@ function Dmn(m, n, B)
     end
 end
 
-"""Permute the external fields to get t- or u-channel blocks from s-channel block"""
+"""Permute the external fields to get t- or u-channels s-channel"""
 function permute_ext_fields(corr::FourPointCorrelation, channel)
-    Vs = corr.Fields
+    Vs=corr.fields
     Vs = @match channel begin
         "s" => [Vs[1],Vs[2],Vs[3],Vs[4]]
         "t" => [Vs[1],Vs[4],Vs[3],Vs[2]]
         "u" => [Vs[1],Vs[3],Vs[2],Vs[4]]
     end
-
-    return FourPointCorrelation(Vs)
+    return FourPointCorrelation(corr.charge, Vs)
 end
 
 """Order of a pole of Rmn, assuming the central charge is generic"""
 function Rmn_zero_order(m, n, B, corr::FourPointCorrelation, channel)
 
     order=0
-    V=permute_ext_fields(corr, channel).Fields
+    V=permute_ext_fields(corr, channel).fields
     r=[V[i].r for i in 1:4]
     s=[V[i].s for i in 1:4]
 
@@ -102,13 +110,15 @@ function helper_Rmn(δ1, δ2, δ3, δ4, r, s, B)
 end
 
 """
-Compute `Rmn`. Assume for now there is no singularity.
+Compute `Rmn`.
 lr indicates the left or right moving parts of the fields
+Cache the result.
 TODO: value of regularisation
 """
-function Rmn(m::Int, n::Int, B, corr::FourPointCorrelation, channel, lr)
+@memoize function Rmn(m, n, corr::FourPointCorrelation, channel, lr)
 
-    Vs=permute_ext_fields(corr, channel).Fields
+    B = corr.charge["B"]
+    Vs = permute_ext_fields(corr, channel).fields
     δ1 = Vs[1]["δ"][lr]
     δ2 = Vs[2]["δ"][lr]
     δ3 = Vs[3]["δ"][lr]
@@ -116,7 +126,6 @@ function Rmn(m::Int, n::Int, B, corr::FourPointCorrelation, channel, lr)
 
     if Rmn_zero_order(m, n, B, corr, channel) > 0
         return 0
-
     else
         if m == 1
             res = prod(helper_Rmn(δ1, δ2, δ3, δ4, 0, s, B) for s in 1-n:2:0)
@@ -124,7 +133,7 @@ function Rmn(m::Int, n::Int, B, corr::FourPointCorrelation, channel, lr)
             res = prod(prod(helper_Rmn(δ1, δ2, δ3, δ4, r, s, B) 
                             for s in 1-n:2:n-1) for r in 1-m:2:-1)
             if m%2 == 1 # m odd -> treat r=0 term separately
-                res * prod(helper_Rmn(δ1, δ2, δ3, δ4, 0, s, B) for s in 1-n:2:0)
+                res *= prod(helper_Rmn(δ1, δ2, δ3, δ4, 0, s, B) for s in 1-n:2:0)
             end
         end
     end
@@ -132,11 +141,82 @@ function Rmn(m::Int, n::Int, B, corr::FourPointCorrelation, channel, lr)
     return res/(2*Dmn(m, n, B))
 end
 
-function computeCNmn(N, m, n, B, corr::FourPointCorrelation, channel, lr)
-    res = sum(sum(CNmn(N-m*n, mp, np, B, corr, channel, lr)/(δrs(m, -n, B) - δrs(mp, np, B)) 
-                  for mp in 1:N-m*n if mp*np <= N-m*n) 
-              for mp in 1:N-m*n)
-    return Rmn(m, n, B, corr, channel, lr) * ((N-m*n==0)+res)
+@memoize function computeCNmn(N, m, n, corr::FourPointCorrelation, channel, lr)
+    B = corr.charge["B"]
+    if Rmn_zero_order(m, n, B, corr, channel) > 0
+        return 0
+    elseif m*n > N
+        return 0
+    elseif m*n == N
+        return Rmn(m, n, corr, channel, lr)
+    else
+        res = sum(sum(computeCNmn(N-m*n, mp, np, corr, channel, lr)/(δrs(m, -n, B) - δrs(mp, np, B)) 
+                      for mp in 1:N-m*n if mp*np <= N-m*n) 
+                  for np in 1:N-m*n)
+        return Rmn(m, n, corr, channel, lr) * res
+    end
+end
+
+end # end module
+
+
+
+
+
+
+module OnePointCorrelationFunctions
+
+export OnePointCorrelation, computeCNmn
+
+using ..CFTData
+import ..FourPointCorrelationFunctions: Dmn, δrs # re-use the Dmn from four-point functions
+
+struct OnePointCorrelation{T}
+    field::Field{T}
+end
+
+"""Display a one-point function"""
+ function Base.show(io::IO, corr::OnePointCorrelation)
+    println("One-point correlation function: < V > where ")
+    print("V = "); show(corr.field)
+end
+
+"""Order of a pole of Rmn^torus, assuming the central charge is generic"""
+function Rmn_zero_order(m, n, B, corr::OnePointCorrelation)
+    V = corr.field
+    if V.isKac && V.r%2==1 && V.s%2==1 && abs(V.r) <= 2*m-1 && abs(V.s) <= 2*n-1
+        return 1
+    end
+    return 0
+end
+
+"""
+Compute `Rmn^torus`.
+lr indicates the left or right moving parts of the fields
+TODO: value of regularisation
+"""
+function Rmn(m, n, B, corr::OnePointCorrelation, channel, lr)
+
+    V=corr.field
+    δ1 = Vs[1]["δ"][lr]
+
+    if Rmn_zero_order(m, n, B, corr) > 0
+        return 0
+    else
+        res = prod(prod(δrs(r, s, B) - δ1 for r in 1:2:2*m-1) for s in 1-2n:2:2n-1)
+        return res/(2*Dmn(m, n, B))
+    end
+end
+
+function computeCNmn(N, m, n, B, corr::OnePointCorrelation, lr)
+    if Rmn_zero_order(m, n, B, corr) > 0
+        return 0
+    else
+        res = sum(sum(computeCNmn(N-m*n, mp, np, B, corr, lr)/(δrs(m, -n, B)-δrs(mp, np, B)) 
+                      for mp in 1:N-m*n if mp*np <= N-m*n) 
+                  for mp in 1:N-m*n)
+        return Rmn(m, n, B, corr, channel, lr) * ((N-m*n==0)+res)
+    end
 end
 
 end # end module

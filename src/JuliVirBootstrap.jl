@@ -21,6 +21,9 @@ include("CorrelationFunctions.jl")
 using .FourPointCorrelationFunctions
 export FourPointCorrelation
 
+using .OnePointCorrelationFunctions
+export OnePointCorrelation
+
 #===========================================================================================
 Conformal blocks
 ===========================================================================================#

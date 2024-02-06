@@ -291,14 +291,14 @@ function Base.show(io::IO,::MIME"text/latex", field::Field,parameter)
     end
 end
 
-function Base.show(io::IO, arr::Vector{Field{T}}) where {T}
-    println(io, "Vector{Field{$T}} with $(length(arr)) elements:")
-    for (index, field) in enumerate(arr)
-        print(io, "$(index): ")
-        show(io, field)
-        println()
-    end
-end
+# function Base.show(io::IO, arr::Vector{Field{T}}) where {T}
+#     println(io, "Vector{Field{$T}} with $(length(arr)) elements:")
+#     for (index, field) in enumerate(arr)
+#         print(io, "$(index): ")
+#         show(io, field)
+#         println()
+#     end
+# end
 
 """Overload []"""
 Base.getindex(field::Field,key) = field.values[key];

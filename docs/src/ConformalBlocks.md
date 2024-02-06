@@ -6,13 +6,6 @@ It uses structures from [CFTdata.jl](CFTData.md).
 
 ## Four-point conformal blocks on the sphere
 
-The module `FourPointFunctions` defines
-* a struct `FourPointCorrelator` that represents a four point function
-$$
-< V_1(0) V_2(1) V_3(\infty) V_4(x)>
-$$
-* a method compute CNmn that computes the coefficients CNmn entering the expression of conformal blocks in Zamolodchikov's recursion.
-
 The module `FourPointBlocksSphere` exports
 
 * a struct `FourPointBlockSphere` that encapsulates the data needed to compute a 4pt conformal block, namely a channel, four external fields and the field propagating in the channel
@@ -176,14 +169,4 @@ where $\eta$ is the Dedekind eta function, $q$ is related to the torus' modular 
 
 $$
 H^\text{torus}_{\Delta}(\Delta_1|q) = 1 + \sum_{N=1}^{N_{max}} \sum_{mn\leq N} C_{m,n}^{N,\text{torus}} \frac{q^N}{\delta-\delta_{(m,n)}}
-$$
-The coefficient $C_{m,n}^{N,\text{torus}}$ has the recursive representation
-$$
-C^{N,\text{torus}}_{m,n} = R^{\text{torus}}_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
-$$
-
-where the coefficients $R_{mn}^{\text{torus}}$ can be computed from the formula in this [wikipedia article](https://en.wikipedia.org/wiki/Virasoro_conformal_block):
-
-$$
-R_{mn}^{\text{torus}} = \frac{1}{2 D_{m,n}} \prod_{r=1-2m}
 $$

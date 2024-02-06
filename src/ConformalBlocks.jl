@@ -19,7 +19,7 @@ module FourPointBlocksSphere
 export FourPointBlockSphere, F_four_point_sphere
 
 using ..CFTData, ..FourPointCorrelationFunctions
-using Match, EllipticFunctions, Memoize
+using Match, EllipticFunctions, Memoization
 
 
 #===========================================================================================
@@ -35,18 +35,8 @@ struct FourPointBlockSphere{T}
 
     channel::String
     channelField::Field{T}
-    extFields::Vector{Field{T}}
+    extFields::FourPointCorrelation{T}
 
-end
-
-"""
-    FourPointBlockSphere(channel, channelField::Field{T}, extFields::Vector{Field{T}})
-
-Constructor function for the type FourPointBlockSphere.
-"""
-function FourPointBlockSphere(channel, channelField, extFields)
-    T = typeof(channelField.values["Δ"][1])
-    return FourPointBlockSphere{T}(channel, channelField, extFields)
 end
 
 """Display blocks"""
@@ -89,7 +79,7 @@ function crossratio(channel, x)
 end
 
 """Permute the external fields to get t- or u-channel blocks from s-channel block"""
-function permute_ext_fields(block)
+function permute_ext_fields(block::FourPointBlockSphere)
     Vs = block.extFields
     Vs = @match block.channel begin
         "s" => [Vs[1],Vs[2],Vs[3],Vs[4]]
@@ -121,27 +111,48 @@ function blockprefactor(block::FourPointBlockSphere, charge::CentralCharge, x, l
     return x^e0 * (1-x)^e1 * jtheta3(0,q)^(-4*e2) * (16*q)^block.channelField[δ][1]
 end
 
-function H(q, δ, Nmax, block::FourPointBlockSphere, lr) 
-    1 + sum(sum(sum(CNmn(N, m, n, B, block, lr) * (16q)^N/(δ - δrs(m, n, B))
-                    for n in 1:N if m*n <= N) for m in 1:N) for N in 1:Nmax)
-end
-
 #===========================================================================================
 Compute the conformal block
 ===========================================================================================#
-function Fs_chiral(block::FourPointBlockSphere, charge::CentralCharge, x, lr)
-    blockprefactor(block, charge, x, lr) * H(q, δ, Nmax, block, lr) 
+function H(q, Nmax, block::FourPointBlockSphere, lr)
+    res=0
+    δ = block.channelField["δ"][lr]
+    for N in 1:Nmax
+        for m in 1:N
+            for n in 1:N
+                if m*n <= N && computeCNmn(N, m, n, B, block, block.channel, lr) != 0
+                    res += computeCNmn(N, m, n, B, block, lr) * (16*q)^N/(δ-δrs(m, n, B))
+                end
+            end
+        end
+    end
 end
 
+"""Compute the chiral conformal block 
+
+``\\mathcal F^{(s)}_{\\delta}(x)``
+
+"""
+function Fs_chiral(block::FourPointBlockSphere, charge::CentralCharge, x, lr)
+    blockprefactor(block, charge, x, lr) * H(qfromx(x), Nmax, block, lr) 
+end
+
+"""Compute the chiral conformal block
+
+``\\mathcal F^{(\\text{chan})}_{\\delta}(x)`` 
+
+where `chan` is `s`, `t`, or `u`."""
 function F_chiral(block::FourPointBlockSphere, charge::CentralCharge, x, lr)
     Fs_chiral(permute_ext_fields(block), charge, crossratio(block.channel, x), lr)
 end
 
 """
 Compute the non-chiral conformal block
-```math
-\\mathcal F_{\\Delta}^{(c)}(\\Delta_i| x) where `c` is `s`,`t` or `u`
-```
+
+``\\mathcal F_{\\Delta}^{(\\text{chan})}(\\Delta_i| x)``
+
+where `chan` is `s`,`t` or `u`.
+
 TODO: logarithmic blocks
 """
 function F_four_point_sphere(block::FourPointBlockSphere, charge::CentralCharge, x)
@@ -158,7 +169,7 @@ Series expansion of one-point blocks on the torus
 """
 module OnePointBlocksTorus
 
-using ..CFTData
+using ..CFTData, ..OnePointCorrelationFunctions
 
 export F_one_point_torus
 
@@ -166,7 +177,7 @@ export F_one_point_torus
 Struct containing the data required to compute a block: an external field
 ===========================================================================================#
 struct OnePointBlockTorus{T}
-    extField::Field{T}
+    extField::OnePointCorrelation{T}
 end
 
 # explicit names for the indices of left and right dimensions
@@ -174,18 +185,32 @@ const left = 1
 const right = 2
 
 
-
 #===========================================================================================
 Compute the conformal block
 ===========================================================================================#
+function H(q, Nmax, block::OnePointBlockTorus, lr)
+    δ = block.extField["δ"][lr]
+    res=0
+    for N in 1:Nmax
+        for m in 1:N
+            for n in 1:N
+                if m*n <= N && computeCNmn(N, m, n, B, block.extField, lr)
+                end
+            end
+        end
+    end
+end
+
 function F_chiral(block::OnePointBlockTorus, charge::CentralCharge, x, lr)
 end
 
 """
 Compute the non-chiral conformal block
-```math
-\\mathcal F_{\\Delta}^{(c)}(\\Delta_i| x) where `c` is `s`,`t` or `u`
-```
+
+`` \\mathcal F_{\\Delta}^{(\\text{chan})}(\\Delta_i| x)``
+
+where ``\\text{chan}`` is `s`,`t` or `u`.
+
 TODO: logarithmic blocks
 """
 function F_one_point_torus(block::OnePointBlockTorus, charge::CentralCharge, x)
