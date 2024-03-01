@@ -1,6 +1,6 @@
 # Conformal Field Theory data
 
-The file CFTdata.jl contains types representing objects in CFTs:
+The file [CFTdata.jl](../../src/CFTData.jl) contains types representing objects in CFTs:
 
 * the central charge
 * fields

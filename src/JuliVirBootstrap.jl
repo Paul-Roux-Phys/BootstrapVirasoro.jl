@@ -1,6 +1,6 @@
 #===========================================================================================
 
-Written by Paul Roux, adapting a Python code written by Sylvain Ribault & Rongvoram 
+Written by Paul Roux, adapting a Python code written by Sylvain Ribault & Rongvoram
 Nivesvivat
 
 ===========================================================================================#

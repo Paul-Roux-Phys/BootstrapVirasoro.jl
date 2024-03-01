@@ -1,13 +1,12 @@
-#==================
+#===========================================================================================
 
 CFTData.jl contains a module CFTData that provides types representing
 central charges and fields in 2D CFTs with Virasoro symmetry.
 
-Written by Paul Roux, adapting a Python code written by Sylvain Ribault & Rongvoram 
+Written by Paul Roux, adapting a Python code written by Sylvain Ribault & Rongvoram
 Nivesvivat
 
-==================#
-
+============================================================================================#
 
 """
 Provides types representing central charges and fields in CFT.
@@ -22,16 +21,6 @@ export CentralCharge, Field
 function Base.show(io::IO,::MIME"text/latex",z::Complex)
     print("$(real(z)) + $(imag(z))i")
 end
-
-#===========================================================================================
-Central charges
-===========================================================================================#
-
-#=  
-    The central charge can be given directly or as a function of b,β,B. No matter what
-    parameter is passed we compute B from it, then b,β,c. 
-    We ensure that the relation between b and beta never changes (sqrt branch). 
-=#
 
 """Get B from given parameter"""
 function Bfrom(parameter, value)
@@ -61,7 +50,7 @@ Contains the values of the 4 parameters representing it.
 struct CentralCharge{T}
 
     #= T is the type of the parameters; either Complex{Float64} or Complex{BigFloat}
-       for arbitrary precision. =#
+    for arbitrary precision. =#
     values::Dict{String, T}
 
 end
@@ -74,7 +63,7 @@ Constructor function for the CentralCharge type.
 Given one of the four parameters `"c"`, `"b"`, `"β"`, `"B"` and its value,
 creates an object CentralCharge{T} where T is the type of `value`.
 
-#Example
+# Example
 ```julia-repl
 julia> setprecision(BigFloat, 20, base=10)
 julia> charge = CentralCharge("β", sqrt(big(2)))
@@ -95,7 +84,7 @@ end
 
 """Display an object of type CentralCharge"""
 function Base.show(io::IO, charge::CentralCharge)
-    println("Central charge :")
+    println("Central charge:")
     for (key, value) in charge.values
         println(io, "$key = $value")
     end
@@ -113,12 +102,6 @@ end
 
 """Overload of [] to access values in charge"""
 Base.getindex(charge::CentralCharge, key) = charge.values[key];
-
-
-
-#===========================================================================================
-Fields
-===========================================================================================#
 
 """Get p from any given parameter"""
 function p_from(parameter, value, charge::CentralCharge)
@@ -142,7 +125,7 @@ end
 
 """
     Field{T}
-Object representing a conformal field. 
+Object representing a conformal field.
 Contains the values of the 4 parameters `"Δ"`,`"δ"`,`"P"`,`"p"` for its conformal dimension,
 and flags saying whether the field is in the Kac table, degenerate, logarithmic or diagonal.
 """
@@ -163,23 +146,23 @@ end
 
 Constructor function for the Field type.
 
-Given a charge `charge`, one of the four parameters `"Δ"`, `"δ"`, `"P"`, `"p"` and two values, 
-create an object Field{T} (where T is the type of the values in `charge`) that represents a 
-field of left and right dimensions given by leftvalue and rightvalue in the chosen 
+Given a charge `charge`, one of the four parameters `"Δ"`, `"δ"`, `"P"`, `"p"` and two values,
+create an object Field{T} (where T is the type of the values in `charge`) that represents a
+field of left and right dimensions given by leftvalue and rightvalue in the chosen
 parametrisation.
 
-# keyword arguments: 
+# keyword arguments:
 
-* `Kac::Bool`: if set to true, the field can be constructed from the values of its r and s 
+- `Kac::Bool`: if set to true, the field can be constructed from the values of its r and s
 indices,
-* `r::Rational`,`s::Rational`: used in conjunction to `Kac=true`, must be given rational 
+- `r::Rational`,`s::Rational`: used in conjunction to `Kac=true`, must be given rational
 values,
-* `logarithmic::Bool`: set to True if the field is logarithmic,
-* `degenerate::Bool`: set to True if the field is degenerate,
-* `diagonal::Bool`: set to True to get a diagonal field ; only the leftvalue needs to be 
+- `logarithmic::Bool`: set to True if the field is logarithmic,
+- `degenerate::Bool`: set to True if the field is degenerate,
+- `diagonal::Bool`: set to True to get a diagonal field ; only the leftvalue needs to be
 given.
 
-#Examples
+# Examples
 ```julia-repl
 julia> charge = CentralCharge("b", big(0.5));
 julia> field = Field(charge, Kac=true, r=0, s=1)
@@ -214,7 +197,7 @@ function Field(
     leftvalue = 0, rightvalue = 0;
     Kac = false, r = 0, s = 0,
     logarithmic = false, degenerate = false, diagonal = false
-)
+    )
 
     T=typeof(charge.values["c"])   #dimensions have the same type as central charges
     if degenerate
@@ -229,9 +212,9 @@ function Field(
     if diagonal
         pright = pleft
     end
-    values = Dict(key => p_to.(key, [pleft, pright], Ref(charge)) 
-                    for key in ("Δ", "δ", "P", "p")
-                 )
+    values = Dict(key => p_to.(key, [pleft, pright], Ref(charge))
+                  for key in ("Δ", "δ", "P", "p")
+                      )
     Field{complex(T)}(values, Kac, r, s, degenerate, logarithmic, diagonal)
 end
 
@@ -262,7 +245,7 @@ function Base.show(io::IO,field::Field)
         end
         println("(left, right) dimensions:")
         for (key, value) in field.values
-                println(io, "  $key = ($(value[1]), $(value[2]))")
+            println(io, "  $key = ($(value[1]), $(value[2]))")
         end
     end
 end
