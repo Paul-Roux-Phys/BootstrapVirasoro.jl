@@ -168,6 +168,7 @@ using ..CFTData
 import ..FourPointCorrelationFunctions: Dmn, δrs # re-use the Dmn from four-point functions
 
 struct OnePointCorrelation{T}
+    charge::CentralCharge{T}
     field::Field{T}
 end
 

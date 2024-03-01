@@ -129,15 +129,7 @@ function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
     for N in 1:Nmax
         sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
                          for n in 1:N if m*n <= N) for m in 1:N)
-        # for m in 1:N
-        #     for n in 1:N
-        #         C = @memoize computeCNmn(N, m, n, corr, block.channel, lr)
-        #         if m*n <= N && C != 0
-        #             sum_mn += C*pow/(δ-δrs(m, n, B))
-        #         end
-        #     end
-        # end
-        pow *= 16*q
+        pow *= sq
         res += pow * sum_mn
     end
     return res
@@ -146,7 +138,7 @@ end
 """
     Fs_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
 
-    Compute the chiral conformal block
+Compute the chiral conformal block
 
 ``\\mathcal F^{(s)}_{\\delta}(x)``
 
@@ -188,6 +180,7 @@ Series expansion of one-point blocks on the torus
 module OnePointBlocksTorus
 
 using ..CFTData, ..OnePointCorrelationFunctions
+import EllipticFunctions: etaDedekind as η
 
 export F_one_point_torus
 
@@ -195,35 +188,44 @@ export F_one_point_torus
 Struct containing the data required to compute a block: an external field
 ===========================================================================================#
 struct OnePointBlockTorus{T}
-    extField::OnePointCorrelation{T}
+    channelField::Field{T}
 end
 
 # explicit names for the indices of left and right dimensions
 const left = 1
 const right = 2
 
+qfromtau(τ) = exp(2im*π*τ)
+
 #===========================================================================================
 Compute the conformal block
 ===========================================================================================#
-function H(q, Nmax, block::OnePointBlockTorus, lr)
-    δ = block.extField["δ"][lr]
-    res=1
-    prev=0
-    next=0
+"""Compute the function  ``H^{\text{torus}}(q,δ)``."""
+function H(q, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
+    δ = block.channelField["δ"][lr]
+    B = corr.charge["B"]
+    res = 1
+    pow = 1
     for N in 1:Nmax
-        for m in 1:N
-            for n in 1:N
-                C = computeCNmn(N, m, n, block.extField, lr)
-                if m*n <= N && C != 0
-                    res += C*1
-                end
-            end
-        end
+        sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
+                         for n in 1:N if m*n <= N) for m in 1:N)
+        pow *= q
+        res += pow * sum_mn
     end
     return res
 end
 
-function F_chiral(block::OnePointBlockTorus, charge::CentralCharge, x, lr)
+"""
+    Fs_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
+
+Compute the chiral conformal block
+
+``\\mathcal F^{\text{torus}}_{\\delta}(x)``
+
+"""
+function F_chiral(τ, Nmax, block::OnePointBlockTorus, corr::FourPointCorrelation, lr)
+    δ = block.channelField["δ"][lr]
+    return q^{δ}/η(τ) * H(qfromtau(τ), Nmax, block, corr, lr)
 end
 
 """
@@ -235,9 +237,8 @@ where ``\\text{chan}`` is `s`,`t` or `u`.
 
 TODO: logarithmic blocks
 """
-function F_one_point_torus(block::OnePointBlockTorus, charge::CentralCharge, x)
-    channelprefactor(block, x) * Fchiral(block, charge, x, left) * \
-        conj(Fchiral(block, charge, conj(x), right))
+function F_one_point_torus(τ, Nmax, block::OnePointBlockTorus, corr::FourPointCorrelation)
+    F_chiral(τ, Nmax, block, corr, left) * conj(F_chiral(conj(τ), Nmax, block, corr, right))
 end
 
 end # end module

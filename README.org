@@ -1360,7 +1360,7 @@ using JuliVirBootstrap
 #+end_src
 
 #+begin_src julia
-using JuliVirBootstrap, BenchmarkTools, EllipticFunctions, Profile, ProfileView
+using JuliVirBootstrap, BenchmarkTools, EllipticFunctions
 import Memoization: @memoize
 
 left=1;
