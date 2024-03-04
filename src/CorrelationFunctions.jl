@@ -192,9 +192,9 @@ Compute `Rmn^torus`.
 lr indicates the left or right moving parts of the fields
 TODO: value of regularisation
 """
-function Rmn(m, n, B, corr::OnePointCorrelation, channel, lr)
+function Rmn(m, n, B, corr::OnePointCorrelation, lr)
     V=corr.field
-    δ1 = Vs[1]["δ"][lr]
+    δ1 = V["δ"][lr]
 
     if Rmn_zero_order(m, n, B, corr) > 0
         return 0
@@ -207,11 +207,15 @@ end
 function computeCNmn(N, m, n, B, corr::OnePointCorrelation, lr)
     if Rmn_zero_order(m, n, B, corr) > 0
         return 0
+    elseif m*n > N
+        return 0
+    elseif m*n == N
+        return Rmn(m, n, B, corr, lr)
     else
         res = sum(sum(computeCNmn(N-m*n, mp, np, B, corr, lr)/(δrs(m, -n, B)-δrs(mp, np, B))
                       for mp in 1:N-m*n if mp*np <= N-m*n)
-                  for mp in 1:N-m*n)
-        return Rmn(m, n, B, corr, channel, lr) * ((N-m*n==0)+res)
+                  for np in 1:N-m*n)
+        return Rmn(m, n, B, corr, lr) * ((N-m*n==0)+res)
     end
 end
 

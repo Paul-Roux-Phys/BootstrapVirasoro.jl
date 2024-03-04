@@ -32,7 +32,7 @@ using .FourPointBlocksSphere
 export FourPointBlockSphere, F_four_point_sphere
 
 using .OnePointBlocksTorus
-export OnePointBlocksTorus, F_one_point_torus
+export OnePointBlockTorus, F_one_point_torus
 
 
 #===========================================================================================

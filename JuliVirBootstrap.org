@@ -1,4 +1,4 @@
-#+title: JuliVirBootstrap Documentation  
+/com#+title: JuliVirBootstrap Documentation
 #+author: Paul ROUX
 #+setupfile: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 #+options: toc:3 num:1
@@ -67,7 +67,7 @@ using .FourPointBlocksSphere
 export FourPointBlockSphere, F_four_point_sphere
 
 using .OnePointBlocksTorus
-export OnePointBlocksTorus, F_one_point_torus
+export OnePointBlockTorus, F_one_point_torus
 
 
 #===========================================================================================
@@ -487,6 +487,7 @@ R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}}
 
 where we do not actually take square roots, because each factor appears twice, except the \((r,s)=(0,0)\) factor which is however a perfect square. The normalization factor is
 
+#+name: Dmn
 \[
 D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
 \prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
@@ -715,10 +716,9 @@ An expression for the \(R_{m,n}^{\text{torus}}\) can be found on [[https://en.wi
 
 \[
 R_{m,n}^{\text{torus}} = \frac{1}{2 D_{m,n}} \prod_{r\overset2=1-2m}^{2m-1} \prod_{s\overset2=1-2n}^{2n-1} \sqrt{\delta_{(r,s)} - \delta_1}
-\] 
+\]
 
-where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the [[#four-point-correlation-functions-on-the-sphere][four-point]] case.
-
+where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the [[Dmn][four point]] case.
 
 *** The =OnePointCorrelationFunctions= module
 
@@ -774,9 +774,9 @@ Compute `Rmn^torus`.
 lr indicates the left or right moving parts of the fields
 TODO: value of regularisation
 """
-function Rmn(m, n, B, corr::OnePointCorrelation, channel, lr)
+function Rmn(m, n, B, corr::OnePointCorrelation, lr)
     V=corr.field
-    δ1 = Vs[1]["δ"][lr]
+    δ1 = V["δ"][lr]
 
     if Rmn_zero_order(m, n, B, corr) > 0
         return 0
@@ -789,11 +789,15 @@ end
 function computeCNmn(N, m, n, B, corr::OnePointCorrelation, lr)
     if Rmn_zero_order(m, n, B, corr) > 0
         return 0
+    elseif m*n > N
+        return 0
+    elseif m*n == N
+        return Rmn(m, n, B, corr, lr)
     else
         res = sum(sum(computeCNmn(N-m*n, mp, np, B, corr, lr)/(δrs(m, -n, B)-δrs(mp, np, B))
                       for mp in 1:N-m*n if mp*np <= N-m*n)
-                  for mp in 1:N-m*n)
-        return Rmn(m, n, B, corr, channel, lr) * ((N-m*n==0)+res)
+                  for np in 1:N-m*n)
+        return Rmn(m, n, B, corr, lr) * ((N-m*n==0)+res)
     end
 end
 #+end_src
@@ -1150,9 +1154,6 @@ end # end module
 #+end_src
 
 ** One-point conformal blocks on the torus
-:PROPERTIES:
-:CUSTOM_ID: one-point-conformal-blocks-on-the-torus
-:END:
 
 *** One point blocks on the torus
 :PROPERTIES:
@@ -1190,9 +1191,9 @@ Series expansion of one-point blocks on the torus
 module OnePointBlocksTorus
 
 using ..CFTData, ..OnePointCorrelationFunctions
-import EllipticFunctions: etaDedekind as η
+import EllipticFunctions: etaDedekind as η,
 
-export F_one_point_torus
+export OnePointBlockTorus, F_one_point_torus
 
 #===========================================================================================
 Struct containing the data required to compute a block: an external field
@@ -1211,18 +1212,21 @@ const right = 2
 #+begin_src julia
 
 qfromtau(τ) = exp(2im*π*τ)
+δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
 #===========================================================================================
 Compute the conformal block
 ===========================================================================================#
-"""Compute the function  ``H^{\text{torus}}(q,δ)``."""
+"""
+    H(q, Nmax, block, corr, leftright)
+Compute the function  ``H^{\\text{torus}}(q,δ)``."""
 function H(q, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
     δ = block.channelField["δ"][lr]
     B = corr.charge["B"]
     res = 1
     pow = 1
     for N in 1:Nmax
-        sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
+        sum_mn = sum(sum(computeCNmn(N, m, n, B, corr, lr)/(δ-δrs(m, n, B))
                          for n in 1:N if m*n <= N) for m in 1:N)
         pow *= q
         res += pow * sum_mn
@@ -1238,9 +1242,9 @@ Compute the chiral conformal block
 ``\\mathcal F^{\text{torus}}_{\\delta}(x)``
 
 """
-function F_chiral(τ, Nmax, block::OnePointBlockTorus, corr::FourPointCorrelation, lr)
+function F_chiral(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
     δ = block.channelField["δ"][lr]
-    return q^{δ}/η(τ) * H(qfromtau(τ), Nmax, block, corr, lr)
+    return q^δ/η(τ) * H(qfromtau(τ), Nmax, block, corr, lr)
 end
 
 """
@@ -1252,7 +1256,7 @@ where ``\\text{chan}`` is `s`,`t` or `u`.
 
 TODO: logarithmic blocks
 """
-function F_one_point_torus(τ, Nmax, block::OnePointBlockTorus, corr::FourPointCorrelation)
+function F_one_point_torus(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation)
     F_chiral(τ, Nmax, block, corr, left) * conj(F_chiral(conj(τ), Nmax, block, corr, right))
 end
 #+end_src
@@ -1351,17 +1355,18 @@ end
 
 * Development tests
 :PROPERTIES:
-:header-args:julia: :results silent :session test
+:header-args:julia: :tangle ./test/devtests.jl :session test
 :END:
 
-#+begin_src julia
+#+begin_src julia :results silent
 import Pkg; Pkg.activate(".")
 using JuliVirBootstrap
 #+end_src
 
+#+RESULTS:
+
 #+begin_src julia
 using JuliVirBootstrap, BenchmarkTools, EllipticFunctions
-import Memoization: @memoize
 
 left=1;
 right=2;
@@ -1381,13 +1386,16 @@ function test()
 end;
 #+end_src
 
-#+begin_src julia :results output :exports results
+#+RESULTS:
+
+#+begin_src julia :results output
 @btime test()
 #+end_src
 
 #+RESULTS:
-:   1.072 ms (14067 allocations: 780.81 KiB)
+:   1.050 ms (14047 allocations: 779.80 KiB)
 : 2337.403601860713925958391009719678809055546365124340617423994215164154638728732 + 4771.392251761078219452023733430973991671048305871845481326523306698785531079742im
+
 
 ** Relation between four-point blocks on the sphere and one-point blocks on the torus
 
@@ -1406,10 +1414,32 @@ import JuliVirBootstrap.FourPointBlocksSphere.qfromx
 c_torus = CentralCharge("b", big(1.2+.1*1im));
 c_sphere = CentralCharge("b", big(1.2+.1*1im)/sqrt(2))
 
+q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
+
 P = 0.23+.11im
-P1 = 0.41 + 1.03im
-V_torus_ext = Field(c1, "P",  0.23+.11im, diagonal=true)
-V_torus_chan = Field(c1, Kac = true, r=0, s=1/2)
+P1 = 0.41+1.03im
+V_torus_ext = Field(c_torus, "P", P, diagonal=true)
+V_torus_chan = Field(c_torus, "P", P1, diagonal=true)
+corr_torus = OnePointCorrelation
 
+VP_sphere = Field(c_sphere, "P", sqrt(2)*P, diagonal=true)
+VP1_sphere = Field(c_sphere, "P", P1/sqrt(2), diagonal=true)
+VPKac_sphere = Field(c_sphere, Kac=true, r=0, s=1//2, diagonal=true)
 
+corr_torus = OnePointCorrelation(c_torus, V_torus_ext)
+block_torus = OnePointBlockTorus(V_torus_chan)
+
+corr_sphere = FourPointCorrelation(c_sphere, [VPKac_sphere, VP1_sphere, VPKac_sphere,VPKac_sphere])
+block_sphere = FourPointBlockSphere("s", VP_sphere)
+
+JuliVirBootstrap.OnePointCorrelationFunctions.computeCNmn(5, 1, 1, c_torus["B"], corr_torus, left)
+
+h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
+# h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+
+# println("torus block = $h1")
+# println("sphere block = $h2")
 #+end_src
+
+#+RESULTS:
+: nil

@@ -182,7 +182,7 @@ module OnePointBlocksTorus
 using ..CFTData, ..OnePointCorrelationFunctions
 import EllipticFunctions: etaDedekind as η
 
-export F_one_point_torus
+export OnePointBlockTorus, F_one_point_torus
 
 #===========================================================================================
 Struct containing the data required to compute a block: an external field
@@ -196,18 +196,21 @@ const left = 1
 const right = 2
 
 qfromtau(τ) = exp(2im*π*τ)
+δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
 #===========================================================================================
 Compute the conformal block
 ===========================================================================================#
-"""Compute the function  ``H^{\text{torus}}(q,δ)``."""
+"""
+    H(q, Nmax, block, corr, leftright)
+Compute the function  ``H^{\\text{torus}}(q,δ)``."""
 function H(q, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
     δ = block.channelField["δ"][lr]
     B = corr.charge["B"]
     res = 1
     pow = 1
     for N in 1:Nmax
-        sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
+        sum_mn = sum(sum(computeCNmn(N, m, n, B, corr, lr)/(δ-δrs(m, n, B))
                          for n in 1:N if m*n <= N) for m in 1:N)
         pow *= q
         res += pow * sum_mn
@@ -223,9 +226,9 @@ Compute the chiral conformal block
 ``\\mathcal F^{\text{torus}}_{\\delta}(x)``
 
 """
-function F_chiral(τ, Nmax, block::OnePointBlockTorus, corr::FourPointCorrelation, lr)
+function F_chiral(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
     δ = block.channelField["δ"][lr]
-    return q^{δ}/η(τ) * H(qfromtau(τ), Nmax, block, corr, lr)
+    return q^δ/η(τ) * H(qfromtau(τ), Nmax, block, corr, lr)
 end
 
 """
@@ -237,7 +240,7 @@ where ``\\text{chan}`` is `s`,`t` or `u`.
 
 TODO: logarithmic blocks
 """
-function F_one_point_torus(τ, Nmax, block::OnePointBlockTorus, corr::FourPointCorrelation)
+function F_one_point_torus(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation)
     F_chiral(τ, Nmax, block, corr, left) * conj(F_chiral(conj(τ), Nmax, block, corr, right))
 end
 
