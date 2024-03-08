@@ -179,7 +179,8 @@ function Base.show(io::IO, corr::OnePointCorrelation)
 end
 
 """Order of a pole of Rmn^torus, assuming the central charge is generic"""
-function Rmn_zero_order(m, n, B, corr::OnePointCorrelation)
+function Rmn_zero_order(m, n, corr::OnePointCorrelation)
+    B = corr.charge["B"]
     V = corr.field
     if V.isKac && V.r%2==1 && V.s%2==1 && abs(V.r) <= 2*m-1 && abs(V.s) <= 2*n-1
         return 1
@@ -192,11 +193,11 @@ Compute `Rmn^torus`.
 lr indicates the left or right moving parts of the fields
 TODO: value of regularisation
 """
-function Rmn(m, n, B, corr::OnePointCorrelation, lr)
-    V=corr.field
+function Rmn(m, n, corr::OnePointCorrelation, lr)
+    B = corr.charge["B"]
+    V = corr.field
     δ1 = V["δ"][lr]
-
-    if Rmn_zero_order(m, n, B, corr) > 0
+    if Rmn_zero_order(m, n, corr) > 0
         return 0
     else
         res = prod(prod(δrs(r, s, B) - δ1 for r in 1:2:2*m-1) for s in 1-2n:2:2n-1)
@@ -204,18 +205,19 @@ function Rmn(m, n, B, corr::OnePointCorrelation, lr)
     end
 end
 
-function computeCNmn(N, m, n, B, corr::OnePointCorrelation, lr)
-    if Rmn_zero_order(m, n, B, corr) > 0
+function computeCNmn(N, m, n, corr::OnePointCorrelation, lr)
+    B = corr.charge["B"]
+    if Rmn_zero_order(m, n, corr) > 0
         return 0
     elseif m*n > N
         return 0
     elseif m*n == N
-        return Rmn(m, n, B, corr, lr)
+        return Rmn(m, n, corr, lr)
     else
-        res = sum(sum(computeCNmn(N-m*n, mp, np, B, corr, lr)/(δrs(m, -n, B)-δrs(mp, np, B))
+        res = sum(sum(computeCNmn(N-m*n, mp, np, corr, lr)/(δrs(m, -n, B)-δrs(mp, np, B))
                       for mp in 1:N-m*n if mp*np <= N-m*n)
                   for np in 1:N-m*n)
-        return Rmn(m, n, B, corr, lr) * ((N-m*n==0)+res)
+        return Rmn(m, n, corr, lr) * ((N-m*n==0)+res)
     end
 end
 

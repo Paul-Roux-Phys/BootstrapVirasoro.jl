@@ -1,4 +1,4 @@
-/com#+title: JuliVirBootstrap Documentation
+#+title: JuliVirBootstrap Documentation
 #+author: Paul ROUX
 #+setupfile: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 #+options: toc:3 num:1
@@ -119,13 +119,16 @@ We parametrise the dimensions in terms of \(P,p,\Delta,\delta\), related by
 \]
 
 The Kac parametrisation for conformal weights is
-\[ P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)\]
 
-where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in \mathbb Z\) and $rs>0$. In terms of \(r,s\), the dimension \(\Delta\) is written
+\[P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)\]
 
-\[
-\Delta_{(r,s)} = \frac14 B (1-r^2) + \frac12 (1-rs) + \frac14\frac{1-s^2}{B}
-\]
+Or equivalently
+
+\[p_{(r,s)} = -\frac{1}{2} (\beta r - \beta^{-1}s)\]
+
+where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in \mathbb Z\) and $rs > 0$. In terms of \(r,s\), the dimension \(\Delta\) is written
+
+\[\Delta_{(r,s)} = \frac14 B (1-r^2) + \frac12 (1-rs) + \frac14\frac{1-s^2}{B}\]
 
 This convention is consistent with the one in [[https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git][this code]] but differs from the one in [[https://arxiv.org/abs/2208.14298][this paper]].
 In our models, non-diagonal fields are written \(V_{(r,s)}\) and are parametrised by Kac indices \(r\),\(s\), with left and right conformal dimension \((P_{(r,s)},P_{(r,-s)})\).
@@ -357,8 +360,8 @@ function Field(
         Kac = true
     end
     if Kac
-        pleft = 1/2*(charge["b"]*r - 1/charge["b"]*s)
-        pright = 1/2*(charge["b"]*r + 1/charge["b"]*s)
+        pleft = -1/2*(charge["β"]*r - 1/charge["β"]*s)
+        pright = -1/2*(charge["β"]*r - 1/charge["β"]*s)
     else
         pleft, pright = p_from.(parameter, [leftvalue, rightvalue], Ref(charge))
     end
@@ -761,7 +764,8 @@ The computation of the $C^{N,\text{torus}}_{m,n}$ is very similar to that of the
 
 #+begin_src julia
 """Order of a pole of Rmn^torus, assuming the central charge is generic"""
-function Rmn_zero_order(m, n, B, corr::OnePointCorrelation)
+function Rmn_zero_order(m, n, corr::OnePointCorrelation)
+    B = corr.charge["B"]
     V = corr.field
     if V.isKac && V.r%2==1 && V.s%2==1 && abs(V.r) <= 2*m-1 && abs(V.s) <= 2*n-1
         return 1
@@ -774,11 +778,11 @@ Compute `Rmn^torus`.
 lr indicates the left or right moving parts of the fields
 TODO: value of regularisation
 """
-function Rmn(m, n, B, corr::OnePointCorrelation, lr)
-    V=corr.field
+function Rmn(m, n, corr::OnePointCorrelation, lr)
+    B = corr.charge["B"]
+    V = corr.field
     δ1 = V["δ"][lr]
-
-    if Rmn_zero_order(m, n, B, corr) > 0
+    if Rmn_zero_order(m, n, corr) > 0
         return 0
     else
         res = prod(prod(δrs(r, s, B) - δ1 for r in 1:2:2*m-1) for s in 1-2n:2:2n-1)
@@ -786,21 +790,24 @@ function Rmn(m, n, B, corr::OnePointCorrelation, lr)
     end
 end
 
-function computeCNmn(N, m, n, B, corr::OnePointCorrelation, lr)
-    if Rmn_zero_order(m, n, B, corr) > 0
+function computeCNmn(N, m, n, corr::OnePointCorrelation, lr)
+    B = corr.charge["B"]
+    if Rmn_zero_order(m, n, corr) > 0
         return 0
     elseif m*n > N
         return 0
     elseif m*n == N
-        return Rmn(m, n, B, corr, lr)
+        return Rmn(m, n, corr, lr)
     else
-        res = sum(sum(computeCNmn(N-m*n, mp, np, B, corr, lr)/(δrs(m, -n, B)-δrs(mp, np, B))
+        res = sum(sum(computeCNmn(N-m*n, mp, np, corr, lr)/(δrs(m, -n, B)-δrs(mp, np, B))
                       for mp in 1:N-m*n if mp*np <= N-m*n)
                   for np in 1:N-m*n)
-        return Rmn(m, n, B, corr, lr) * ((N-m*n==0)+res)
+        return Rmn(m, n, corr, lr) * ((N-m*n==0)+res)
     end
 end
 #+end_src
+
+#+RESULTS:
 
 **** End module
 
@@ -876,13 +883,13 @@ The non-trivial coefficient is the series
 H(q,\delta) = 1 + \sum_{N=1}^{N_{max}} \sum_{mn\leq N} C_{m,n}^N \frac{(16q)^N}{\delta-\delta_{(m,n)}}
 \]
 
-# <!-- If $R_{m,n}=0$, we compute a finite regularization of $R_{m,n}$. This is never used for computing chiral conformal blocks, but only for computing non-chiral logarithmic blocks. The regularization of vanishing factors is
+# If $R_{m,n}=0$, we compute a finite regularization of $R_{m,n}$. This is never used for computing chiral conformal blocks, but only for computing non-chiral logarithmic blocks. The regularization of vanishing factors is
 # $$
 # \left(\delta_2-\delta_1\right)_\text{reg} = 2p_2
 # $$
 # $$
 # \left((\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2\right)_\text{reg} = 8p_1p_2p_{(r,s)}
-# $$ -->
+# $$
 
 **** Changing channels
 
@@ -1054,7 +1061,7 @@ The nome $q$ is related to $x$ via
 q(x) = \exp(-\pi \frac{K(1-x)}{K(x)})
 \]
 
-where $K$ is the elliptic $K$ function. The inverse of this relation isKac
+where $K$ is the elliptic $K$ function. The inverse of this relation is
 
 \[
 x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
@@ -1156,9 +1163,6 @@ end # end module
 ** One-point conformal blocks on the torus
 
 *** One point blocks on the torus
-:PROPERTIES:
-:CUSTOM_ID: one-point-blocks-on-the-torus
-:END:
 
 A chiral one-point conformal block on the torus can be written as
 
@@ -1191,7 +1195,7 @@ Series expansion of one-point blocks on the torus
 module OnePointBlocksTorus
 
 using ..CFTData, ..OnePointCorrelationFunctions
-import EllipticFunctions: etaDedekind as η,
+import EllipticFunctions: etaDedekind as η
 
 export OnePointBlockTorus, F_one_point_torus
 
@@ -1226,7 +1230,7 @@ function H(q, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
     res = 1
     pow = 1
     for N in 1:Nmax
-        sum_mn = sum(sum(computeCNmn(N, m, n, B, corr, lr)/(δ-δrs(m, n, B))
+        sum_mn = sum(sum(computeCNmn(N, m, n, corr, lr)/(δ-δrs(m, n, B))
                          for n in 1:N if m*n <= N) for m in 1:N)
         pow *= q
         res += pow * sum_mn
@@ -1363,8 +1367,6 @@ import Pkg; Pkg.activate(".")
 using JuliVirBootstrap
 #+end_src
 
-#+RESULTS:
-
 #+begin_src julia
 using JuliVirBootstrap, BenchmarkTools, EllipticFunctions
 
@@ -1393,7 +1395,7 @@ end;
 #+end_src
 
 #+RESULTS:
-:   1.050 ms (14047 allocations: 779.80 KiB)
+:   1.046 ms (14047 allocations: 779.80 KiB)
 : 2337.403601860713925958391009719678809055546365124340617423994215164154638728732 + 4771.392251761078219452023733430973991671048305871845481326523306698785531079742im
 
 
@@ -1409,37 +1411,57 @@ where
 + $c'$ is related to $c$ via $\beta'=\frac\beta{\sqrt 2}$.
 + $P'$ denotes the Virasoro module with primary field of dimension $\Delta'(P') = \frac{c'-1}{24} - P'^{2}$
 
-#+begin_src julia
+#+begin_src julia :results silent
+import Pkg; Pkg.activate(".")
+using JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+
+left=1;
+right=2;
+
 import JuliVirBootstrap.FourPointBlocksSphere.qfromx
-c_torus = CentralCharge("b", big(1.2+.1*1im));
-c_sphere = CentralCharge("b", big(1.2+.1*1im)/sqrt(2))
+c_torus = CentralCharge("b", 1.2+.1*1im);
+c_sphere = CentralCharge("b", (1.2+.1*1im)/sqrt(2))
 
 q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
 
 P = 0.23+.11im
 P1 = 0.41+1.03im
-V_torus_ext = Field(c_torus, "P", P, diagonal=true)
-V_torus_chan = Field(c_torus, "P", P1, diagonal=true)
+V_torus_chan = Field(c_torus, "P", P, diagonal=true)
+δ_torus = V_torus_chan["δ"][left]
+δ11_torus = Field(c_torus, Kac=true, r=1, s=1, diagonal=true)["δ"][left]
+V_torus_ext = Field(c_torus, "P", P1, diagonal=true)
 corr_torus = OnePointCorrelation
 
-VP_sphere = Field(c_sphere, "P", sqrt(2)*P, diagonal=true)
-VP1_sphere = Field(c_sphere, "P", P1/sqrt(2), diagonal=true)
-VPKac_sphere = Field(c_sphere, Kac=true, r=0, s=1//2, diagonal=true)
+V_sphere_chan = Field(c_sphere, "P", sqrt(2)*P, diagonal=true)
+δ_sphere = V_sphere_chan["δ"][left]
+δ21_sphere = Field(c_sphere, Kac=true, r=2, s=1, diagonal=true)["δ"][left]
+δ12_sphere = Field(c_sphere, Kac=true, r=1, s=2, diagonal=true)["δ"][left]
+V_sphere_ext = Field(c_sphere, "P", P1/sqrt(2), diagonal=true)
+VKac_sphere = Field(c_sphere, Kac=true, r=0, s=1//2, diagonal=true)
 
 corr_torus = OnePointCorrelation(c_torus, V_torus_ext)
 block_torus = OnePointBlockTorus(V_torus_chan)
 
-corr_sphere = FourPointCorrelation(c_sphere, [VPKac_sphere, VP1_sphere, VPKac_sphere,VPKac_sphere])
-block_sphere = FourPointBlockSphere("s", VP_sphere)
+corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
+block_sphere = FourPointBlockSphere("s", V_sphere_chan)
 
-JuliVirBootstrap.OnePointCorrelationFunctions.computeCNmn(5, 1, 1, c_torus["B"], corr_torus, left)
+
+C111_torus = JuliVirBootstrap.OnePointCorrelationFunctions.computeCNmn(1, 1, 1, corr_torus, left)
+
+C212_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(2, 1, 2, corr_sphere, "s", left)
+C221_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(2, 2, 1, corr_sphere, "s", left)
+
+16^2 * (C212_sphere/(δ_sphere-δ12_sphere) + C221_sphere/(δ_sphere-δ21_sphere))
+C111_torus/(δ_torus-δ11_torus)
 
 h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
-# h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+#+end_src
 
-# println("torus block = $h1")
-# println("sphere block = $h2")
+#+begin_src julia :results output
+println("torus block = $h1 \nsphere block = $h2")
 #+end_src
 
 #+RESULTS:
-: nil
+: torus block = 1.0000059915273005 - 1.1912765043504052e-5im
+: sphere block = 1.000005991527301 - 1.1912765042311957e-5im

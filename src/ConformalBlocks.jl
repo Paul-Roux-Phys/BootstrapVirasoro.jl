@@ -210,7 +210,7 @@ function H(q, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
     res = 1
     pow = 1
     for N in 1:Nmax
-        sum_mn = sum(sum(computeCNmn(N, m, n, B, corr, lr)/(δ-δrs(m, n, B))
+        sum_mn = sum(sum(computeCNmn(N, m, n, corr, lr)/(δ-δrs(m, n, B))
                          for n in 1:N if m*n <= N) for m in 1:N)
         pow *= q
         res += pow * sum_mn

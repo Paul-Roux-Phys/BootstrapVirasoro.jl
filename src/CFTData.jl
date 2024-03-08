@@ -204,8 +204,8 @@ function Field(
         Kac = true
     end
     if Kac
-        pleft = 1/2*(charge["b"]*r - 1/charge["b"]*s)
-        pright = 1/2*(charge["b"]*r + 1/charge["b"]*s)
+        pleft = -1/2*(charge["β"]*r - 1/charge["β"]*s)
+        pright = -1/2*(charge["β"]*r - 1/charge["β"]*s)
     else
         pleft, pright = p_from.(parameter, [leftvalue, rightvalue], Ref(charge))
     end
