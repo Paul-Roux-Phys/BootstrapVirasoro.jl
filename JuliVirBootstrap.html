@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2024-03-01 Fri 10:31 -->
+<!-- 2024-03-12 Tue 09:44 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>JuliVirBootstrap Documentation</title>
@@ -55,72 +55,462 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org80e9dfb">1. Main module</a></li>
-<li><a href="#org8342cd9">2. CFT data: central charges and fields</a>
+<li><a href="#orged61eb7">1. Conformal bootstrap equations in 2D</a>
 <ul>
-<li><a href="#orgd487a07">Parametrisations</a>
+<li><a href="#orgedc451b">Notations, parametrisations</a></li>
+<li><a href="#org5f96a3e">Four point functions on the sphere</a>
 <ul>
-<li><a href="#org94d465f">Central charge</a></li>
-<li><a href="#org5a2ac35">Fields</a></li>
+<li><a href="#org3ac5de1">Zamolodchikov&rsquo;s recursion for four-point blocks</a></li>
 </ul>
 </li>
-<li><a href="#orgd264e14">The <code>CFTData</code> module</a>
+<li><a href="#org949da86">One point functions on the torus</a>
 <ul>
-<li><a href="#org253c6a5">Header</a></li>
-<li><a href="#orgb505ef3">Central charge</a></li>
-<li><a href="#orgd362125">Fields</a></li>
-<li><a href="#orge777063">End of module</a></li>
+<li><a href="#org8c521ed">Zamolodchikov&rsquo;s recursion for torus one-point blocks</a></li>
 </ul>
 </li>
+<li><a href="#org3ad253d">Logarithmic blocks</a></li>
+<li><a href="#orge4b1bfb">Relation between sphere four-point blocks and torus one-point blocks</a></li>
+<li><a href="#orgdf8f598">Crossing symmetry for four-point functions on the sphere</a></li>
+<li><a href="#org886f679">Modular invariance for one-point functions on the torus</a></li>
 </ul>
 </li>
-<li><a href="#org6cb541b">3. Correlation Functions</a>
+<li><a href="#org23657e3">2. Code of the package</a>
 <ul>
-<li><a href="#org3a17569">Four-point correlation functions on the sphere</a>
+<li><a href="#orgf84aaef">Main module</a></li>
+<li><a href="#org2a8132f">The <code>CFTData</code> module</a>
 <ul>
-<li><a href="#orgace1a5e">Four point functions in CFT</a></li>
-<li><a href="#orgb1a73cd">Coefficients \(C^{N}_{m,n}\)</a></li>
-<li><a href="#org48d60fd">The <code>FourPointCorrelationFunctions</code> module</a></li>
+<li><a href="#org5eccbd3">Header</a></li>
+<li><a href="#orgfb91912">Central charge</a></li>
+<li><a href="#org92f472d">Fields</a></li>
+<li><a href="#org08df67a">End of module</a></li>
 </ul>
 </li>
-<li><a href="#orgd74702b">One-point correlation functions on the torus</a>
+<li><a href="#org4746e4c">The <code>FourPointCorrelationFunctions</code> module</a></li>
+<li><a href="#orgdee3545">The <code>OnePointCorrelationFunctions</code> module</a></li>
+<li><a href="#org33198f0">Virasoro conformal blocks</a>
 <ul>
-<li><a href="#org207aed6">One point functions in CFT</a></li>
-<li><a href="#org9030346">Coefficients \(C^{N,\text{torus}}_{m,n}\)</a></li>
-<li><a href="#org650eada">The <code>OnePointCorrelationFunctions</code> module</a></li>
+<li><a href="#orgcc2fce6">The <code>FourPointBlocksSphere</code> module</a></li>
 </ul>
 </li>
+<li><a href="#org7525fec">One-point conformal blocks on the torus</a>
+<ul>
+<li><a href="#orgc94cd32">The <code>OnePointBlocksTorus</code> module</a></li>
 </ul>
 </li>
-<li><a href="#org6a01abe">4. Virasoro conformal blocks</a>
+<li><a href="#org54597ea">Special functions</a></li>
+<li><a href="#orgc1ceafd">Unit testing</a></li>
+<li><a href="#org28c8455">Development tests</a>
 <ul>
-<li><a href="#orgec4c276">Four-point conformal blocks on the sphere</a>
-<ul>
-<li><a href="#orgd501ab4">Four-point conformal blocks</a></li>
-<li><a href="#org15d6d50">The <code>FourPointBlocksSphere</code> module</a></li>
+<li><a href="#orga35c5ba">Relation between four-point blocks on the sphere and one-point blocks on the torus</a></li>
 </ul>
 </li>
-<li><a href="#one-point-conformal-blocks-on-the-torus">One-point conformal blocks on the torus</a>
-<ul>
-<li><a href="#one-point-blocks-on-the-torus">One point blocks on the torus</a></li>
-<li><a href="#org8ad3b79">The <code>OnePointBlocksTorus</code> module</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li><a href="#orge53bab8">5. Special functions</a></li>
-<li><a href="#org59cc416">6. Unit testing</a></li>
-<li><a href="#org5525354">7. Development tests</a>
-<ul>
-<li><a href="#orgb9ac7c1">Relation between four-point blocks on the sphere and one-point blocks on the torus</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
-<div id="outline-container-org80e9dfb" class="outline-2">
-<h2 id="org80e9dfb"><span class="section-number-2">1.</span> Main module</h2>
+<div id="outline-container-orged61eb7" class="outline-2">
+<h2 id="orged61eb7"><span class="section-number-2">1.</span> Conformal bootstrap equations in 2D</h2>
 <div class="outline-text-2" id="text-1">
+</div>
+<div id="outline-container-orgedc451b" class="outline-3">
+<h3 id="orgedc451b">Notations, parametrisations</h3>
+<div class="outline-text-3" id="text-orgedc451b">
+</div>
+<ul class="org-ul">
+<li><a id="org733541b"></a>Central charge<br />
+<div class="outline-text-5" id="text-org733541b">
+<p>
+We parametrise the central charge of our theories in terms of variables \(B\), \(b\) or \(\beta\) related by
+</p>
+
+<p>
+\[c = 13 + 6B + 6 B^{-1} \quad , \quad B = b^2 = -\beta^2, \quad B = \frac{c-13 \pm \sqrt{(c-1)(c-25)}}{12}\]
+</p>
+</div>
+</li>
+<li><a id="org441be97"></a>Fields<br />
+<div class="outline-text-5" id="text-org441be97">
+<p>
+We parametrise the conformal dimensions \((\Delta, \bar\Delta)\) of fields in terms of variables \(P, p, \delta\), related by
+</p>
+
+<p>
+\[
+\Delta = \frac{c-1}{24} + \delta  \quad , \quad \delta = -P^2 = p^2
+\]
+</p>
+
+<p>
+The variable \(P\) is called the momentum. Moreover, we introduce the following parametrisation of dimensions in terms of Kac indices \(r, s\):
+</p>
+
+<p>
+\[P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)\]
+</p>
+
+<p>
+Or equivalently
+</p>
+
+<p>
+\[p_{(r,s)} = -\frac{1}{2} (\beta r - \beta^{-1}s)\]
+</p>
+
+<p>
+where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in \mathbb Z\) and \(rs > 0\).
+This convention is consistent with the one in <a href="https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git">Sylvain&rsquo;s code</a>.
+</p>
+
+<p>
+In loop models, we denote \(V_{(r,s)}\) a non-diagonal field of left and right momenta \((P_{(r,s)},P_{(r,-s)})\).
+</p>
+</div>
+</li>
+</ul>
+</div>
+<div id="outline-container-org5f96a3e" class="outline-3">
+<h3 id="org5f96a3e">Four point functions on the sphere</h3>
+<div class="outline-text-3" id="text-org5f96a3e">
+<p>
+Because of conformal invariance, computation of any four-point correlation function reduces to the computation of
+</p>
+
+<p>
+\[ \mathcal G(x) = \langle V_{1}(x) V_{2}(0) V_{3}(\infty) V_{4}(1) \rangle \]
+</p>
+
+<p>
+Four-point correlation functions can be written in terms of Virasoro blocks as
+</p>
+
+\begin{align}
+  \mathcal G(x) = \sum_{k \in \mathcal S} \frac{C_{12k} C_{k34}}{B_{k}} \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\end{align}
+
+<p>
+We call \(\mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\) a (non-chiral) conformal block.
+In the case of a non-logarithmic theory, conformal blocks factorise as
+</p>
+
+\begin{align}
+  \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z) = \left| \mathcal F^{(s)}_{\Delta_{k}}(c | \Delta_{1}, \dots, \Delta_{4} | z) \right|^{2}
+\end{align}
+
+<p>
+where we have introduced the notation \(\left|\mathcal F(\Delta, z)\right|^2 = \mathcal{F}(\Delta, z) \mathcal{F}(\bar\Delta, \bar z)\), and \(\mathcal F^{(s)}_{\Delta_k}\) is called a Virasoro block (also called chiral conformal block).
+</p>
+
+<p>
+The coefficients \(C_{ijk}\) are the three-point structure constants.
+</p>
+
+<p>
+Conformal blocks are characterized by the normalization conditions
+</p>
+
+\begin{align}
+ \mathcal{G}^{(s)}_\Delta(x) & \underset{x\to 0}{=} \left| x^{\Delta-\Delta_1-\Delta_2}\right|^2 \left(1+O(x)\right)
+ \\
+ \mathcal{G}^{(t)}_\Delta(x) & \underset{x\to 1}{=} \left|(1-x)^{\Delta-\Delta_1-\Delta_4}\right|^2 \left(1+O(1-x)\right)
+ \\
+ \mathcal{G}^{(u)}_\Delta(x) & \underset{x\to \infty}{=} \left|\left(\frac{1}{x}\right)^{\Delta+\Delta_1-\Delta_3} \right|^2\left(1+O\left(\frac{1}{x}\right)\right)
+\end{align}
+
+<p>
+Together with the invariance of \(\left\langle \prod_{i=1}^4 V_{\Delta_i}(z_i) \right\rangle\) under permutations, this leads to the relations
+</p>
+
+\begin{align}
+\mathcal{G}^{(t)}_{\Delta}(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
+&= (-1)^{S_1+S_2+S_3+S_4}
+\mathcal{G}^{(s)}_{\Delta}(\Delta_1,\Delta_4,\Delta_3,\Delta_2|1-x)
+\\
+\mathcal{G}^{(u)}_\Delta(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
+&= (-1)^{S_1+S_2+S_3+S_4}
+\left|x^{-2\Delta_1}\right|^2 \mathcal{G}^{(s)}_\Delta(\Delta_1,\Delta_3,\Delta_2,\Delta_4|\tfrac{1}{x})
+\end{align}
+
+<p>
+where \(S=\Delta-\bar\Delta\) is the conformal spin, which we assume to be integer.
+</p>
+</div>
+<div id="outline-container-org3ac5de1" class="outline-4">
+<h4 id="org3ac5de1">Zamolodchikov&rsquo;s recursion for four-point blocks</h4>
+<div class="outline-text-4" id="text-org3ac5de1">
+<p>
+Four-point blocks can be computed efficiently thanks to <a href="https://en.wikipedia.org/wiki/Virasoro_conformal_block">Zamolodchikov&rsquo;s recursion</a>.
+</p>
+
+<p>
+We introduce a variable \(q\) related to \(z\) through
+</p>
+
+<p>
+\[
+z = \frac{\theta_2(q)^4}{\theta_3(q)^4}, \quad q = e^{-\pi\frac{K(1-x)}{ K(x)}}
+\]
+</p>
+
+<p>
+where
+</p>
+
+<p>
+\[
+\theta_3(q) = \sum_{n\in\mathbb{Z}} q^{n^2} \quad , \quad \theta_2(q) = 2q^\frac14\sum_{n=0}^\infty q^{n(n+1)}
+\]
+</p>
+
+<p>
+are Jacobi special \(\theta\)-functions, and \(K(x)\) is the elliptic \(K\) function.
+</p>
+
+<p>
+In terms of these variables, our chiral \(s\)-channel conformal block is
+</p>
+
+<p>
+\[
+\mathcal{F}^{(s)}_{\delta}(c | \Delta_{1}, \dots, \Delta_{4} | x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2}
+(16q)^{\delta} H_{\delta}(c | \Delta_{1},\dots, \Delta_{4} | q)
+\]
+</p>
+
+<p>
+where we use the exponents
+</p>
+
+<p>
+\[
+E_0 = -\delta_1-\delta_2-\frac{c-1}{24} \quad , \quad E_1 = -\delta_1-\delta_4-\frac{c-1}{24} \quad ,
+\quad E_2 = \delta_1+\delta_2+\delta_3+\delta_4+\frac{c-1}{24}
+\]
+</p>
+
+<p>
+The non-trivial coefficient is the series
+</p>
+
+<p>
+\[
+H_{\delta}(q) = 1 + \sum_{N=1}^{N_{max}} \sum_{mn\leq N} C_{m,n}^N \frac{(16q)^N}{\delta-\delta_{(m,n)}}
+\]
+</p>
+
+<p>
+Where the coefficient \(C_{m,n}^N\) is defined by the recursive formula
+</p>
+
+<p>
+\[
+C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
+\]
+</p>
+
+<p>
+And the coefficents \(R_{m,n}\) can be written
+</p>
+
+<p>
+\[
+R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}}
+\prod_{r\overset{2}{=} 1-m}^{m-1}
+\prod_{s\overset{2}{=}1-n}^{n-1}
+\sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2}
+\sqrt{(\delta_3-\delta_4)^2 -2\delta_{(r,s)}(\delta_3+\delta_4) + \delta_{(r,s)}^2}
+\]
+</p>
+
+<p>
+We do not actually take square roots, because each factor appears twice, except the \((r,s)=(0,0)\) factor which is however a perfect square. The normalization factor is
+</p>
+
+\begin{equation}
+\label{orgf643c13}
+D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
+\prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
+\prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2.
+\end{equation}
+</div>
+</div>
+</div>
+<div id="outline-container-org949da86" class="outline-3">
+<h3 id="org949da86">One point functions on the torus</h3>
+<div class="outline-text-3" id="text-org949da86">
+<p>
+A one-point function on the torus can be written
+</p>
+
+\begin{align}
+ \mathcal G(x) = <V_{\Delta_1}(x)> = \operatorname{Tr} (q^{L_0-\frac{c}{24}} \bar q^{\bar L_{0}-\frac{c}{24}} V_{\Delta_{1}}(x))
+\end{align}
+
+<p>
+Because of translation invariance, one-point functions on the torus do not depend on the field&rsquo;s position. The trace can be written as
+</p>
+
+\begin{align}
+  \mathcal G(x) &= \sum_{V_{\Delta} \in \mathcal S} < V_{\sigma} | V_{\Delta_{1}}(x) |V_{\sigma}> \\
+                   &= \sum_{V_{\Delta} \in \mathcal S} C_{k k x} \mathcal G_{\Delta} (\tau, c, \Delta_{1} | x)
+\end{align}
+
+<p>
+The conformal block \(\mathcal G_\Delta(\tau, c, \Delta_1|x)\) again factorises for non-logarithmic theories, and we write \(\mathcal F_\Delta(\tau, c, \Delta_1 | x)\) the corresponding Virasoro block.
+</p>
+</div>
+<div id="outline-container-org8c521ed" class="outline-4">
+<h4 id="org8c521ed">Zamolodchikov&rsquo;s recursion for torus one-point blocks</h4>
+<div class="outline-text-4" id="text-org8c521ed">
+<p>
+Like four-point blocks, torus one-point blocks can be computed recursively. We introduce \(H\) defined by
+</p>
+
+\begin{align}
+  \mathcal F_{\Delta}(\tau, c, \Delta_{1} | x) = \frac{q^{\delta}}{\eta(q)} H^{\text{torus}}_{\Delta}(\tau, c, \Delta_{1} | q),
+\end{align}
+
+<p>
+where \(q=e^{2i\pi \tau}\).
+The recursion formula for \(H^{\text{torus}}_{\Delta}(\tau, c, \Delta_{1} | q)\) is
+</p>
+
+\begin{align}
+  H_{\Delta}^{\text{torus}} (\tau, c, \Delta_{1} | q) = 1 + \sum_{N=1}^{N_{\text{max}}}\sum C^{N, \text{torus}}_{m,n} \frac{q^N}{\delta - \delta_{(m,n)}}
+\end{align}
+
+<p>
+The coefficients \(C_{m,n}^{N,\text{torus}}\) have the recursive representation
+</p>
+
+\begin{equation}
+\label{org2bad01e}
+C^{N,\text{torus}}_{m,n} = R^{\text{torus}}_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
+\end{equation}
+
+<p>
+An expression for the \(R_{m,n}^{\text{torus}}\) can be found on <a href="https://en.wikipedia.org/wiki/Virasoro_conformal_block">this wikipedia article</a>. It can be rewritten
+</p>
+
+<p>
+\[
+R_{m,n}^{\text{torus}} = \frac{1}{2 D_{m,n}} \prod_{r\overset2=1-2m}^{2m-1} \prod_{s\overset2=1-2n}^{2n-1} \sqrt{\delta_{(r,s)} - \delta_1}
+\]
+</p>
+
+<p>
+where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the \eqref{orgf643c13} case <a href="Dmn">Dmn</a>
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-org3ad253d" class="outline-3">
+<h3 id="org3ad253d">Logarithmic blocks</h3>
+<div class="outline-text-3" id="text-org3ad253d">
+<p>
+See <a href="https://arxiv.org/abs/2007.04190">this paper</a> for more detail (<a href="file:///Users/Paul/Downloads/2007.04190.pdf">here</a> on my laptop).
+</p>
+
+<p>
+In loop models the action of \(L_0\) is not diagonalisable, said otherwise some of the modules are logarithmic.
+The structure of a logarithmic module is the following:
+</p>
+
+<div id="org1deff62" class="figure">
+<p><img src="./imgs/logarithmic_module.png" alt="logarithmic_module.png" />
+</p>
+</div>
+
+<p>
+here \(\mathcal L V_{(r,s)}\) and \(\bar{\mathcal L} V_{(r,s)}\) are non-diagonal primary fields.
+</p>
+</div>
+</div>
+<div id="outline-container-orge4b1bfb" class="outline-3">
+<h3 id="orge4b1bfb">Relation between sphere four-point blocks and torus one-point blocks</h3>
+<div class="outline-text-3" id="text-orge4b1bfb">
+<p>
+The recursion formulas for torus one-point blocks and sphere four-point blocks imply that four point blocks on the sphere are related to one-point blocks on the torus through the relation
+</p>
+
+\begin{align}
+H^{\text{torus}}_{P}(\tau, c | P_{1} | q^{2}) = H_{\sqrt{2}P}\left(c' \left|\left. P_{(0,\frac12)}, \frac{P_{1}}{\sqrt{2}}, P_{(0,\frac12)}, P_{(0,\frac12)} \right.\right| q \right)
+\end{align}
+
+<p>
+where
+</p>
+<ul class="org-ul">
+<li>\(c'\) is related to \(c\) via \(\beta'=\frac\beta{\sqrt 2}\).</li>
+<li>Fields on the RHS have dimensions \(\Delta = \frac{c'-1}{24} - P^2\).</li>
+</ul>
+
+<p>
+Our code successfully reproduces this relation:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #8959a8;">import</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
+<span style="color: #8959a8;">using</span> JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+<span style="color: #8959a8;">import</span> JuliVirBootstrap.FourPointBlocksSphere.qfromx
+q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
+
+left=<span style="color: #f5871f; font-weight: bold;">1</span>;
+right=<span style="color: #f5871f; font-weight: bold;">2</span>;
+c_torus = CentralCharge(<span style="color: #718c00;">"b"</span>, <span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im);
+c_sphere = CentralCharge(<span style="color: #718c00;">"b"</span>, (<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im)<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>))
+
+P = <span style="color: #f5871f; font-weight: bold;">0.23</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">11</span>im
+P1 = <span style="color: #f5871f; font-weight: bold;">0.41</span><span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1.03</span>im
+V_torus_chan = Field(c_torus, <span style="color: #718c00;">"P"</span>, P, diagonal=<span style="color: #f5871f;">true</span>)
+&#948;_torus = V_torus_chan[<span style="color: #718c00;">"&#948;"</span>][left]
+&#948;11_torus = Field(c_torus, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
+V_torus_ext = Field(c_torus, <span style="color: #718c00;">"P"</span>, P1, diagonal=<span style="color: #f5871f;">true</span>)
+corr_torus = OnePointCorrelation
+
+V_sphere_chan = Field(c_sphere, <span style="color: #718c00;">"P"</span>, sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>P, diagonal=<span style="color: #f5871f;">true</span>)
+&#948;_sphere = V_sphere_chan[<span style="color: #718c00;">"&#948;"</span>][left]
+&#948;21_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">2</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
+&#948;12_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span>, s=<span style="color: #f5871f; font-weight: bold;">2</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
+V_sphere_ext = Field(c_sphere, <span style="color: #718c00;">"P"</span>, P1<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>), diagonal=<span style="color: #f5871f;">true</span>)
+VKac_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>, diagonal=<span style="color: #f5871f;">true</span>)
+
+corr_torus = OnePointCorrelation(c_torus, V_torus_ext)
+block_torus = OnePointBlockTorus(V_torus_chan)
+
+corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
+block_sphere = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, V_sphere_chan)
+
+h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
+h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-julia">println(<span style="color: #718c00;">"torus block = $h1"</span>)
+println(<span style="color: #718c00;">"sphere block = $h2"</span>)
+</pre>
+</div>
+<p>
+torus block = 1.0000059915273005 - 1.1912765043504052e-5im
+sphere block = 1.000005991527301 - 1.1912765042311957e-5im
+</p>
+</div>
+</div>
+<div id="outline-container-orgdf8f598" class="outline-3">
+<h3 id="orgdf8f598">Crossing symmetry for four-point functions on the sphere</h3>
+</div>
+
+<div id="outline-container-org886f679" class="outline-3">
+<h3 id="org886f679">Modular invariance for one-point functions on the torus</h3>
+</div>
+</div>
+<div id="outline-container-org23657e3" class="outline-2">
+<h2 id="org23657e3"><span class="section-number-2">2.</span> Code of the package</h2>
+<div class="outline-text-2" id="text-2">
+</div>
+<div id="outline-container-orgf84aaef" class="outline-3">
+<h3 id="orgf84aaef">Main module</h3>
+<div class="outline-text-3" id="text-orgf84aaef">
 <p>
 The module <code>JuliVirBootstrap</code> is the main module of this package, and it includes the sub-modules.
 </p>
@@ -166,7 +556,7 @@ include(<span style="color: #718c00;">"ConformalBlocks.jl"</span>)
 <span style="color: #8959a8;">export</span> FourPointBlockSphere, F_four_point_sphere
 
 <span style="color: #8959a8;">using</span> .OnePointBlocksTorus
-<span style="color: #8959a8;">export</span> OnePointBlocksTorus, F_one_point_torus
+<span style="color: #8959a8;">export</span> OnePointBlockTorus, F_one_point_torus
 
 
 <span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
@@ -181,94 +571,20 @@ include(<span style="color: #718c00;">"SpecialFunctions.jl"</span>)
 </div>
 </div>
 </div>
-<div id="outline-container-org8342cd9" class="outline-2">
-<h2 id="org8342cd9"><span class="section-number-2">2.</span> CFT data: central charges and fields</h2>
-<div class="outline-text-2" id="text-2">
+<div id="outline-container-org2a8132f" class="outline-3">
+<h3 id="org2a8132f">The <code>CFTData</code> module</h3>
+<div class="outline-text-3" id="text-org2a8132f">
 <p>
 The file <a href="src/CFTData.jl">CFTData.jl</a> defines
 </p>
-
 <ul class="org-ul">
 <li>a struct <code>CentralCharge</code> that represents a central charge \(c\) and contains the value of the four corresponding parameters \(b, B, \beta, c\)</li>
 <li>a struct <code>Field</code> that represents a field \(V\). The field can be defined from its Kac indices \(r, s\), be diagonal, logarithmic, or degenerate. The struct contains booleans for these three characteristics, as well as rationals for \(r\) and \(s\), and the pairs of (left, right) values \((\Delta, \bar \Delta)\), \((p, \bar p)\), \((\delta, \bar \delta)\), \((P, \bar P)\).</li>
 </ul>
 </div>
-<div id="outline-container-orgd487a07" class="outline-3">
-<h3 id="orgd487a07">Parametrisations</h3>
-<div class="outline-text-3" id="text-orgd487a07">
-</div>
-<div id="outline-container-org94d465f" class="outline-4">
-<h4 id="org94d465f">Central charge</h4>
-<div class="outline-text-4" id="text-org94d465f">
-<p>
-The central charge \(c\) can be parametrized by variables \(B\), \(b\) or \(\beta\) such that
-</p>
-
-<p>
-\[
-c = 13 + 6B + 6 B^{-1} \quad , \quad B = b^2 = -\beta^2
-\]
-</p>
-
-<p>
-Conversely, we have
-</p>
-
-<p>
-\[
-B = \frac{c-13 \pm \sqrt{(c-1)(c-25)}}{12}
-\]
-</p>
-
-<p>
-The central charge can be given directly or as a function of b,β,B. No matter what parameter is passed we compute B from it, then b,β,c. We ensure that the relation between b and &beta; never changes (square root branch).
-</p>
-</div>
-</div>
-<div id="outline-container-org5a2ac35" class="outline-4">
-<h4 id="org5a2ac35">Fields</h4>
-<div class="outline-text-4" id="text-org5a2ac35">
-<p>
-Fields in 2D CFTs are elements of representations of the Virasoro algebra.
-Non-logarithmic fields are elements of representations where the generators \(L_0\) and \(\bar L_0\) of the Virasoro algebra act diagonally, with eigenvalues called conformal weights or dimensions and respectively denoted \((\Delta,\bar \Delta)\). Logarithmic fields are elements of representations where \(L_0\) and \(\bar L_0\) act as triangular matrices; see <a href="https://arxiv.org/abs/2007.04190">this paper</a>.
-We parametrise the dimensions in terms of \(P,p,\Delta,\delta\), related by
-</p>
-
-<p>
-\[
-\Delta = \frac{c-1}{24} + \delta  \quad , \quad \delta = -P^2 = p^2
-\]
-</p>
-
-<p>
-The Kac parametrisation for conformal weights is
-\[ P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)\]
-</p>
-
-<p>
-where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in \mathbb Z\) and \(rs>0\). In terms of \(r,s\), the dimension \(\Delta\) is written
-</p>
-
-<p>
-\[
-\Delta_{(r,s)} = \frac14 B (1-r^2) + \frac12 (1-rs) + \frac14\frac{1-s^2}{B}
-\]
-</p>
-
-<p>
-This convention is consistent with the one in <a href="https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git">this code</a> but differs from the one in <a href="https://arxiv.org/abs/2208.14298">this paper</a>.
-In our models, non-diagonal fields are written \(V_{(r,s)}\) and are parametrised by Kac indices \(r\),\(s\), with left and right conformal dimension \((P_{(r,s)},P_{(r,-s)})\).
-</p>
-</div>
-</div>
-</div>
-<div id="outline-container-orgd264e14" class="outline-3">
-<h3 id="orgd264e14">The <code>CFTData</code> module</h3>
-<div class="outline-text-3" id="text-orgd264e14">
-</div>
-<div id="outline-container-org253c6a5" class="outline-4">
-<h4 id="org253c6a5">Header</h4>
-<div class="outline-text-4" id="text-org253c6a5">
+<div id="outline-container-org5eccbd3" class="outline-4">
+<h4 id="org5eccbd3">Header</h4>
+<div class="outline-text-4" id="text-org5eccbd3">
 <div class="org-src-container">
 <pre class="src src-julia">
 <span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
@@ -299,9 +615,9 @@ In our models, non-diagonal fields are written \(V_{(r,s)}\) and are parametrise
 </div>
 </div>
 </div>
-<div id="outline-container-orgb505ef3" class="outline-4">
-<h4 id="orgb505ef3">Central charge</h4>
-<div class="outline-text-4" id="text-orgb505ef3">
+<div id="outline-container-orgfb91912" class="outline-4">
+<h4 id="orgfb91912">Central charge</h4>
+<div class="outline-text-4" id="text-orgfb91912">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Get B from given parameter"""</span>
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Bfrom</span>(parameter, value)
@@ -366,8 +682,8 @@ In our models, non-diagonal fields are written \(V_{(r,s)}\) and are parametrise
 </div>
 </div>
 <ul class="org-ul">
-<li><a id="org77c3037"></a>Pretty printing<br />
-<div class="outline-text-5" id="text-org77c3037">
+<li><a id="orgea87f55"></a>Pretty printing<br />
+<div class="outline-text-5" id="text-orgea87f55">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Display an object of type CentralCharge"""</span>
 <span style="color: #8959a8;">function</span> Base.<span style="color: #4271ae;">show</span>(io<span style="color: #bb9200;">::IO</span>, charge<span style="color: #bb9200;">::CentralCharge</span>)
@@ -395,9 +711,9 @@ Base.<span style="color: #4271ae;">getindex</span>(charge<span style="color: #bb
 </li>
 </ul>
 </div>
-<div id="outline-container-orgd362125" class="outline-4">
-<h4 id="orgd362125">Fields</h4>
-<div class="outline-text-4" id="text-orgd362125">
+<div id="outline-container-org92f472d" class="outline-4">
+<h4 id="org92f472d">Fields</h4>
+<div class="outline-text-4" id="text-org92f472d">
 <p>
 Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Optional keyword arguments lets us choose whether the field is diagonal, degenerate, logarithmic. The field can also be defined from its r and s indices using the keyword argument Kac = true.
 </p>
@@ -504,8 +820,8 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
         Kac = <span style="color: #f5871f;">true</span>
     <span style="color: #8959a8;">end</span>
     <span style="color: #8959a8;">if</span> Kac
-        pleft = <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(charge[<span style="color: #718c00;">"b"</span>]<span style="color: #bb9200;">*</span>r <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>charge[<span style="color: #718c00;">"b"</span>]<span style="color: #bb9200;">*</span>s)
-        pright = <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(charge[<span style="color: #718c00;">"b"</span>]<span style="color: #bb9200;">*</span>r <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>charge[<span style="color: #718c00;">"b"</span>]<span style="color: #bb9200;">*</span>s)
+        pleft = <span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>r <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>s)
+        pright = <span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>r <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>s)
     <span style="color: #8959a8;">else</span>
         pleft, pright = p_from.(parameter, [leftvalue, rightvalue], Ref(charge))
     <span style="color: #8959a8;">end</span>
@@ -531,8 +847,8 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
 </div>
 </div>
 <ul class="org-ul">
-<li><a id="org46aea88"></a>Pretty printing<br />
-<div class="outline-text-5" id="text-org46aea88">
+<li><a id="org7c9be8b"></a>Pretty printing<br />
+<div class="outline-text-5" id="text-org7c9be8b">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Display field"""</span>
 <span style="color: #8959a8;">function</span> Base.<span style="color: #4271ae;">show</span>(io<span style="color: #bb9200;">::IO</span>,field<span style="color: #bb9200;">::Field</span>)
@@ -597,91 +913,27 @@ Base.<span style="color: #4271ae;">getindex</span>(field<span style="color: #bb9
 </li>
 </ul>
 </div>
-<div id="outline-container-orge777063" class="outline-4">
-<h4 id="orge777063">End of module</h4>
-<div class="outline-text-4" id="text-orge777063">
+<div id="outline-container-org08df67a" class="outline-4">
+<h4 id="org08df67a">End of module</h4>
+<div class="outline-text-4" id="text-org08df67a">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
 </div>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-org6cb541b" class="outline-2">
-<h2 id="org6cb541b"><span class="section-number-2">3.</span> Correlation Functions</h2>
-<div class="outline-text-2" id="text-3">
+
 <p>
 The file <a href="./src/CorrelationFunctions.jl">CorrelationFunctions.jl</a> provides structs and methods for representing and computing correlation functions.
 </p>
 
 <p>
-It uses the types defined in <a href="#orgd264e14">The <code>CFTData</code> module</a>.
-</p>
-</div>
-<div id="outline-container-org3a17569" class="outline-3">
-<h3 id="org3a17569">Four-point correlation functions on the sphere</h3>
-<div class="outline-text-3" id="text-org3a17569">
-</div>
-<div id="outline-container-orgace1a5e" class="outline-4">
-<h4 id="orgace1a5e">Four point functions in CFT</h4>
-<div class="outline-text-4" id="text-orgace1a5e">
-<p>
-Because of conformal invariance, computation of any four-point correlation function reduces to the computation of
-</p>
-
-<p>
-\[ \mathcal F(x) = \langle V_{1}(x) V_{2}(0) V_{3}(\infty) V_{4}(1) \rangle \]
+It uses the types defined in <a href="#org2a8132f">The <code>CFTData</code> module</a>.
 </p>
 </div>
 </div>
-<div id="outline-container-orgb1a73cd" class="outline-4">
-<h4 id="orgb1a73cd">Coefficients \(C^{N}_{m,n}\)</h4>
-<div class="outline-text-4" id="text-orgb1a73cd">
-<p>
-We define a coefficient \(C_{m,n}^N\) by the recursive formula
-</p>
-
-<p>
-\[
-C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
-\]
-</p>
-
-<p>
-An expression for the \(R_{m,n}\) can be found in <a href="https://en.wikipedia.org/wiki/Virasoro_conformal_block">this wikipedia article</a>. It can be rewritten
-</p>
-
-<p>
-\[
-R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}}
-\prod_{r\overset{2}{=} 1-m}^{m-1}
-\prod_{s\overset{2}{=}1-n}^{n-1}
-\sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2}
-\sqrt{(\delta_3-\delta_4)^2 -2\delta_{(r,s)}(\delta_3+\delta_4) + \delta_{(r,s)}^2}
-\]
-</p>
-
-<p>
-where we do not actually take square roots, because each factor appears twice, except the \((r,s)=(0,0)\) factor which is however a perfect square. The normalization factor is
-</p>
-
-<p>
-\[
-D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
-\prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
-\prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2.
-\]
-</p>
-
-<p>
-The \(C^{N}_{m,n}\) only depend on the external fields and the central charge, hence we compute them in the <code>FourPointCorrelationFunctions</code> module.
-</p>
 </div>
-</div>
-<div id="outline-container-org48d60fd" class="outline-4">
-<h4 id="org48d60fd">The <code>FourPointCorrelationFunctions</code> module</h4>
-<div class="outline-text-4" id="text-org48d60fd">
+<div id="outline-container-org4746e4c" class="outline-3">
+<h3 id="org4746e4c">The <code>FourPointCorrelationFunctions</code> module</h3>
+<div class="outline-text-3" id="text-org4746e4c">
 <p>
 The module <code>FourPointCorrelationFunctions</code> defines
 </p>
@@ -701,8 +953,8 @@ a struct <code>FourPointCorrelation</code> that represents a four point function
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="orgdb5f971"></a>Header<br />
-<div class="outline-text-5" id="text-orgdb5f971">
+<li><a id="orgab46703"></a>Header<br />
+<div class="outline-text-5" id="text-orgab46703">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 
@@ -722,8 +974,8 @@ a struct <code>FourPointCorrelation</code> that represents a four point function
 </div>
 </div>
 </li>
-<li><a id="org534e444"></a>Four-point function type<br />
-<div class="outline-text-5" id="text-org534e444">
+<li><a id="org9818817"></a>Four-point function type<br />
+<div class="outline-text-5" id="text-org9818817">
 <p>
 We create a struct <code>FourPointCorrelation</code> for representing a four-point function on the sphere, that is, a central charge and four external fields.
 </p>
@@ -758,8 +1010,8 @@ We create a struct <code>FourPointCorrelation</code> for representing a four-poi
 </div>
 </div>
 </li>
-<li><a id="org8d532c0"></a>Compute \(C^N_{m,n}\)<br />
-<div class="outline-text-5" id="text-org8d532c0">
+<li><a id="org3c81133"></a>Compute \(C^N_{m,n}\)<br />
+<div class="outline-text-5" id="text-org3c81133">
 <p>
 The function <code>permute_ext_fields</code> permutes the external fields such that the first two and last two are fused together in the channel.
 </p>
@@ -895,8 +1147,8 @@ The function <code>Rmn_zero_order</code> computes the order of a zero of R, to a
 </div>
 </div>
 </li>
-<li><a id="org2840358"></a>End module<br />
-<div class="outline-text-5" id="text-org2840358">
+<li><a id="org43af5d5"></a>End module<br />
+<div class="outline-text-5" id="text-org43af5d5">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -905,50 +1157,9 @@ The function <code>Rmn_zero_order</code> computes the order of a zero of R, to a
 </li>
 </ul>
 </div>
-</div>
-<div id="outline-container-orgd74702b" class="outline-3">
-<h3 id="orgd74702b">One-point correlation functions on the torus</h3>
-<div class="outline-text-3" id="text-orgd74702b">
-</div>
-<div id="outline-container-org207aed6" class="outline-4">
-<h4 id="org207aed6">One point functions in CFT</h4>
-<div class="outline-text-4" id="text-org207aed6">
-<p>
-Because of translation invariance, one-point functions on the torus do not depend on the field&rsquo;s position, but only on the modulus of the torus.
-</p>
-</div>
-</div>
-<div id="outline-container-org9030346" class="outline-4">
-<h4 id="org9030346">Coefficients \(C^{N,\text{torus}}_{m,n}\)</h4>
-<div class="outline-text-4" id="text-org9030346">
-<p>
-The coefficients \(C_{m,n}^{N,\text{torus}}\) have the recursive representation
-</p>
-
-\begin{equation}
-\label{org63c160c}
-C^{N,\text{torus}}_{m,n} = R^{\text{torus}}_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
-\end{equation}
-
-
-<p>
-An expression for the \(R_{m,n}^{\text{torus}}\) can be found on <a href="https://en.wikipedia.org/wiki/Virasoro_conformal_block">this wikipedia article</a>. It can be rewritten
-</p>
-
-<p>
-\[
-R_{m,n}^{\text{torus}} = \frac{1}{2 D_{m,n}} \prod_{r\overset2=1-2m}^{2m-1} \prod_{s\overset2=1-2n}^{2n-1} \sqrt{\delta_{(r,s)} - \delta_1}
-\] 
-</p>
-
-<p>
-where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the case.
-</p>
-</div>
-</div>
-<div id="outline-container-org650eada" class="outline-4">
-<h4 id="org650eada">The <code>OnePointCorrelationFunctions</code> module</h4>
-<div class="outline-text-4" id="text-org650eada">
+<div id="outline-container-orgdee3545" class="outline-3">
+<h3 id="orgdee3545">The <code>OnePointCorrelationFunctions</code> module</h3>
+<div class="outline-text-3" id="text-orgdee3545">
 <p>
 The module <code>OnePointCorrelationFunctions</code> defines
 </p>
@@ -961,8 +1172,8 @@ The module <code>OnePointCorrelationFunctions</code> defines
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="org002089d"></a>Header<br />
-<div class="outline-text-5" id="text-org002089d">
+<li><a id="org6f1e830"></a>Header<br />
+<div class="outline-text-5" id="text-org6f1e830">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">module</span> OnePointCorrelationFunctions
 
@@ -974,8 +1185,8 @@ The module <code>OnePointCorrelationFunctions</code> defines
 </div>
 </div>
 </li>
-<li><a id="orge01bb8d"></a>One-point function type<br />
-<div class="outline-text-5" id="text-orge01bb8d">
+<li><a id="org5247fa9"></a>One-point function type<br />
+<div class="outline-text-5" id="text-org5247fa9">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">struct</span> <span style="color: #bb9200;">OnePointCorrelation</span>{T}
     charge<span style="color: #bb9200;">::CentralCharge</span>{T}
@@ -991,15 +1202,16 @@ The module <code>OnePointCorrelationFunctions</code> defines
 </div>
 </div>
 </li>
-<li><a id="org2d63d5e"></a>Compute \(C^{N,\text{torus}}_{m,n}\)<br />
-<div class="outline-text-5" id="text-org2d63d5e">
+<li><a id="orgcf991c9"></a>Compute \(C^{N,\text{torus}}_{m,n}\)<br />
+<div class="outline-text-5" id="text-orgcf991c9">
 <p>
-The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of the <a href="#org8d532c0">coefficients \(C^{N}_{m,n}\)</a>. We re-use much of the code.
+The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of the <a href="#org3c81133">coefficients \(C^{N}_{m,n}\)</a>. We re-use much of the code.
 </p>
 
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Order of a pole of Rmn^torus, assuming the central charge is generic"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Rmn_zero_order</span>(m, n, B, corr<span style="color: #bb9200;">::OnePointCorrelation</span>)
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Rmn_zero_order</span>(m, n, corr<span style="color: #bb9200;">::OnePointCorrelation</span>)
+    B = corr.charge[<span style="color: #718c00;">"B"</span>]
     V = corr.field
     <span style="color: #8959a8;">if</span> V.isKac <span style="color: #bb9200;">&amp;&amp;</span> V.r<span style="color: #bb9200;">%</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">==</span><span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">&amp;&amp;</span> V.s<span style="color: #bb9200;">%</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">==</span><span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">&amp;&amp;</span> abs(V.r) <span style="color: #bb9200;">&lt;=</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>m<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">&amp;&amp;</span> abs(V.s) <span style="color: #bb9200;">&lt;=</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>n<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>
         <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">1</span>
@@ -1012,11 +1224,11 @@ The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of t
 <span style="color: #718c00;">lr indicates the left or right moving parts of the fields</span>
 <span style="color: #eab700; font-weight: bold;">TODO:</span><span style="color: #718c00;"> value of regularisation</span>
 <span style="color: #718c00;">"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Rmn</span>(m, n, B, corr<span style="color: #bb9200;">::OnePointCorrelation</span>, channel, lr)
-    V=corr.field
-    &#948;1 = Vs[<span style="color: #f5871f; font-weight: bold;">1</span>][<span style="color: #718c00;">"&#948;"</span>][lr]
-
-    <span style="color: #8959a8;">if</span> Rmn_zero_order(m, n, B, corr) <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Rmn</span>(m, n, corr<span style="color: #bb9200;">::OnePointCorrelation</span>, lr)
+    B = corr.charge[<span style="color: #718c00;">"B"</span>]
+    V = corr.field
+    &#948;1 = V[<span style="color: #718c00;">"&#948;"</span>][lr]
+    <span style="color: #8959a8;">if</span> Rmn_zero_order(m, n, corr) <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>
         <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">0</span>
     <span style="color: #8959a8;">else</span>
         res = prod(prod(&#948;rs(r, s, B) <span style="color: #bb9200;">-</span> &#948;1 <span style="color: #8959a8;">for</span> r in <span style="color: #f5871f; font-weight: bold;">1</span>:<span style="color: #f5871f; font-weight: bold;">2</span>:<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>m<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>) <span style="color: #8959a8;">for</span> s <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">2</span>n:<span style="color: #f5871f; font-weight: bold;">2</span>:<span style="color: #f5871f; font-weight: bold;">2</span>n<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)
@@ -1024,22 +1236,27 @@ The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of t
     <span style="color: #8959a8;">end</span>
 <span style="color: #8959a8;">end</span>
 
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">computeCNmn</span>(N, m, n, B, corr<span style="color: #bb9200;">::OnePointCorrelation</span>, lr)
-    <span style="color: #8959a8;">if</span> Rmn_zero_order(m, n, B, corr) <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">computeCNmn</span>(N, m, n, corr<span style="color: #bb9200;">::OnePointCorrelation</span>, lr)
+    B = corr.charge[<span style="color: #718c00;">"B"</span>]
+    <span style="color: #8959a8;">if</span> Rmn_zero_order(m, n, corr) <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>
         <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">0</span>
+    <span style="color: #8959a8;">elseif</span> m<span style="color: #bb9200;">*</span>n <span style="color: #bb9200;">&gt;</span> N
+        <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">0</span>
+    <span style="color: #8959a8;">elseif</span> m<span style="color: #bb9200;">*</span>n <span style="color: #bb9200;">==</span> N
+        <span style="color: #8959a8;">return</span> Rmn(m, n, corr, lr)
     <span style="color: #8959a8;">else</span>
-        res = sum(sum(computeCNmn(N<span style="color: #bb9200;">-</span>m<span style="color: #bb9200;">*</span>n, mp, np, B, corr, lr)<span style="color: #bb9200;">/</span>(&#948;rs(m, <span style="color: #bb9200;">-</span>n, B)<span style="color: #bb9200;">-</span>&#948;rs(mp, np, B))
+        res = sum(sum(computeCNmn(N<span style="color: #bb9200;">-</span>m<span style="color: #bb9200;">*</span>n, mp, np, corr, lr)<span style="color: #bb9200;">/</span>(&#948;rs(m, <span style="color: #bb9200;">-</span>n, B)<span style="color: #bb9200;">-</span>&#948;rs(mp, np, B))
                       <span style="color: #8959a8;">for</span> mp <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:N<span style="color: #bb9200;">-</span>m<span style="color: #bb9200;">*</span>n <span style="color: #8959a8;">if</span> mp<span style="color: #bb9200;">*</span>np <span style="color: #bb9200;">&lt;=</span> N<span style="color: #bb9200;">-</span>m<span style="color: #bb9200;">*</span>n)
-                  <span style="color: #8959a8;">for</span> mp <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:N<span style="color: #bb9200;">-</span>m<span style="color: #bb9200;">*</span>n)
-        <span style="color: #8959a8;">return</span> Rmn(m, n, B, corr, channel, lr) <span style="color: #bb9200;">*</span> ((N<span style="color: #bb9200;">-</span>m<span style="color: #bb9200;">*</span>n<span style="color: #bb9200;">==</span><span style="color: #f5871f; font-weight: bold;">0</span>)<span style="color: #bb9200;">+</span>res)
+                  <span style="color: #8959a8;">for</span> np <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:N<span style="color: #bb9200;">-</span>m<span style="color: #bb9200;">*</span>n)
+        <span style="color: #8959a8;">return</span> Rmn(m, n, corr, lr) <span style="color: #bb9200;">*</span> ((N<span style="color: #bb9200;">-</span>m<span style="color: #bb9200;">*</span>n<span style="color: #bb9200;">==</span><span style="color: #f5871f; font-weight: bold;">0</span>)<span style="color: #bb9200;">+</span>res)
     <span style="color: #8959a8;">end</span>
 <span style="color: #8959a8;">end</span>
 </pre>
 </div>
 </div>
 </li>
-<li><a id="org8801db3"></a>End module<br />
-<div class="outline-text-5" id="text-org8801db3">
+<li><a id="orgcf0d662"></a>End module<br />
+<div class="outline-text-5" id="text-orgcf0d662">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1048,184 +1265,20 @@ The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of t
 </li>
 </ul>
 </div>
-</div>
-</div>
-<div id="outline-container-org6a01abe" class="outline-2">
-<h2 id="org6a01abe"><span class="section-number-2">4.</span> Virasoro conformal blocks</h2>
-<div class="outline-text-2" id="text-4">
+<div id="outline-container-org33198f0" class="outline-3">
+<h3 id="org33198f0">Virasoro conformal blocks</h3>
+<div class="outline-text-3" id="text-org33198f0">
 <p>
 The file <a href="./src/ConformalBlocks.jl">ConformalBlocks.jl</a> implements Zamolodchikov&rsquo;s recursion formula for computing four-point conformal blocks on the sphere and one-point conformal blocks on the torus.
 </p>
 
 <p>
-It uses types from <a href="#orgd264e14">The <code>CFTData</code> module</a> and <a href="#org6cb541b">3</a>.
+It uses types from <a href="#org2a8132f">The <code>CFTData</code> module</a> and .
 </p>
 </div>
-<div id="outline-container-orgec4c276" class="outline-3">
-<h3 id="orgec4c276">Four-point conformal blocks on the sphere</h3>
-<div class="outline-text-3" id="text-orgec4c276">
-</div>
-<div id="outline-container-orgd501ab4" class="outline-4">
-<h4 id="orgd501ab4">Four-point conformal blocks</h4>
-<div class="outline-text-4" id="text-orgd501ab4">
-<p>
-Conformal blocks encode the universal part of correlation functions. More precisely, by performing the OPE of \(V_{1}\) with \(V_{2}\) and \(V_{3}\) with \(V_{4}\) (s-channel), or \(1\leftrightarrow 4, 2\leftrightarrow 3\) (t-channel) or \(1\leftrightarrow 3, 2\leftrightarrow 4\) (u-channel), \(\mathcal F(x)\) can be written as
-</p>
-
-<p>
-\[ \mathcal F(x) = \sum_{s \in \mathcal S^{(s)}} \frac{C_{12s}C_{s34}}{B_s} \mathcal F_\Delta^{(s)}(\Delta_i | x)\]
-</p>
-
-<p>
-where \(\sum_{\mathcal S^{(s)}}\) is a sum over a basis of the \(s\)-channel spectrum \(\mathcal S^{(s)}\), \(B_s\) are two-point structure constants and \(C_{ijk}\) are three-point structure constants. Analogous expressions can be written for the \(t\)- and \(u\)- channels. The functions \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) are called \(s\)-channel conformal blocks (resp. t,u).
-</p>
-</div>
-<ul class="org-ul">
-<li><a id="orgdf22b5f"></a>Normalisation of the blocks<br />
-<div class="outline-text-5" id="text-orgdf22b5f">
-<p>
-Conformal blocks factorise into holomorphic and anti-holomorphic parts, and they are characterized by the normalisation conditions
-</p>
-
-\begin{align}
-\label{orgdcee30b}
- \mathcal{F}^{(s)}_\Delta(x) & \underset{x\to 0}{=} \left| x^{\Delta-\Delta_1-\Delta_2}\right|^2 \left(1+O(x)\right) \nonumber
- \\
- \mathcal{F}^{(t)}_\Delta(x) & \underset{x\to 1}{=} \left|(1-x)^{\Delta-\Delta_1-\Delta_4}\right|^2 \left(1+O(1-x)\right) \nonumber
- \\
- \mathcal{F}^{(u)}_\Delta(x) & \underset{x\to \infty}{=} \left|\left(\frac{1}{x}\right)^{\Delta+\Delta_1-\Delta_3} \right|^2\left(1+O\left(\frac{1}{x}\right)\right)
-\end{align}
-
-<p>
-(we omit the \(\Delta_i\) dependence in the notation \(\mathcal{F}^{(u)}_\Delta(x)\)).
-</p>
-</div>
-</li>
-<li><a id="orgf1cb57a"></a>Notations<br />
-<div class="outline-text-5" id="text-orgf1cb57a">
-<p>
-\[
-x = \frac{\theta_2(q)^4}{\theta_3(q)^4}, \quad q = e^{-\pi\frac{K(1-x)}{ K(x)}}
-\]
-</p>
-
-<p>
-where
-</p>
-
-<p>
-\[
-\theta_3(q) = \sum_{n\in\mathbb{Z}} q^{n^2} \quad , \quad \theta_2(q) = 2q^\frac14\sum_{n=0}^\infty q^{n(n+1)}
-\] 
-</p>
-
-<p>
-are Jacobi special \(\theta\)-functions, and \(K(x)\) is the elliptic \(K\) function.
-</p>
-</div>
-</li>
-<li><a id="org8d9e8de"></a>Expression<br />
-<div class="outline-text-5" id="text-org8d9e8de">
-<p>
-Our chiral \(s\)-channel conformal block is 
-</p>
-
-<p>
-\[
-\mathcal{F}^{(s)}_{\delta}(x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2}
-(16q)^{\delta} H(q,\delta)
-\] 
-</p>
-
-<p>
-where we use the exponents
-\[
-E_0 = -\delta_1-\delta_2-\frac{c-1}{24} \quad , \quad E_1 = -\delta_1-\delta_4-\frac{c-1}{24} \quad ,
-\quad E_2 = \delta_1+\delta_2+\delta_3+\delta_4+\frac{c-1}{24}
-\] 
-The non-trivial coefficient is the series
-</p>
-
-<p>
-\[
-H(q,\delta) = 1 + \sum_{N=1}^{N_{max}} \sum_{mn\leq N} C_{m,n}^N \frac{(16q)^N}{\delta-\delta_{(m,n)}}
-\]
-</p>
-</div>
-</li>
-<li><a id="org603b6b3"></a>Changing channels<br />
-<div class="outline-text-5" id="text-org603b6b3">
-<p>
-In practice, we compute $s$-channel blocks, and then use these to compute $t$- and $u$- channel blocks, from the relations
-</p>
-
-\begin{align*}
-\label{orgba76abe}
-\mathcal{F}^{(t)}_{\Delta}(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
-&= (-1)^{S_1+S_2+S_3+S_4}
-\mathcal{F}^{(s)}_{\Delta}(\Delta_1,\Delta_4,\Delta_3,\Delta_2|1-x)
-\\
-\mathcal{F}^{(u)}_\Delta(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
-&= (-1)^{S_1+S_2+S_3+S_4}
-\left|x^{-2\Delta_1}\right|^2 \mathcal{F}^{(s)}_\Delta(\Delta_1,\Delta_3,\Delta_2,\Delta_4|\frac{1}{x})
-\end{align*}
-
-<p>
-where \(S=\Delta-\bar\Delta\) is the conformal spin, which we assume to be integer. These relations are obtained from \eqref{orgdcee30b}.
-</p>
-</div>
-</li>
-<li><a id="orgbd8d197"></a><span class="todo TODO">TODO</span> Degenerate blocks<br />
-<div class="outline-text-5" id="text-orgbd8d197">
-<p>
-In the case \(\delta_1 = \delta_{(r_1,s_1)}\) and \(\delta_2 = \delta_{(r_2,s_2)}\) with \(r_i,s_i\in\mathbb{N}^*\), we have
-</p>
-
-<p>
-\[
-\left\{\begin{array}{l} m\in |r_1-r_2|+1+2\mathbb{N}
-\\ n \in |s_1-s_2| + 1+2\mathbb{N} \end{array} \right. \quad
-\Rightarrow \quad R_{m,n} = 0
-\] 
-</p>
-
-<p>
-and similarly if the fields with numbers \(3\) and \(4\) are degenerate. Thanks to \(R_{m,n}=0\) thus \(C_{m,n}^N=0\), the block \(\mathcal{F}^{(s)}_{\delta_{(m,n)}}(x)\) is finite and can be computed exactly.
-</p>
-
-<p>
-This can be generalized to fractional indices \(r_i,s_i\). In this case, we have to add the following restriction, which was redundant for positive integer indices:
-</p>
-
-<p>
-\[
-\left\{\begin{array}{l} m\in |r_1+r_2|+1+2\mathbb{N}
-\\ n \in |s_1+s_2| + 1+2\mathbb{N} \end{array} \right. \quad
-\Rightarrow \quad R_{m,n} = 0
-\] 
-</p>
-
-<p>
-and similarly if the fields with numbers \(3\) and \(4\) are degenerate. In particular, for \(\delta_i = \delta_{(0,\frac12)}\), we have \(m\in 2\mathbb{N}+1\Rightarrow R_{m,n}=0\).
-</p>
-</div>
-</li>
-<li><a id="orged2a427"></a><span class="todo TODO">TODO</span> Derivative and regularization<br />
-<div class="outline-text-5" id="text-orged2a427">
-<p>
-For the purpose of computing conformal blocks for logarithmic channel representations, we need to compute derivatives of conformal blocks with respect to the channel dimension, and regularized values of blocks at their poles. Taking the derivative amounts to \[
-H(q, \delta) \to \log(16q) H(q,\delta) +\frac{\partial}{\partial\delta} H(q, \delta)
-\] And the regularization we are interested in amounts to \[
-\left.\frac{1}{\delta-\delta_{(m,n)}}\right|_{\delta=\delta_{(m,n)}} = \log(16q)-\frac{1}{4\delta_{(m,n)}}
-\] The code can formally compute a regularization of the block&rsquo;s derivative, but this regularization is a priori not meaningful.
-</p>
-</div>
-</li>
-</ul>
-</div>
-<div id="outline-container-org15d6d50" class="outline-4">
-<h4 id="org15d6d50">The <code>FourPointBlocksSphere</code> module</h4>
-<div class="outline-text-4" id="text-org15d6d50">
+<div id="outline-container-orgcc2fce6" class="outline-4">
+<h4 id="orgcc2fce6">The <code>FourPointBlocksSphere</code> module</h4>
+<div class="outline-text-4" id="text-orgcc2fce6">
 <p>
 The module <code>FourPointBlocksSphere</code> exports
 </p>
@@ -1236,8 +1289,8 @@ The module <code>FourPointBlocksSphere</code> exports
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="org8a3fa60"></a>Header<br />
-<div class="outline-text-5" id="text-org8a3fa60">
+<li><a id="org91c37a6"></a>Header<br />
+<div class="outline-text-5" id="text-org91c37a6">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 
@@ -1266,8 +1319,8 @@ The module <code>FourPointBlocksSphere</code> exports
 </div>
 </div>
 </li>
-<li><a id="orgbde3b69"></a>Four-point block sphere type<br />
-<div class="outline-text-5" id="text-orgbde3b69">
+<li><a id="orgf949e0a"></a>Four-point block sphere type<br />
+<div class="outline-text-5" id="text-orgf949e0a">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Struct FourPointBlockSphere</span>
@@ -1321,10 +1374,10 @@ The module <code>FourPointBlocksSphere</code> exports
 </div>
 </div>
 </li>
-<li><a id="org537131d"></a>Change of channel<br />
-<div class="outline-text-5" id="text-org537131d">
+<li><a id="org3b83c96"></a>Change of channel<br />
+<div class="outline-text-5" id="text-org3b83c96">
 <p>
-The $t$- and $u$-channel blocks are computed from the $s$-channel one, using \eqref{orgba76abe} described above.
+The $t$- and $u$-channel blocks are computed from the $s$-channel one, using described above.
 </p>
 
 <div class="org-src-container">
@@ -1352,8 +1405,8 @@ The $t$- and $u$-channel blocks are computed from the $s$-channel one, using \eq
 </div>
 </div>
 </li>
-<li><a id="org79a28b1"></a>Prefactors, elliptic nome<br />
-<div class="outline-text-5" id="text-org79a28b1">
+<li><a id="org8b5bdbe"></a>Prefactors, elliptic nome<br />
+<div class="outline-text-5" id="text-org8b5bdbe">
 <p>
 The nome \(q\) is related to \(x\) via
 </p>
@@ -1365,7 +1418,7 @@ q(x) = \exp(-\pi \frac{K(1-x)}{K(x)})
 </p>
 
 <p>
-where \(K\) is the elliptic \(K\) function. The inverse of this relation isKac
+where \(K\) is the elliptic \(K\) function. The inverse of this relation is
 </p>
 
 <p>
@@ -1403,8 +1456,8 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 </div>
 </div>
 </li>
-<li><a id="org33a531e"></a>Computation of the block<br />
-<div class="outline-text-5" id="text-org33a531e">
+<li><a id="orgf0a6266"></a>Computation of the block<br />
+<div class="outline-text-5" id="text-orgf0a6266">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Compute the conformal block</span>
@@ -1442,7 +1495,7 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 <span style="color: #718c00;">``\\mathcal F^{(\\text{chan})}_{\\delta}(x)``</span>
 
 <span style="color: #718c00;">where `chan` is `s`, `t`, or `u`."""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">F_chiral</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, lr)
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block_chiral</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, lr)
     chan = block.channel
     Fs_chiral(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr)
 <span style="color: #8959a8;">end</span>
@@ -1458,15 +1511,15 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 <span style="color: #718c00;">"""</span>
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">F_four_point_sphere</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>)
     channelprefactor(block, corr, x) <span style="color: #bb9200;">*</span> <span style="color: #bb9200;">\</span>
-        F_chiral(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, left) <span style="color: #bb9200;">*</span> <span style="color: #bb9200;">\</span>
-        conj(F_chiral(conj(x), Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, right))
+        block_chiral(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, left) <span style="color: #bb9200;">*</span> <span style="color: #bb9200;">\</span>
+        conj(block_chiral(conj(x), Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, right))
 <span style="color: #8959a8;">end</span>
 </pre>
 </div>
 </div>
 </li>
-<li><a id="orgc24110c"></a>End of module<br />
-<div class="outline-text-5" id="text-orgc24110c">
+<li><a id="org2ceabe3"></a>End of module<br />
+<div class="outline-text-5" id="text-org2ceabe3">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1476,53 +1529,25 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 </ul>
 </div>
 </div>
-<div id="outline-container-one-point-conformal-blocks-on-the-torus" class="outline-3">
-<h3 id="one-point-conformal-blocks-on-the-torus">One-point conformal blocks on the torus</h3>
-<div class="outline-text-3" id="text-one-point-conformal-blocks-on-the-torus">
+<div id="outline-container-org7525fec" class="outline-3">
+<h3 id="org7525fec">One-point conformal blocks on the torus</h3>
+<div class="outline-text-3" id="text-org7525fec">
 </div>
-<div id="outline-container-one-point-blocks-on-the-torus" class="outline-4">
-<h4 id="one-point-blocks-on-the-torus">One point blocks on the torus</h4>
-<div class="outline-text-4" id="text-one-point-blocks-on-the-torus">
-<p>
-A chiral one-point conformal block on the torus can be written as
-</p>
-
-<p>
-\[
-\mathcal{F}^\text{torus}_{\Delta}(\Delta_1|q) = q^{\delta}\eta(q)^{-1}H^\text{torus}_{\Delta}(\Delta_1|q)
-\]
-</p>
-
-<p>
-where \(\eta\) is the Dedekind eta function, \(q\) is related to the torus&rsquo; modular parameter \(\tau\) via \(q=e^{2i\pi \tau}\), and the non-trivial factor \(H^{\text{torus}}_{\Delta}(\Delta_1|q)\) can be computed by the following recursion formula:
-</p>
-
-<p>
-\[
-H^\text{torus}_{\Delta}(\Delta_1|q) = 1 + \sum_{N=1}^{N_{max}} \sum_{mn\leq N} C_{m,n}^{N,\text{torus}} \frac{q^N}{\delta-\delta_{(m,n)}}
-\]
-</p>
-
-<p>
-where the coefficient \(C^{N,\text{torus}}_{m,n}\) is given \eqref{org63c160c}.
-</p>
-</div>
-</div>
-<div id="outline-container-org8ad3b79" class="outline-4">
-<h4 id="org8ad3b79">The <code>OnePointBlocksTorus</code> module</h4>
-<div class="outline-text-4" id="text-org8ad3b79">
+<div id="outline-container-orgc94cd32" class="outline-4">
+<h4 id="orgc94cd32">The <code>OnePointBlocksTorus</code> module</h4>
+<div class="outline-text-4" id="text-orgc94cd32">
 <p>
 The module <code>OnePointBlocksTorus</code> exports
 </p>
 
 <ul class="org-ul">
 <li>a struct <code>OnePointBlockTorus</code> that encapsulates the data needed to compute a 4pt conformal block, namely an external field.</li>
-<li>a function <code>F_one_point_torus(block, charge, x)</code> which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{\text{torus}}(\Delta | q(x))\) as defined in <a href="#orgd08d865">this equation</a>.</li>
+<li>a function <code>F_one_point_torus(block, charge, x)</code> which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{\text{torus}}(\Delta | q(x))\) as defined in .</li>
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="orgc13a34d"></a>Header<br />
-<div class="outline-text-5" id="text-orgc13a34d">
+<li><a id="orga01aca6"></a>Header<br />
+<div class="outline-text-5" id="text-orga01aca6">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""</span>
 <span style="color: #718c00;">Series expansion of one-point blocks on the torus</span>
@@ -1532,7 +1557,7 @@ The module <code>OnePointBlocksTorus</code> exports
 <span style="color: #8959a8;">using</span> ..CFTData, ..OnePointCorrelationFunctions
 <span style="color: #8959a8;">import</span> EllipticFunctions: etaDedekind as &#951;
 
-<span style="color: #8959a8;">export</span> F_one_point_torus
+<span style="color: #8959a8;">export</span> OnePointBlockTorus, F_one_point_torus
 
 <span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Struct containing the data required to compute a block: an external field</span>
@@ -1548,23 +1573,26 @@ The module <code>OnePointBlocksTorus</code> exports
 </div>
 </div>
 </li>
-<li><a id="org75c80e3"></a>Computation of the block<br />
-<div class="outline-text-5" id="text-org75c80e3">
+<li><a id="orga99be5c"></a>Computation of the block<br />
+<div class="outline-text-5" id="text-orga99be5c">
 <div class="org-src-container">
 <pre class="src src-julia">
 <span style="color: #4271ae;">qfromtau</span>(&#964;) = exp(<span style="color: #f5871f; font-weight: bold;">2</span>im<span style="color: #bb9200;">*</span>&#960;<span style="color: #bb9200;">*</span>&#964;)
+<span style="color: #4271ae;">&#948;rs</span>(r, s, B) = <span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">4</span> <span style="color: #bb9200;">*</span> (B<span style="color: #bb9200;">*</span>r<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>r<span style="color: #bb9200;">*</span>s <span style="color: #bb9200;">+</span> s<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">/</span>B)
 
 <span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Compute the conformal block</span>
 <span style="color: #07c365;">===========================================================================================#</span>
-<span style="color: #718c00;">"""Compute the function  ``H^{\text{torus}}(q,&#948;)``."""</span>
+<span style="color: #718c00;">"""</span>
+<span style="color: #718c00;">    H(q, Nmax, block, corr, leftright)</span>
+<span style="color: #718c00;">Compute the function  ``H^{\\text{torus}}(q,&#948;)``."""</span>
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">H</span>(q, Nmax, block<span style="color: #bb9200;">::OnePointBlockTorus</span>, corr<span style="color: #bb9200;">::OnePointCorrelation</span>, lr)
     &#948; = block.channelField[<span style="color: #718c00;">"&#948;"</span>][lr]
     B = corr.charge[<span style="color: #718c00;">"B"</span>]
     res = <span style="color: #f5871f; font-weight: bold;">1</span>
     pow = <span style="color: #f5871f; font-weight: bold;">1</span>
     <span style="color: #8959a8;">for</span> N <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:Nmax
-        sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)<span style="color: #bb9200;">/</span>(&#948;<span style="color: #bb9200;">-</span>&#948;rs(m, n, B))
+        sum_mn = sum(sum(computeCNmn(N, m, n, corr, lr)<span style="color: #bb9200;">/</span>(&#948;<span style="color: #bb9200;">-</span>&#948;rs(m, n, B))
                          <span style="color: #8959a8;">for</span> n in <span style="color: #f5871f; font-weight: bold;">1</span>:N <span style="color: #8959a8;">if</span> m<span style="color: #bb9200;">*</span>n <span style="color: #bb9200;">&lt;=</span> N) <span style="color: #8959a8;">for</span> m <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:N)
         pow <span style="color: #bb9200;">*=</span> q
         res <span style="color: #bb9200;">+=</span> pow <span style="color: #bb9200;">*</span> sum_mn
@@ -1580,9 +1608,9 @@ The module <code>OnePointBlocksTorus</code> exports
 <span style="color: #718c00;">``\\mathcal F^{\text{torus}}_{\\delta}(x)``</span>
 
 <span style="color: #718c00;">"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">F_chiral</span>(&#964;, Nmax, block<span style="color: #bb9200;">::OnePointBlockTorus</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, lr)
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block_chiral</span>(&#964;, Nmax, block<span style="color: #bb9200;">::OnePointBlockTorus</span>, corr<span style="color: #bb9200;">::OnePointCorrelation</span>, lr)
     &#948; = block.channelField[<span style="color: #718c00;">"&#948;"</span>][lr]
-    <span style="color: #8959a8;">return</span> q<span style="color: #bb9200;">^</span>{&#948;}<span style="color: #bb9200;">/</span>&#951;(&#964;) <span style="color: #bb9200;">*</span> H(qfromtau(&#964;), Nmax, block, corr, lr)
+    <span style="color: #8959a8;">return</span> q<span style="color: #bb9200;">^</span>&#948;<span style="color: #bb9200;">/</span>&#951;(&#964;) <span style="color: #bb9200;">*</span> H(qfromtau(&#964;), Nmax, block, corr, lr)
 <span style="color: #8959a8;">end</span>
 
 <span style="color: #718c00;">"""</span>
@@ -1594,15 +1622,15 @@ The module <code>OnePointBlocksTorus</code> exports
 
 <span style="color: #eab700; font-weight: bold;">TODO:</span><span style="color: #718c00;"> logarithmic blocks</span>
 <span style="color: #718c00;">"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">F_one_point_torus</span>(&#964;, Nmax, block<span style="color: #bb9200;">::OnePointBlockTorus</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>)
-    F_chiral(&#964;, Nmax, block, corr, left) <span style="color: #bb9200;">*</span> conj(F_chiral(conj(&#964;), Nmax, block, corr, right))
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">F_one_point_torus</span>(&#964;, Nmax, block<span style="color: #bb9200;">::OnePointBlockTorus</span>, corr<span style="color: #bb9200;">::OnePointCorrelation</span>)
+    block_chiral(&#964;, Nmax, block, corr, left) <span style="color: #bb9200;">*</span> conj(block_chiral(conj(&#964;), Nmax, block, corr, right))
 <span style="color: #8959a8;">end</span>
 </pre>
 </div>
 </div>
 </li>
-<li><a id="orgf2ba6a5"></a>End of module<br />
-<div class="outline-text-5" id="text-orgf2ba6a5">
+<li><a id="org0d32583"></a>End of module<br />
+<div class="outline-text-5" id="text-org0d32583">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1612,10 +1640,9 @@ The module <code>OnePointBlocksTorus</code> exports
 </ul>
 </div>
 </div>
-</div>
-<div id="outline-container-orge53bab8" class="outline-2">
-<h2 id="orge53bab8"><span class="section-number-2">5.</span> Special functions</h2>
-<div class="outline-text-2" id="text-5">
+<div id="outline-container-org54597ea" class="outline-3">
+<h3 id="org54597ea">Special functions</h3>
+<div class="outline-text-3" id="text-org54597ea">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">==================</span>
 
@@ -1635,9 +1662,9 @@ The module <code>OnePointBlocksTorus</code> exports
 </div>
 </div>
 </div>
-<div id="outline-container-org59cc416" class="outline-2">
-<h2 id="org59cc416"><span class="section-number-2">6.</span> Unit testing</h2>
-<div class="outline-text-2" id="text-6">
+<div id="outline-container-orgc1ceafd" class="outline-3">
+<h3 id="orgc1ceafd">Unit testing</h3>
+<div class="outline-text-3" id="text-orgc1ceafd">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">using</span> JuliVirBootstrap
 <span style="color: #8959a8;">using</span> Test
@@ -1699,9 +1726,9 @@ The module <code>OnePointBlocksTorus</code> exports
 </div>
 </div>
 </div>
-<div id="outline-container-org5525354" class="outline-2">
-<h2 id="org5525354"><span class="section-number-2">7.</span> Development tests</h2>
-<div class="outline-text-2" id="text-7">
+<div id="outline-container-org28c8455" class="outline-3">
+<h3 id="org28c8455">Development tests</h3>
+<div class="outline-text-3" id="text-org28c8455">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">import</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
 <span style="color: #8959a8;">using</span> JuliVirBootstrap
@@ -1709,8 +1736,7 @@ The module <code>OnePointBlocksTorus</code> exports
 </div>
 
 <div class="org-src-container">
-<pre class="src src-julia"><span style="color: #8959a8;">using</span> JuliVirBootstrap, BenchmarkTools, EllipticFunctions, Profile, ProfileView
-<span style="color: #8959a8;">import</span> Memoization: <span style="color: #4d4d4c; font-weight: bold;">@memoize</span>
+<pre class="src src-julia"><span style="color: #8959a8;">using</span> JuliVirBootstrap, BenchmarkTools, EllipticFunctions
 
 left=<span style="color: #f5871f; font-weight: bold;">1</span>;
 right=<span style="color: #f5871f; font-weight: bold;">2</span>;
@@ -1731,14 +1757,20 @@ x = BigFloat(<span style="color: #718c00;">"0.05"</span>, RoundUp);
 </pre>
 </div>
 
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #4d4d4c; font-weight: bold;">@btime</span> test()
+</pre>
+</div>
+
 <pre class="example">
-  1.072 ms (14067 allocations: 780.81 KiB)
+test (generic function with 1 method)
+1.052 ms (14047 allocations: 779.80 KiB)
 2337.403601860713925958391009719678809055546365124340617423994215164154638728732 + 4771.392251761078219452023733430973991671048305871845481326523306698785531079742im
 </pre>
 </div>
-<div id="outline-container-orgb9ac7c1" class="outline-3">
-<h3 id="orgb9ac7c1">Relation between four-point blocks on the sphere and one-point blocks on the torus</h3>
-<div class="outline-text-3" id="text-orgb9ac7c1">
+<div id="outline-container-orga35c5ba" class="outline-4">
+<h4 id="orga35c5ba">Relation between four-point blocks on the sphere and one-point blocks on the torus</h4>
+<div class="outline-text-4" id="text-orga35c5ba">
 <p>
 Four point blocks on the sphere are related to one-point blocks on the torus through the relation
 </p>
@@ -1758,15 +1790,62 @@ where
 </ul>
 
 <div class="org-src-container">
-<pre class="src src-julia"><span style="color: #8959a8;">import</span> JuliVirBootstrap.FourPointBlocksSphere.qfromx
-c_torus = CentralCharge(<span style="color: #718c00;">"b"</span>, big(<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im));
-c_sphere = CentralCharge(<span style="color: #718c00;">"b"</span>, big(<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im)<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>))
+<pre class="src src-julia"><span style="color: #8959a8;">import</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
+<span style="color: #8959a8;">using</span> JuliVirBootstrap, BenchmarkTools, EllipticFunctions
 
-V_torus_ext = Field(c1, <span style="color: #718c00;">"P"</span>,  <span style="color: #f5871f; font-weight: bold;">0.23</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">11</span>im, diagonal=<span style="color: #f5871f;">true</span>)
-V_torus_chan = Field(c1, Kac = <span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span>)
+left=<span style="color: #f5871f; font-weight: bold;">1</span>;
+right=<span style="color: #f5871f; font-weight: bold;">2</span>;
+
+<span style="color: #8959a8;">import</span> JuliVirBootstrap.FourPointBlocksSphere.qfromx
+c_torus = CentralCharge(<span style="color: #718c00;">"b"</span>, <span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im);
+c_sphere = CentralCharge(<span style="color: #718c00;">"b"</span>, (<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im)<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>))
+
+q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
+
+P = <span style="color: #f5871f; font-weight: bold;">0.23</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">11</span>im
+P1 = <span style="color: #f5871f; font-weight: bold;">0.41</span><span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1.03</span>im
+V_torus_chan = Field(c_torus, <span style="color: #718c00;">"P"</span>, P, diagonal=<span style="color: #f5871f;">true</span>)
+&#948;_torus = V_torus_chan[<span style="color: #718c00;">"&#948;"</span>][left]
+&#948;11_torus = Field(c_torus, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
+V_torus_ext = Field(c_torus, <span style="color: #718c00;">"P"</span>, P1, diagonal=<span style="color: #f5871f;">true</span>)
+corr_torus = OnePointCorrelation
+
+V_sphere_chan = Field(c_sphere, <span style="color: #718c00;">"P"</span>, sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>P, diagonal=<span style="color: #f5871f;">true</span>)
+&#948;_sphere = V_sphere_chan[<span style="color: #718c00;">"&#948;"</span>][left]
+&#948;21_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">2</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
+&#948;12_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span>, s=<span style="color: #f5871f; font-weight: bold;">2</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
+V_sphere_ext = Field(c_sphere, <span style="color: #718c00;">"P"</span>, P1<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>), diagonal=<span style="color: #f5871f;">true</span>)
+VKac_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>, diagonal=<span style="color: #f5871f;">true</span>)
+
+corr_torus = OnePointCorrelation(c_torus, V_torus_ext)
+block_torus = OnePointBlockTorus(V_torus_chan)
+
+corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
+block_sphere = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, V_sphere_chan)
 
 
+C111_torus = JuliVirBootstrap.OnePointCorrelationFunctions.computeCNmn(<span style="color: #f5871f; font-weight: bold;">1</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, corr_torus, left)
+
+C212_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(<span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, <span style="color: #f5871f; font-weight: bold;">2</span>, corr_sphere, <span style="color: #718c00;">"s"</span>, left)
+C221_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(<span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, corr_sphere, <span style="color: #718c00;">"s"</span>, left)
+
+<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">*</span> (C212_sphere<span style="color: #bb9200;">/</span>(&#948;_sphere<span style="color: #bb9200;">-</span>&#948;12_sphere) <span style="color: #bb9200;">+</span> C221_sphere<span style="color: #bb9200;">/</span>(&#948;_sphere<span style="color: #bb9200;">-</span>&#948;21_sphere))
+C111_torus<span style="color: #bb9200;">/</span>(&#948;_torus<span style="color: #bb9200;">-</span>&#948;11_torus)
+
+h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
+h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
 </pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-julia">println(<span style="color: #718c00;">"torus block = $h1 \nsphere block = $h2"</span>)
+</pre>
+</div>
+
+<div class="org-src-container">
+<pre class="src src-julia"> o
+</pre>
+</div>
 </div>
 </div>
 </div>
@@ -1774,7 +1853,7 @@ V_torus_chan = Field(c1, Kac = <span style="color: #f5871f;">true</span>, r=<spa
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Paul ROUX</p>
-<p class="date">Created: 2024-03-01 Fri 10:31</p>
+<p class="date">Created: 2024-03-12 Tue 09:44</p>
 </div>
 </body>
 </html>

@@ -1,27 +1,347 @@
 #+title: JuliVirBootstrap Documentation
 #+author: Paul ROUX
 #+setupfile: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+setupfile: #+setupfile: ~/.doom.d/setupfiles/org-basic-latex-export.org
 #+options: toc:3 num:1
 #+startup: latexpreview
 #+property: header_args:julia :session JuliVirBootstrap :eval no-export
 
 * Table of contents :toc:noexport:
-- [[#main-module][Main module]]
-- [[#cft-data-central-charges-and-fields][CFT data: central charges and fields]]
-  - [[#parametrisations][Parametrisations]]
+- [[#conformal-bootstrap-equations-in-2d][Conformal bootstrap equations in 2D]]
+  - [[#notations-parametrisations][Notations, parametrisations]]
+  - [[#four-point-functions-on-the-sphere][Four point functions on the sphere]]
+  - [[#one-point-functions-on-the-torus][One point functions on the torus]]
+  - [[#logarithmic-blocks][Logarithmic blocks]]
+  - [[#relation-between-sphere-four-point-blocks-and-torus-one-point-blocks][Relation between sphere four-point blocks and torus one-point blocks]]
+  - [[#crossing-symmetry-for-four-point-functions-on-the-sphere][Crossing symmetry for four-point functions on the sphere]]
+  - [[#modular-invariance-for-one-point-functions-on-the-torus][Modular invariance for one-point functions on the torus]]
+- [[#code-of-the-package][Code of the package]]
+  - [[#main-module][Main module]]
   - [[#the-cftdata-module][The ~CFTData~ module]]
-- [[#correlation-functions][Correlation Functions]]
-  - [[#four-point-correlation-functions-on-the-sphere][Four-point correlation functions on the sphere]]
-  - [[#one-point-correlation-functions-on-the-torus][One-point correlation functions on the torus]]
-- [[#virasoro-conformal-blocks][Virasoro conformal blocks]]
-  - [[#four-point-conformal-blocks-on-the-sphere][Four-point conformal blocks on the sphere]]
-  - [[#one-point-conformal-blocks-on-the-torus][One-point conformal blocks on the torus]]
-- [[#special-functions][Special functions]]
-- [[#unit-testing][Unit testing]]
-- [[#development-tests][Development tests]]
-  - [[#relation-between-four-point-blocks-on-the-sphere-and-one-point-blocks-on-the-torus][Relation between four-point blocks on the sphere and one-point blocks on the torus]]
+  - [[#the-fourpointcorrelationfunctions-module][The ~FourPointCorrelationFunctions~ module]]
+  - [[#the-onepointcorrelationfunctions-module][The ~OnePointCorrelationFunctions~ module]]
+  - [[#the-fourpointblockssphere-module][The ~FourPointBlocksSphere~ module]]
+  - [[#the-onepointblockstorus-module][The ~OnePointBlocksTorus~ module]]
+  - [[#the-special-functions-module][The ~Special functions~ module]]
+  - [[#setting-up-bootstrap-equations][Setting-up bootstrap equations]]
+  - [[#unit-testing][Unit testing]]
+  - [[#development-tests][Development tests]]
 
-* Main module
+* Conformal bootstrap equations in 2D
+
+** Notations, parametrisations
+
+**** Central charge
+
+We parametrise the central charge of our theories in terms of variables \(B\), \(b\) or \(\beta\) related by
+
+\[c = 13 + 6B + 6 B^{-1} \quad , \quad B = b^2 = -\beta^2, \quad B = \frac{c-13 \pm \sqrt{(c-1)(c-25)}}{12}\]
+
+**** Fields
+
+We parametrise the conformal dimensions $(\Delta, \bar\Delta)$ of fields in terms of variables $P, p, \delta$, related by
+
+\[
+\Delta = \frac{c-1}{24} + \delta  \quad , \quad \delta = -P^2 = p^2
+\]
+
+The variable $P$ is called the momentum. Moreover, we introduce the following parametrisation of dimensions in terms of Kac indices $r, s$:
+
+\[P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)\]
+
+Or equivalently
+
+\[p_{(r,s)} = -\frac{1}{2} (\beta r - \beta^{-1}s)\]
+
+where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in \mathbb Z\) and $rs > 0$.
+This convention is consistent with the one in [[https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git][Sylvain's code]].
+
+In loop models, we denote \(V_{(r,s)}\) a non-diagonal field of left and right momenta \((P_{(r,s)},P_{(r,-s)})\).
+
+** Four point functions on the sphere
+
+Because of conformal invariance, computation of any four-point correlation function reduces to the computation of
+
+$$ \mathcal G(x) = \langle V_{1}(x) V_{2}(0) V_{3}(\infty) V_{4}(1) \rangle $$
+
+Four-point correlation functions can be written in terms of Virasoro blocks as
+
+\begin{align}
+  \mathcal G(x) = \sum_{k \in \mathcal S} \frac{C_{12k} C_{k34}}{B_{k}} \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\end{align}
+
+We call $\mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)$ a (non-chiral) conformal block.
+In the case of a non-logarithmic theory, conformal blocks factorise as
+
+\begin{align}
+  \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z) = \left| \mathcal F^{(s)}_{\Delta_{k}}(c | \Delta_{1}, \dots, \Delta_{4} | z) \right|^{2}
+\end{align}
+
+where we have introduced the notation $\left|\mathcal F(\Delta, z)\right|^2 = \mathcal{F}(\Delta, z) \mathcal{F}(\bar\Delta, \bar z)$, and $\mathcal F^{(s)}_{\Delta_k}$ is called a Virasoro block (also called chiral conformal block).
+
+The coefficients $C_{ijk}$ are the three-point structure constants.
+
+Conformal blocks are characterized by the normalization conditions
+
+\begin{align}
+ \mathcal{G}^{(s)}_\Delta(x) & \underset{x\to 0}{=} \left| x^{\Delta-\Delta_1-\Delta_2}\right|^2 \left(1+O(x)\right)
+ \\
+ \mathcal{G}^{(t)}_\Delta(x) & \underset{x\to 1}{=} \left|(1-x)^{\Delta-\Delta_1-\Delta_4}\right|^2 \left(1+O(1-x)\right)
+ \\
+ \mathcal{G}^{(u)}_\Delta(x) & \underset{x\to \infty}{=} \left|\left(\frac{1}{x}\right)^{\Delta+\Delta_1-\Delta_3} \right|^2\left(1+O\left(\frac{1}{x}\right)\right)
+\end{align}
+
+Together with the invariance of $\left\langle \prod_{i=1}^4 V_{\Delta_i}(z_i) \right\rangle$ under permutations, this leads to the relations
+
+\begin{align}
+\mathcal{G}^{(t)}_{\Delta}(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
+&= (-1)^{S_1+S_2+S_3+S_4}
+\mathcal{G}^{(s)}_{\Delta}(\Delta_1,\Delta_4,\Delta_3,\Delta_2|1-x)
+\\
+\mathcal{G}^{(u)}_\Delta(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
+&= (-1)^{S_1+S_2+S_3+S_4}
+\left|x^{-2\Delta_1}\right|^2 \mathcal{G}^{(s)}_\Delta(\Delta_1,\Delta_3,\Delta_2,\Delta_4|\tfrac{1}{x})
+\end{align}
+
+where $S=\Delta-\bar\Delta$ is the conformal spin, which we assume to be integer.
+
+*** Zamolodchikov's recursion for four-point blocks
+
+Four-point blocks can be computed efficiently thanks to [[https://en.wikipedia.org/wiki/Virasoro_conformal_block][Zamolodchikov's recursion]].
+
+We introduce a variable $q$ related to $z$ through
+
+\[
+z = \frac{\theta_2(q)^4}{\theta_3(q)^4}, \quad q = e^{-\pi\frac{K(1-x)}{ K(x)}}
+\]
+
+where
+
+\[
+\theta_3(q) = \sum_{n\in\mathbb{Z}} q^{n^2} \quad , \quad \theta_2(q) = 2q^\frac14\sum_{n=0}^\infty q^{n(n+1)}
+\]
+
+are Jacobi special \(\theta\)-functions, and \(K(x)\) is the elliptic \(K\) function.
+
+In terms of these variables, our chiral \(s\)-channel conformal block is
+
+\[
+\mathcal{F}^{(s)}_{\delta}(c | \Delta_{1}, \dots, \Delta_{4} | x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2}
+(16q)^{\delta} H_{\delta}(c | \Delta_{1},\dots, \Delta_{4} | q)
+\]
+
+where we use the exponents
+
+\[
+E_0 = -\delta_1-\delta_2-\frac{c-1}{24} \quad , \quad E_1 = -\delta_1-\delta_4-\frac{c-1}{24} \quad ,
+\quad E_2 = \delta_1+\delta_2+\delta_3+\delta_4+\frac{c-1}{24}
+\]
+
+The non-trivial coefficient is the series
+
+\[
+H_{\delta}(q) = 1 + \sum_{N=1}^{N_{max}} \sum_{mn\leq N} C_{m,n}^N \frac{(16q)^N}{\delta-\delta_{(m,n)}}
+\]
+
+Where the coefficient \(C_{m,n}^N\) is defined by the recursive formula
+
+\[
+C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
+\]
+
+And the coefficents \(R_{m,n}\) can be written
+
+\begin{align}
+ R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}}
+\prod_{r\overset{2}{=} 1-m}^{m-1}
+\prod_{s\overset{2}{=}1-n}^{n-1}
+&\sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2}\nonumber\\
+&\sqrt{(\delta_3-\delta_4)^2 -2\delta_{(r,s)}(\delta_3+\delta_4) + \delta_{(r,s)}^2}
+\end{align}
+
+We do not actually take square roots, because each factor appears twice, except the \((r,s)=(0,0)\) factor which is however a perfect square. The normalization factor is
+
+#+name: Dmn
+\begin{equation}
+D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
+\prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
+\prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2.
+\end{equation}
+
+** One point functions on the torus
+
+A one-point function on the torus can be written
+
+\begin{align}
+ \mathcal G(x) = <V_{\Delta_1}(x)> = \operatorname{Tr} (q^{L_0-\frac{c}{24}} \bar q^{\bar L_{0}-\frac{c}{24}} V_{\Delta_{1}}(x))
+\end{align}
+
+Because of translation invariance, one-point functions on the torus do not depend on the field's position. The trace can be written as
+
+\begin{align}
+  \mathcal G(x) &= \sum_{V_{\Delta} \in \mathcal S} < V_{\sigma} | V_{\Delta_{1}}(x) |V_{\sigma}> \\
+                   &= \sum_{V_{\Delta} \in \mathcal S} C_{\Delta \Delta \Delta_{1}} \mathcal G_{\Delta} (\tau, c, \Delta_{1} | x)
+\end{align}
+
+The conformal block $\mathcal G_\Delta(\tau, c, \Delta_1|x)$ again factorises for non-logarithmic theories, and we write $\mathcal F_\Delta(\tau, c, \Delta_1 | x)$ the corresponding Virasoro block.
+
+*** Zamolodchikov's recursion for torus one-point blocks
+
+Like four-point blocks, torus one-point blocks can be computed recursively. We introduce $H$ defined by
+
+\begin{align}
+  \mathcal F_{\Delta}(\tau, c, \Delta_{1} | x) = \frac{q^{\delta}}{\eta(q)} H^{\text{torus}}_{\Delta}(\tau, c, \Delta_{1} | q),
+\end{align}
+
+where $q=e^{2i\pi \tau}$.
+The recursion formula for $H^{\text{torus}}_{\Delta}(\tau, c, \Delta_{1} | q)$ is
+
+\begin{align}
+  H_{\Delta}^{\text{torus}} (\tau, c, \Delta_{1} | q) = 1 + \sum_{N=1}^{N_{\text{max}}}\sum C^{N, \text{torus}}_{m,n} \frac{q^N}{\delta - \delta_{(m,n)}}
+\end{align}
+
+The coefficients \(C_{m,n}^{N,\text{torus}}\) have the recursive representation
+
+#+name: CNmn-torus
+\begin{equation}
+C^{N,\text{torus}}_{m,n} = R^{\text{torus}}_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
+\end{equation}
+
+An expression for the \(R_{m,n}^{\text{torus}}\) can be found on [[https://en.wikipedia.org/wiki/Virasoro_conformal_block][this wikipedia article]]. It can be rewritten
+
+\[
+R_{m,n}^{\text{torus}} = \frac{1}{2 D_{m,n}} \prod_{r\overset2=1-2m}^{2m-1} \prod_{s\overset2=1-2n}^{2n-1} \sqrt{\delta_{(r,s)} - \delta_1}
+\]
+
+where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the [[Dmn][four-point]] case ref:Dmn
+
+** Logarithmic blocks
+
+See [[https://arxiv.org/abs/2007.04190][this paper]] for more detail ([[file:~/Downloads/log_CFT_ribault_nivesvivat.pdf][here]] on my laptop).
+
+In loop models the action of $L_0$ is not diagonalisable, said otherwise some of the modules are logarithmic.
+The structure of a logarithmic module is the following:
+#+attr_org: :width 650
+[[./imgs/logarithmic_module.png]]
+
+$\mathcal L V_{(r,s)}$ and $\bar{\mathcal L} V_{(r,s)}$ are non-diagonal primary fields. The parameter $\kappa$ is fixed in the presence of $V^d_{\langle1,2\rangle}$.
+
+*** Four-point logarithmic blocks on the sphere
+
+Logarithmic blocks depend on the parameter $\kappa$. In this code, we only compute their value at the value of $\kappa$ fixed by the presence of $V^d_{\langle1,2\rangle}$.
+
+For $(r,s)\in \mathbb{Z}^*$, we compute the non-chiral logarithmic blocks
+
+$$
+\mathcal{G}_{(r,s)} = \mathcal{F}^\text{log}_{(r,s)} \bar{\mathcal{F}}_{\delta_{(r,-s)}} +\mathcal{F}_{\delta_{( r,-s)}} \bar{\mathcal{F}}^\text{log}_{(r,s)} - B^{-1}\ell_{(r,s)}\left| \mathcal{F}_{\delta_{(r,-s)}}\right|^2
+$$
+
+where the chiral logarithmic blocks are
+
+$$
+\mathcal{F}_{( r,s)}^\text{log}
+= \frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{\delta_{(r,s)}}^\text{reg} -2q_{(r,-s)}\mathcal{F}'_{\delta_{(r,-s)}}
+= \lim_{\epsilon\to 0} \left(\frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{q_{(r,s)}+\epsilon} +\frac{B^{-1}}{\epsilon} \mathcal{F}_{q_{(r,-s)}+\epsilon}\right)
+$$
+
+and
+
+\begin{align}
+ \ell_{(r,s)} &= 4\sum_{j=1-s}^s \Big\{ \psi(-2q_{( r,j)}) +\psi(2q_{( r,-j)}) \Big\}
+ - 4\pi \cot(\pi s B^{-1})
+ \\
+ &\quad -\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm} \sum_{\varepsilon\in\{0,1\}}  \Big\{
+ \psi\left(\tfrac12 -(-)^\varepsilon q_{(r,j)}\pm q^\varepsilon_1\pm q^\varepsilon_2\right)
+  +
+ \psi\left(\tfrac12 - (-)^\varepsilon q_{(r,j)}\pm q^\varepsilon_3\pm q^\varepsilon_4\right) \Big\}
+ \end{align}
+
+where $\psi(x) = \frac{\Gamma'(x)}{\Gamma(x)}$ is the digamma function, regularized such that $\psi(-r)=\psi(r+1)$ for $r\in\mathbb{N}$, we define $q^0 = q$ and $q^1 = \bar{q}$, and we define $q = b^{-1}P=\beta^{-1}p$, in particular
+
+$$
+q_{(r,s)} = \frac{r}{2}+\frac{s}{2B}.
+$$
+
+The regularised chiral block $\mathcal F^{\text{log}}_{\delta_{(r,s)}}$ is the regularised part of $\mathcal F_{\delta_{(r,s)} + \epsilon}$ when $\epsilon \to 0$.
+
+
+
+We may want to normalize the blocks such that the term that corresponds to the primary field $V^N_{(r,s)}$ comes with the coefficient $1$. This is useful in particular when using shift equations for structure constants. To do this, we define
+
+$$
+\mathcal{G}_{(r,s)}^\text{normalized} = \frac{R_{r, s}}{2q_{(r,s)}} \mathcal{G}_{(r,s)}
+$$
+
+In general, we have $\mathcal{G}_{( r,s)} = \mathcal{G}_{(r,-s)}$ but $\mathcal{G}^\text{normalized}_{(r,s)} \neq \mathcal{G}^\text{normalized}_{( r,-s)}$ since $R_{r,s}\neq \bar R_{r,s}$.
+
+** Relation between sphere four-point blocks and torus one-point blocks
+:properties:
+:header-args:julia: :session test
+:end:
+
+The recursion formulas for torus one-point blocks and sphere four-point blocks imply that four point blocks on the sphere are related to one-point blocks on the torus through the relation
+
+\begin{align}
+H^{\text{torus}}_{P}(\tau, c | P_{1} | q^{2}) = H_{\sqrt{2}P}\left(c' \left|\left. P_{(0,\frac12)}, \frac{P_{1}}{\sqrt{2}}, P_{(0,\frac12)}, P_{(0,\frac12)} \right.\right| q \right)
+\end{align}
+
+where
++ $c'$ is related to $c$ via $\beta'=\frac\beta{\sqrt 2}$.
++ Fields on the RHS have dimensions $\Delta = \frac{c'-1}{24} - P^2$.
+
+Our code successfully reproduces this relation:
+
+#+begin_src julia :results silent
+import Pkg; Pkg.activate(".")
+using JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+import JuliVirBootstrap.FourPointBlocksSphere.qfromx
+q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
+
+left=1;
+right=2;
+c_torus = CentralCharge("b", 1.2+.1*1im);
+c_sphere = CentralCharge("b", (1.2+.1*1im)/sqrt(2))
+
+P = 0.23+.11im
+P1 = 0.41+1.03im
+V_torus_chan = Field(c_torus, "P", P, diagonal=true)
+δ_torus = V_torus_chan["δ"][left]
+δ11_torus = Field(c_torus, Kac=true, r=1, s=1, diagonal=true)["δ"][left]
+V_torus_ext = Field(c_torus, "P", P1, diagonal=true)
+corr_torus = OnePointCorrelation
+
+V_sphere_chan = Field(c_sphere, "P", sqrt(2)*P, diagonal=true)
+δ_sphere = V_sphere_chan["δ"][left]
+δ21_sphere = Field(c_sphere, Kac=true, r=2, s=1, diagonal=true)["δ"][left]
+δ12_sphere = Field(c_sphere, Kac=true, r=1, s=2, diagonal=true)["δ"][left]
+V_sphere_ext = Field(c_sphere, "P", P1/sqrt(2), diagonal=true)
+VKac_sphere = Field(c_sphere, Kac=true, r=0, s=1//2, diagonal=true)
+
+corr_torus = OnePointCorrelation(c_torus, V_torus_ext)
+block_torus = OnePointBlockTorus(V_torus_chan)
+
+corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
+block_sphere = FourPointBlockSphere("s", V_sphere_chan)
+
+h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
+h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+#+end_src
+
+#+begin_src julia :results output raw
+println("torus block = $h1")
+println("sphere block = $h2")
+#+end_src
+
+#+RESULTS:
+torus block = 1.0000059915273005 - 1.1912765043504052e-5im
+sphere block = 1.000005991527301 - 1.1912765042311957e-5im
+
+** Crossing symmetry for four-point functions on the sphere
+
+** Modular invariance for one-point functions on the torus
+
+* Code of the package
+
+** Main module
 :PROPERTIES:
 :header-args:julia: :tangle ./src/JuliVirBootstrap.jl
 :END:
@@ -80,60 +400,15 @@ export log_double_gamma, double_gamma
 end
 #+end_src
 
-* CFT data: central charges and fields
+** The ~CFTData~ module
 :PROPERTIES:
 :header-args:julia: :tangle ./src/CFTData.jl
 :END:
 
 The file [[file:src/CFTData.jl][CFTData.jl]] defines
-
 - a struct ~CentralCharge~ that represents a central charge $c$ and contains the value of the four corresponding parameters $b, B, \beta, c$
 - a struct ~Field~ that represents a field $V$. The field can be defined from its Kac indices $r, s$, be diagonal, logarithmic, or degenerate. The struct contains booleans for these three characteristics, as well as rationals for $r$ and $s$, and the pairs of (left, right) values $(\Delta, \bar \Delta)$, $(p, \bar p)$, $(\delta, \bar \delta)$, $(P, \bar P)$.
 
-** Parametrisations
-
-*** Central charge
-
-The central charge \(c\) can be parametrized by variables \(B\), \(b\) or \(\beta\) such that
-
-\[
-c = 13 + 6B + 6 B^{-1} \quad , \quad B = b^2 = -\beta^2
-\]
-
-Conversely, we have
-
-\[
-B = \frac{c-13 \pm \sqrt{(c-1)(c-25)}}{12}
-\]
-
-The central charge can be given directly or as a function of b,β,B. No matter what parameter is passed we compute B from it, then b,β,c. We ensure that the relation between b and \beta never changes (square root branch).
-
-*** Fields
-
-Fields in 2D CFTs are elements of representations of the Virasoro algebra.
-Non-logarithmic fields are elements of representations where the generators \(L_0\) and \(\bar L_0\) of the Virasoro algebra act diagonally, with eigenvalues called conformal weights or dimensions and respectively denoted \((\Delta,\bar \Delta)\). Logarithmic fields are elements of representations where \(L_0\) and \(\bar L_0\) act as triangular matrices; see [[https://arxiv.org/abs/2007.04190][this paper]].
-We parametrise the dimensions in terms of \(P,p,\Delta,\delta\), related by
-
-\[
-\Delta = \frac{c-1}{24} + \delta  \quad , \quad \delta = -P^2 = p^2
-\]
-
-The Kac parametrisation for conformal weights is
-
-\[P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)\]
-
-Or equivalently
-
-\[p_{(r,s)} = -\frac{1}{2} (\beta r - \beta^{-1}s)\]
-
-where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in \mathbb Z\) and $rs > 0$. In terms of \(r,s\), the dimension \(\Delta\) is written
-
-\[\Delta_{(r,s)} = \frac14 B (1-r^2) + \frac12 (1-rs) + \frac14\frac{1-s^2}{B}\]
-
-This convention is consistent with the one in [[https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git][this code]] but differs from the one in [[https://arxiv.org/abs/2208.14298][this paper]].
-In our models, non-diagonal fields are written \(V_{(r,s)}\) and are parametrised by Kac indices \(r\),\(s\), with left and right conformal dimension \((P_{(r,s)},P_{(r,-s)})\).
-
-** The ~CFTData~ module
 
 *** Header
 
@@ -453,53 +728,10 @@ Base.getindex(field::Field,key) = field.values[key];
 end # end module
 #+end_src
 
-* Correlation Functions
+** The ~FourPointCorrelationFunctions~ module
 :PROPERTIES:
 :header-args:julia: :tangle ./src/CorrelationFunctions.jl
 :END:
-
-The file [[./src/CorrelationFunctions.jl][CorrelationFunctions.jl]] provides structs and methods for representing and computing correlation functions.
-
-It uses the types defined in [[The ~CFTData~ module]].
-
-** Four-point correlation functions on the sphere
-
-*** Four point functions in CFT
-
-Because of conformal invariance, computation of any four-point correlation function reduces to the computation of
-
-\[ \mathcal F(x) = \langle V_{1}(x) V_{2}(0) V_{3}(\infty) V_{4}(1) \rangle \]
-
-*** Coefficients $C^{N}_{m,n}$
-
-We define a coefficient \(C_{m,n}^N\) by the recursive formula
-
-\[
-C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
-\]
- 
-An expression for the \(R_{m,n}\) can be found in [[https://en.wikipedia.org/wiki/Virasoro_conformal_block][this wikipedia article]]. It can be rewritten
-
-\[
-R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}}
-\prod_{r\overset{2}{=} 1-m}^{m-1}
-\prod_{s\overset{2}{=}1-n}^{n-1}
-\sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2}
-\sqrt{(\delta_3-\delta_4)^2 -2\delta_{(r,s)}(\delta_3+\delta_4) + \delta_{(r,s)}^2}
-\]
-
-where we do not actually take square roots, because each factor appears twice, except the \((r,s)=(0,0)\) factor which is however a perfect square. The normalization factor is
-
-#+name: Dmn
-\[
-D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
-\prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
-\prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2.
-\]
-
-The $C^{N}_{m,n}$ only depend on the external fields and the central charge, hence we compute them in the ~FourPointCorrelationFunctions~ module.
-
-*** The =FourPointCorrelationFunctions= module
 
 The module =FourPointCorrelationFunctions= defines
 
@@ -566,9 +798,16 @@ const right = 2
 
 The function ~permute_ext_fields~ permutes the external fields such that the first two and last two are fused together in the channel.
 
-The ~@memoize~ macro stores the result of the function such that subsequent calls with the same arguments only require a memory access.
-
 The function ~Rmn_zero_order~ computes the order of a zero of R, to avoid computing 0/0 in $\frac{R_{m,n}}{\delta - \delta_{r,s}}$. At generic central charge (non-rational) $R_{m,n}$ is zero iff one of the two pairs of fused fields have Kac indices such that $r_1 \pm r_2 \in \{1-m, 3-m, \dots, m-1\}$ or $s_1 \pm s_2 \in \{1-n, 3-n, \dots, n-1\}$.
+
+When $R_{m,n}=0$, we compute a regularisation of it, i.e. the $O(\epsilon)$ term in the residue of the conformal block where the channel field's dimension is shifted by $\epsilon$.
+
+This is given by
+
+\begin{align}
+&\left(\delta_2-\delta_1\right)_\text{reg} = 2p_2 \\
+&\left((\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2\right)_\text{reg} = 8p_1p_2p_{(r,s)}
+\end{align}
 
 #+begin_src julia
 double_prod_in_Dmn(m, n, B) = prod(prod((r^2*B - s^2/B)^2 for s in 1:n-1) for r in 1:m-1)
@@ -601,10 +840,13 @@ function permute_ext_fields(corr::FourPointCorrelation, channel)
     return FourPointCorrelation(corr.charge, Vs)
 end
 
-"""Order of a pole of Rmn, assuming the central charge is generic"""
-function Rmn_zero_order(m, n, B, corr::FourPointCorrelation, channel)
+"""
+        Order of a pole of Rmn, assuming the central charge is generic. Also return the indices of the vanishing term.
 
-    order=0
+"""
+function Rmn_zero_order(m, n, corr::FourPointCorrelation, channel)
+    B = corr.charge["B"]
+    order = 0
     V=permute_ext_fields(corr, channel).fields
 
     if !((V[1].isKac && V[2].isKac) || (V[3].isKac && V[4].isKac))
@@ -620,8 +862,8 @@ function Rmn_zero_order(m, n, B, corr::FourPointCorrelation, channel)
     and (|s1 \pm s2| <= n-1 and s1-s2 - (n-1) % 2 == 0)
     =#
     for pm in (-1,1)
-        for (i,j) in ((1,2),(3,4))
-            if V[i].isdegenerate && V[j].isdegenerate
+        for (i,j) in ((1,2), (3,4))
+            if V[i].isKac && V[j].isKac
                 if (abs(r[i]+pm*r[j]) <= m-1 && (r[i]+pm*r[j]-(m-1))%2 == 0) &&
                     (abs(s[i]+pm*s[j]) <= n-1 && (s[i]+pm*s[j]-(n-1))%2 == 0)
                     order += 1
@@ -633,15 +875,32 @@ function Rmn_zero_order(m, n, B, corr::FourPointCorrelation, channel)
     return order
 end
 
-function helper_Rmn(δ1, δ2, δ3, δ4, r, s, B)
-    if r == 0 && s == 0
-        return (δ2-δ1)*(δ3-δ4)
-    else
-        return (((δ2-δ1)^2 - 2*δrs(r, s, B)*(δ1+δ2) + δrs(r, s, B)^2)
-                ,*((δ3-δ4)^2 - 2*δrs(r, s, B)*(δ3+δ4) + δrs(r, s, B)^2))
+"""Compute one of the terms in the double product of Rmn"""
+function Rmn_term(r0, s0, corr:FourPointCorrelation, channel)
+    B = corr.charge["B"]
+    V = permute_ext_fields(corr.fields, channel).fields
+    r = [V[i].r for i in 1:4]
+    s = [V[i].s for i in 1:4]
+    δ = [V[i]["δ"] for i in 1:4]
+    res = 1
+    #= if r1 \pm r2 = (\pm)' r0 and s1 \pm s2 = (\pm)' s0, compute the regularization of the term
+    same for 3 and 4
+    =#
+    for pm in (-1,1)
+        for pm2 in (-1,1)
+            for (i,j) in ((1,2), (3,4))
+                if V[i].isKac && V[j].isKac && (r[i]+pm*r[j], s[i]+pm*s[j]) == (pm2*r0, pm2*s0)
+                    if r0 == 0 && s0 == 0
+                        res *= 2*V[j]["p"]
+                    else
+                        res *= 8*V[i]["p"]*V[j]["p"]*Field(corr.charge, Kac=true, r=pm2*r0, s=pm2*s0)["p"]
+                    end
+                    return res
+                end
+            end
+        end
     end
 end
-
 """
 Compute `Rmn`.
 lr indicates the left or right moving parts of the fields
@@ -657,16 +916,18 @@ TODO: value of regularisation
     δ3 = Vs[3]["δ"][lr]
     δ4 = Vs[4]["δ"][lr]
 
-    if Rmn_zero_order(m, n, B, corr, channel) > 0
-        return 0
+    if Rmn_zero_order(m, n, corr, channel) > 0
+        if m == 1
+            res = a
+        end
     else
         if m == 1
-            res = prod(helper_Rmn(δ1, δ2, δ3, δ4, 0, s, B) for s in 1-n:2:0)
+            res = prod(Rmn_term(0, s, corr, channel) for s in 1-n:2:0)
         else # m > 1
-            res = prod(prod(helper_Rmn(δ1, δ2, δ3, δ4, r, s, B)
+            res = prod(prod(Rmn_term(r, s, corr, channel)
                             for s in 1-n:2:n-1) for r in 1-m:2:-1)
             if m%2 == 1 # m odd -> treat r=0 term separately
-                res *= prod(helper_Rmn(δ1, δ2, δ3, δ4, 0, s, B) for s in 1-n:2:0)
+                res *= prod(Rmn_term(0, s, corr, channel) for s in 1-n:2:0)
             end
         end
     end
@@ -676,7 +937,7 @@ end
 
 @memoize function computeCNmn(N, m, n, corr::FourPointCorrelation, channel, lr)
     B = corr.charge["B"]
-    if Rmn_zero_order(m, n, B, corr, channel) > 0
+    if Rmn_zero_order(m, n, corr, channel) > 0
         return 0
     elseif m*n > N
         return 0
@@ -699,31 +960,10 @@ end # end module
 
 
 
-** One-point correlation functions on the torus
-
-*** One point functions in CFT
-
-Because of translation invariance, one-point functions on the torus do not depend on the field's position, but only on the modulus of the torus.
-
-*** Coefficients $C^{N,\text{torus}}_{m,n}$
-
-The coefficients \(C_{m,n}^{N,\text{torus}}\) have the recursive representation
-
-#+name: CNmn-torus 
-\begin{equation}
-C^{N,\text{torus}}_{m,n} = R^{\text{torus}}_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
-\end{equation}
-
-
-An expression for the \(R_{m,n}^{\text{torus}}\) can be found on [[https://en.wikipedia.org/wiki/Virasoro_conformal_block][this wikipedia article]]. It can be rewritten
-
-\[
-R_{m,n}^{\text{torus}} = \frac{1}{2 D_{m,n}} \prod_{r\overset2=1-2m}^{2m-1} \prod_{s\overset2=1-2n}^{2n-1} \sqrt{\delta_{(r,s)} - \delta_1}
-\]
-
-where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the [[Dmn][four point]] case.
-
-*** The =OnePointCorrelationFunctions= module
+** The ~OnePointCorrelationFunctions~ module
+:PROPERTIES:
+:header-args:julia: :tangle ./src/CorrelationFunctions.jl
+:END:
 
 The module =OnePointCorrelationFunctions= defines
 
@@ -744,7 +984,7 @@ import ..FourPointCorrelationFunctions: Dmn, δrs # re-use the Dmn from four-poi
 #+end_src
 
 **** One-point function type
-
+zzeaiprybaeaiprybazer b
 #+begin_src julia
 struct OnePointCorrelation{T}
     charge::CentralCharge{T}
@@ -815,137 +1055,17 @@ end
 end # end module
 #+end_src
 
-* Virasoro conformal blocks
+** The ~FourPointBlocksSphere~ module
 :PROPERTIES:
 :header-args:julia: :tangle ./src/ConformalBlocks.jl
 :END:
-
-The file [[./src/ConformalBlocks.jl][ConformalBlocks.jl]] implements Zamolodchikov's recursion formula for computing four-point conformal blocks on the sphere and one-point conformal blocks on the torus.
-
-It uses types from [[*The ~CFTData~ module]] and [[*Correlation Functions]].
-
-** Four-point conformal blocks on the sphere
-
-*** Four-point conformal blocks
-
-Conformal blocks encode the universal part of correlation functions. More precisely, by performing the OPE of \(V_{1}\) with \(V_{2}\) and \(V_{3}\) with \(V_{4}\) (s-channel), or \(1\leftrightarrow 4, 2\leftrightarrow 3\) (t-channel) or \(1\leftrightarrow 3, 2\leftrightarrow 4\) (u-channel), \(\mathcal F(x)\) can be written as
-
-\[ \mathcal F(x) = \sum_{s \in \mathcal S^{(s)}} \frac{C_{12s}C_{s34}}{B_s} \mathcal F_\Delta^{(s)}(\Delta_i | x)\]
-
-where \(\sum_{\mathcal S^{(s)}}\) is a sum over a basis of the \(s\)-channel spectrum \(\mathcal S^{(s)}\), \(B_s\) are two-point structure constants and \(C_{ijk}\) are three-point structure constants. Analogous expressions can be written for the \(t\)- and \(u\)- channels. The functions \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) are called \(s\)-channel conformal blocks (resp. t,u).
-
-**** Normalisation of the blocks
-
-Conformal blocks factorise into holomorphic and anti-holomorphic parts, and they are characterized by the normalisation conditions
-
-#+name: block-normalisation
-\begin{align}
- \mathcal{F}^{(s)}_\Delta(x) & \underset{x\to 0}{=} \left| x^{\Delta-\Delta_1-\Delta_2}\right|^2 \left(1+O(x)\right) \nonumber
- \\
- \mathcal{F}^{(t)}_\Delta(x) & \underset{x\to 1}{=} \left|(1-x)^{\Delta-\Delta_1-\Delta_4}\right|^2 \left(1+O(1-x)\right) \nonumber
- \\
- \mathcal{F}^{(u)}_\Delta(x) & \underset{x\to \infty}{=} \left|\left(\frac{1}{x}\right)^{\Delta+\Delta_1-\Delta_3} \right|^2\left(1+O\left(\frac{1}{x}\right)\right)
-\end{align}
-
-(we omit the \(\Delta_i\) dependence in the notation \(\mathcal{F}^{(u)}_\Delta(x)\)).
-
-**** Notations
-
-\[
-x = \frac{\theta_2(q)^4}{\theta_3(q)^4}, \quad q = e^{-\pi\frac{K(1-x)}{ K(x)}}
-\]
-
-where
-
-\[
-\theta_3(q) = \sum_{n\in\mathbb{Z}} q^{n^2} \quad , \quad \theta_2(q) = 2q^\frac14\sum_{n=0}^\infty q^{n(n+1)}
-\] 
-
-are Jacobi special \(\theta\)-functions, and \(K(x)\) is the elliptic \(K\) function.
-
-**** Expression
-
-Our chiral \(s\)-channel conformal block is 
-
-\[
-\mathcal{F}^{(s)}_{\delta}(x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2}
-(16q)^{\delta} H(q,\delta)
-\] 
-
-where we use the exponents
-\[
-E_0 = -\delta_1-\delta_2-\frac{c-1}{24} \quad , \quad E_1 = -\delta_1-\delta_4-\frac{c-1}{24} \quad ,
-\quad E_2 = \delta_1+\delta_2+\delta_3+\delta_4+\frac{c-1}{24}
-\] 
-The non-trivial coefficient is the series
-
-\[
-H(q,\delta) = 1 + \sum_{N=1}^{N_{max}} \sum_{mn\leq N} C_{m,n}^N \frac{(16q)^N}{\delta-\delta_{(m,n)}}
-\]
-
-# If $R_{m,n}=0$, we compute a finite regularization of $R_{m,n}$. This is never used for computing chiral conformal blocks, but only for computing non-chiral logarithmic blocks. The regularization of vanishing factors is
-# $$
-# \left(\delta_2-\delta_1\right)_\text{reg} = 2p_2
-# $$
-# $$
-# \left((\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2\right)_\text{reg} = 8p_1p_2p_{(r,s)}
-# $$
-
-**** Changing channels
-
-In practice, we compute $s$-channel blocks, and then use these to compute $t$- and $u$- channel blocks, from the relations
-
-#+name: tu-from-s
-\begin{align*}
-\mathcal{F}^{(t)}_{\Delta}(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
-&= (-1)^{S_1+S_2+S_3+S_4}
-\mathcal{F}^{(s)}_{\Delta}(\Delta_1,\Delta_4,\Delta_3,\Delta_2|1-x)
-\\
-\mathcal{F}^{(u)}_\Delta(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
-&= (-1)^{S_1+S_2+S_3+S_4}
-\left|x^{-2\Delta_1}\right|^2 \mathcal{F}^{(s)}_\Delta(\Delta_1,\Delta_3,\Delta_2,\Delta_4|\frac{1}{x})
-\end{align*}
-
-where \(S=\Delta-\bar\Delta\) is the conformal spin, which we assume to be integer. These relations are obtained from [[block-normalisation][the block normalisation]].
-
-**** TODO Degenerate blocks
-
-In the case \(\delta_1 = \delta_{(r_1,s_1)}\) and \(\delta_2 = \delta_{(r_2,s_2)}\) with \(r_i,s_i\in\mathbb{N}^*\), we have
-
-\[
-\left\{\begin{array}{l} m\in |r_1-r_2|+1+2\mathbb{N}
-\\ n \in |s_1-s_2| + 1+2\mathbb{N} \end{array} \right. \quad
-\Rightarrow \quad R_{m,n} = 0
-\] 
-
-and similarly if the fields with numbers \(3\) and \(4\) are degenerate. Thanks to \(R_{m,n}=0\) thus \(C_{m,n}^N=0\), the block \(\mathcal{F}^{(s)}_{\delta_{(m,n)}}(x)\) is finite and can be computed exactly.
-
-This can be generalized to fractional indices \(r_i,s_i\). In this case, we have to add the following restriction, which was redundant for positive integer indices:
- 
-\[
-\left\{\begin{array}{l} m\in |r_1+r_2|+1+2\mathbb{N}
-\\ n \in |s_1+s_2| + 1+2\mathbb{N} \end{array} \right. \quad
-\Rightarrow \quad R_{m,n} = 0
-\] 
-
-and similarly if the fields with numbers \(3\) and \(4\) are degenerate. In particular, for \(\delta_i = \delta_{(0,\frac12)}\), we have \(m\in 2\mathbb{N}+1\Rightarrow R_{m,n}=0\).
-
-**** TODO Derivative and regularization
-
-For the purpose of computing conformal blocks for logarithmic channel representations, we need to compute derivatives of conformal blocks with respect to the channel dimension, and regularized values of blocks at their poles. Taking the derivative amounts to \[
-H(q, \delta) \to \log(16q) H(q,\delta) +\frac{\partial}{\partial\delta} H(q, \delta)
-\] And the regularization we are interested in amounts to \[
-\left.\frac{1}{\delta-\delta_{(m,n)}}\right|_{\delta=\delta_{(m,n)}} = \log(16q)-\frac{1}{4\delta_{(m,n)}}
-\] The code can formally compute a regularization of the block's derivative, but this regularization is a priori not meaningful.
-
-*** The ~FourPointBlocksSphere~ module
 
 The module ~FourPointBlocksSphere~ exports
 
 - a struct ~FourPointBlockSphere~ that encapsulates the data needed to compute a 4pt conformal block, namely a channel, four external fields and the field propagating in the channel
 - a function ~F_four_point_sphere(block, charge, x)~ which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) as defined in this paragraph.
 
-**** Header
+*** Header
 
 #+begin_src julia
 #===========================================================================================
@@ -965,7 +1085,7 @@ Series expansion of four-point blocks on the sphere.
 """
 module FourPointBlocksSphere
 
-export FourPointBlockSphere, F_four_point_sphere
+export FourPointBlockSphere, block
 
 using ..CFTData, ..FourPointCorrelationFunctions
 import ..FourPointCorrelationFunctions: permute_ext_fields
@@ -973,7 +1093,7 @@ using Match, EllipticFunctions, Memoization
 
 #+end_src
 
-**** Four-point block sphere type
+*** Four-point block sphere type
 
 #+begin_src julia
 #===========================================================================================
@@ -1026,7 +1146,7 @@ const left = 1
 const right = 2
 #+end_src
 
-**** Change of channel
+*** Change of channel
 
 The $t$- and $u$-channel blocks are computed from the $s$-channel one, using [[tu-from-s][the relation]] described above.
 
@@ -1053,7 +1173,7 @@ function crossratio(channel, x)
 end
 #+end_src
 
-**** Prefactors, elliptic nome
+*** Prefactors, elliptic nome
 
 The nome $q$ is related to $x$ via
 
@@ -1094,7 +1214,7 @@ end
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 #+end_src
 
-**** Computation of the block
+*** Computation of the block
 
 #+begin_src julia
 #===========================================================================================
@@ -1117,14 +1237,14 @@ function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
 end
 
 """
-    Fs_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
+    block_chiral_schan(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
 
 Compute the chiral conformal block
 
 ``\\mathcal F^{(s)}_{\\delta}(x)``
 
 """
-function Fs_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
+function block_chiral_schan(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
     blockprefactor(block, corr, x, lr) * H(qfromx(x), Nmax, block, corr, lr)
 end
 
@@ -1133,12 +1253,14 @@ end
 ``\\mathcal F^{(\\text{chan})}_{\\delta}(x)``
 
 where `chan` is `s`, `t`, or `u`."""
-function F_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
+function block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
     chan = block.channel
-    Fs_chiral(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr)
+    block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr)
 end
 
 """
+    G(x, Nmax, block, corr)
+
 Compute the non-chiral conformal block
 
 ``\\mathcal F^{(\\text{chan})}_{\\delta}(x) \\overline{\\mathcal F}^{(\\text{chan})}_{\\delta}( \bar x )``
@@ -1147,39 +1269,23 @@ where `chan` is `s`,`t` or `u`.
 
 TODO: logarithmic blocks
 """
-function F_four_point_sphere(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
+function block(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
     channelprefactor(block, corr, x) * \
-        F_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, left) * \
-        conj(F_chiral(conj(x), Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, right))
+        block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, left) * \
+        conj(block_chiral(conj(x), Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, right))
 end
 #+end_src
 
-**** End of module
+*** End of module
 
 #+begin_src julia
 end # end module
 #+end_src
 
-** One-point conformal blocks on the torus
-
-*** One point blocks on the torus
-
-A chiral one-point conformal block on the torus can be written as
-
-#+name: F-chiral-torus
-\[
-\mathcal{F}^\text{torus}_{\Delta}(\Delta_1|q) = q^{\delta}\eta(q)^{-1}H^\text{torus}_{\Delta}(\Delta_1|q)
-\]
-
-where \(\eta\) is the Dedekind eta function, \(q\) is related to the torus' modular parameter \(\tau\) via \(q=e^{2i\pi \tau}\), and the non-trivial factor \(H^{\text{torus}}_{\Delta}(\Delta_1|q)\) can be computed by the following recursion formula:
-
-\[
-H^\text{torus}_{\Delta}(\Delta_1|q) = 1 + \sum_{N=1}^{N_{max}} \sum_{mn\leq N} C_{m,n}^{N,\text{torus}} \frac{q^N}{\delta-\delta_{(m,n)}}
-\]
-
-where the coefficient $C^{N,\text{torus}}_{m,n}$ is given [[CNmn-torus][here]].
-
-*** The ~OnePointBlocksTorus~ module
+** The ~OnePointBlocksTorus~ module
+:PROPERTIES:
+:header-args:julia: :tangle ./src/ConformalBlocks.jl
+:END:
 
 The module ~OnePointBlocksTorus~ exports
 
@@ -1197,7 +1303,7 @@ module OnePointBlocksTorus
 using ..CFTData, ..OnePointCorrelationFunctions
 import EllipticFunctions: etaDedekind as η
 
-export OnePointBlockTorus, F_one_point_torus
+export OnePointBlockTorus, block
 
 #===========================================================================================
 Struct containing the data required to compute a block: an external field
@@ -1239,14 +1345,14 @@ function H(q, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
 end
 
 """
-    Fs_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
+    block_chiral_schan(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
 
 Compute the chiral conformal block
 
 ``\\mathcal F^{\text{torus}}_{\\delta}(x)``
 
 """
-function F_chiral(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
+function block_chiral(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
     δ = block.channelField["δ"][lr]
     return q^δ/η(τ) * H(qfromtau(τ), Nmax, block, corr, lr)
 end
@@ -1261,7 +1367,7 @@ where ``\\text{chan}`` is `s`,`t` or `u`.
 TODO: logarithmic blocks
 """
 function F_one_point_torus(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation)
-    F_chiral(τ, Nmax, block, corr, left) * conj(F_chiral(conj(τ), Nmax, block, corr, right))
+    block_chiral(τ, Nmax, block, corr, left) * conj(block_chiral(conj(τ), Nmax, block, corr, right))
 end
 #+end_src
 
@@ -1271,7 +1377,7 @@ end
 end # end module
 #+end_src
 
-* Special functions
+** The ~Special functions~ module
 :PROPERTIES:
 :header-args:julia: :tangle ./src/SpecialFunctions.jl
 :END:
@@ -1293,7 +1399,32 @@ function double_gamma(beta, w)
 end
 #+end_src
 
-* Unit testing
+** Setting-up bootstrap equations
+:PROPERTIES:
+:header-args:julia: :tangle ./src/BootstrapEquations.jl
+:END:
+
+*** Multithreading
+
+Setting-up bootstrap equations requires evaluating conformal blocks at hundreds of positions. We parallelize this computation.
+
+#+begin_src julia :session test :results silent
+using Pkg; Pkg.activate(".")
+using JuliVirBootstrap
+
+help(Field)
+#+end_src
+
+#+begin_src julia
+function evaluate_block(positions, Nmax, corr, block)
+    res = zeros(length(positions))
+    threads.@Threads for (i,pos) in enumerate(positions)
+        res[i] = G(corr, block, pos)
+    end
+end
+#+end_src
+
+** Unit testing
 :PROPERTIES:
 :header-args:julia: :tangle ./test/runtests.jl
 :END:
@@ -1357,7 +1488,7 @@ end
 end
 #+end_src
 
-* Development tests
+** Development tests
 :PROPERTIES:
 :header-args:julia: :tangle ./test/devtests.jl :session test
 :END:
@@ -1367,7 +1498,7 @@ import Pkg; Pkg.activate(".")
 using JuliVirBootstrap
 #+end_src
 
-#+begin_src julia
+#+begin_src julia :results silent
 using JuliVirBootstrap, BenchmarkTools, EllipticFunctions
 
 left=1;
@@ -1384,22 +1515,19 @@ x = BigFloat("0.05", RoundUp);
 function test()
     corr = FourPointCorrelation(c, V1, V2, V3, V4)
     block = FourPointBlockSphere("s", V)
-    calc = JuliVirBootstrap.FourPointBlocksSphere.Fs_chiral(x, 5, block, corr, left);
+    calc = JuliVirBootstrap.FourPointBlocksSphere.block_chiral_schan(x, 20, block, corr, left);
 end;
 #+end_src
 
-#+RESULTS:
-
-#+begin_src julia :results output
+#+begin_src julia :results output :exports both
 @btime test()
 #+end_src
 
 #+RESULTS:
-:   1.046 ms (14047 allocations: 779.80 KiB)
-: 2337.403601860713925958391009719678809055546365124340617423994215164154638728732 + 4771.392251761078219452023733430973991671048305871845481326523306698785531079742im
+:   132.653 ms (1094930 allocations: 59.24 MiB)
+: 2337.403811916126625122326580582469276291308611169647345129357174845040805086673 + 4771.391284704253687680894658772605764303477461447331028240571631385564211692817im
 
-
-** Relation between four-point blocks on the sphere and one-point blocks on the torus
+*** Relation between four-point blocks on the sphere and one-point blocks on the torus
 
 Four point blocks on the sphere are related to one-point blocks on the torus through the relation
 
@@ -1465,3 +1593,7 @@ println("torus block = $h1 \nsphere block = $h2")
 #+RESULTS:
 : torus block = 1.0000059915273005 - 1.1912765043504052e-5im
 : sphere block = 1.000005991527301 - 1.1912765042311957e-5im
+
+#+begin_src julia
+ o
+#+end_src

@@ -15,7 +15,7 @@ Series expansion of four-point blocks on the sphere.
 """
 module FourPointBlocksSphere
 
-export FourPointBlockSphere, F_four_point_sphere
+export FourPointBlockSphere, block
 
 using ..CFTData, ..FourPointCorrelationFunctions
 import ..FourPointCorrelationFunctions: permute_ext_fields
@@ -136,14 +136,14 @@ function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
 end
 
 """
-    Fs_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
+    block_chiral_schan(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
 
 Compute the chiral conformal block
 
 ``\\mathcal F^{(s)}_{\\delta}(x)``
 
 """
-function Fs_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
+function block_chiral_schan(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
     blockprefactor(block, corr, x, lr) * H(qfromx(x), Nmax, block, corr, lr)
 end
 
@@ -152,12 +152,14 @@ end
 ``\\mathcal F^{(\\text{chan})}_{\\delta}(x)``
 
 where `chan` is `s`, `t`, or `u`."""
-function F_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
+function block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
     chan = block.channel
-    Fs_chiral(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr)
+    block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr)
 end
 
 """
+    G(x, Nmax, block, corr)
+
 Compute the non-chiral conformal block
 
 ``\\mathcal F^{(\\text{chan})}_{\\delta}(x) \\overline{\\mathcal F}^{(\\text{chan})}_{\\delta}( \bar x )``
@@ -166,10 +168,10 @@ where `chan` is `s`,`t` or `u`.
 
 TODO: logarithmic blocks
 """
-function F_four_point_sphere(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
+function block(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
     channelprefactor(block, corr, x) * \
-        F_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, left) * \
-        conj(F_chiral(conj(x), Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, right))
+        block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, left) * \
+        conj(block_chiral(conj(x), Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, right))
 end
 
 end # end module
@@ -182,7 +184,7 @@ module OnePointBlocksTorus
 using ..CFTData, ..OnePointCorrelationFunctions
 import EllipticFunctions: etaDedekind as η
 
-export OnePointBlockTorus, F_one_point_torus
+export OnePointBlockTorus, block
 
 #===========================================================================================
 Struct containing the data required to compute a block: an external field
@@ -219,14 +221,14 @@ function H(q, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
 end
 
 """
-    Fs_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
+    block_chiral_schan(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
 
 Compute the chiral conformal block
 
 ``\\mathcal F^{\text{torus}}_{\\delta}(x)``
 
 """
-function F_chiral(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
+function block_chiral(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation, lr)
     δ = block.channelField["δ"][lr]
     return q^δ/η(τ) * H(qfromtau(τ), Nmax, block, corr, lr)
 end
@@ -241,7 +243,7 @@ where ``\\text{chan}`` is `s`,`t` or `u`.
 TODO: logarithmic blocks
 """
 function F_one_point_torus(τ, Nmax, block::OnePointBlockTorus, corr::OnePointCorrelation)
-    F_chiral(τ, Nmax, block, corr, left) * conj(F_chiral(conj(τ), Nmax, block, corr, right))
+    block_chiral(τ, Nmax, block, corr, left) * conj(block_chiral(conj(τ), Nmax, block, corr, right))
 end
 
 end # end module

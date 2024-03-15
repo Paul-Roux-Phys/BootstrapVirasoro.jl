@@ -69,10 +69,13 @@ function permute_ext_fields(corr::FourPointCorrelation, channel)
     return FourPointCorrelation(corr.charge, Vs)
 end
 
-"""Order of a pole of Rmn, assuming the central charge is generic"""
-function Rmn_zero_order(m, n, B, corr::FourPointCorrelation, channel)
+"""
+        Order of a pole of Rmn, assuming the central charge is generic. Also return the indices of the vanishing term.
 
-    order=0
+"""
+function Rmn_zero_order(m, n, corr::FourPointCorrelation, channel)
+    B = corr.charge["B"]
+    order = 0
     V=permute_ext_fields(corr, channel).fields
 
     if !((V[1].isKac && V[2].isKac) || (V[3].isKac && V[4].isKac))
@@ -88,8 +91,8 @@ function Rmn_zero_order(m, n, B, corr::FourPointCorrelation, channel)
     and (|s1 \pm s2| <= n-1 and s1-s2 - (n-1) % 2 == 0)
     =#
     for pm in (-1,1)
-        for (i,j) in ((1,2),(3,4))
-            if V[i].isdegenerate && V[j].isdegenerate
+        for (i,j) in ((1,2), (3,4))
+            if V[i].isKac && V[j].isKac
                 if (abs(r[i]+pm*r[j]) <= m-1 && (r[i]+pm*r[j]-(m-1))%2 == 0) &&
                     (abs(s[i]+pm*s[j]) <= n-1 && (s[i]+pm*s[j]-(n-1))%2 == 0)
                     order += 1
@@ -101,15 +104,32 @@ function Rmn_zero_order(m, n, B, corr::FourPointCorrelation, channel)
     return order
 end
 
-function helper_Rmn(δ1, δ2, δ3, δ4, r, s, B)
-    if r == 0 && s == 0
-        return (δ2-δ1)*(δ3-δ4)
-    else
-        return (((δ2-δ1)^2 - 2*δrs(r, s, B)*(δ1+δ2) + δrs(r, s, B)^2)
-                *((δ3-δ4)^2 - 2*δrs(r, s, B)*(δ3+δ4) + δrs(r, s, B)^2))
+"""Compute one of the terms in the double product of Rmn"""
+function Rmn_term(r0, s0, corr:FourPointCorrelation, channel)
+    B = corr.charge["B"]
+    V = permute_ext_fields(corr.fields, channel).fields
+    r = [V[i].r for i in 1:4]
+    s = [V[i].s for i in 1:4]
+    δ = [V[i]["δ"] for i in 1:4]
+    res = 1
+    #= if r1 \pm r2 = (\pm)' r0 and s1 \pm s2 = (\pm)' s0, compute the regularization of the term
+    same for 3 and 4
+    =#
+    for pm in (-1,1)
+        for pm2 in (-1,1)
+            for (i,j) in ((1,2), (3,4))
+                if V[i].isKac && V[j].isKac && (r[i]+pm*r[j], s[i]+pm*s[j]) == (pm2*r0, pm2*s0)
+                    if r0 == 0 && s0 == 0
+                        res *= 2*V[j]["p"]
+                    else
+                        res *= 8*V[i]["p"]*V[j]["p"]*Field(corr.charge, Kac=true, r=pm2*r0, s=pm2*s0)["p"]
+                    end
+                    return res
+                end
+            end
+        end
     end
 end
-
 """
 Compute `Rmn`.
 lr indicates the left or right moving parts of the fields
@@ -125,16 +145,18 @@ TODO: value of regularisation
     δ3 = Vs[3]["δ"][lr]
     δ4 = Vs[4]["δ"][lr]
 
-    if Rmn_zero_order(m, n, B, corr, channel) > 0
-        return 0
+    if Rmn_zero_order(m, n, corr, channel) > 0
+        if m == 1
+            res = a
+        end
     else
         if m == 1
-            res = prod(helper_Rmn(δ1, δ2, δ3, δ4, 0, s, B) for s in 1-n:2:0)
+            res = prod(Rmn_term(0, s, corr, channel) for s in 1-n:2:0)
         else # m > 1
-            res = prod(prod(helper_Rmn(δ1, δ2, δ3, δ4, r, s, B)
+            res = prod(prod(Rmn_term(r, s, corr, channel)
                             for s in 1-n:2:n-1) for r in 1-m:2:-1)
             if m%2 == 1 # m odd -> treat r=0 term separately
-                res *= prod(helper_Rmn(δ1, δ2, δ3, δ4, 0, s, B) for s in 1-n:2:0)
+                res *= prod(Rmn_term(0, s, corr, channel) for s in 1-n:2:0)
             end
         end
     end
@@ -144,7 +166,7 @@ end
 
 @memoize function computeCNmn(N, m, n, corr::FourPointCorrelation, channel, lr)
     B = corr.charge["B"]
-    if Rmn_zero_order(m, n, B, corr, channel) > 0
+    if Rmn_zero_order(m, n, corr, channel) > 0
         return 0
     elseif m*n > N
         return 0

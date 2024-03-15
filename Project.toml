@@ -8,9 +8,7 @@ EllipticFunctions = "6a4e32cb-b31a-4929-85af-fb29d9a80738"
 HypergeometricFunctions = "34004b35-14d8-5ef3-9330-4cdb6864b03a"
 Match = "7eb4fadd-790c-5f42-8a69-bfa0b872bfbf"
 Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
-Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
-OpenCL = "08131aa3-fb12-5dee-8b74-c09406e224a2"
-ProfileView = "c46f51b8-102a-5cf2-8d2c-8597cb0e0da7"
+SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 julia = "1.9"
