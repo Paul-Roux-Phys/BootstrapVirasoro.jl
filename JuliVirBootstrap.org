@@ -1,15 +1,16 @@
 #+title: JuliVirBootstrap Documentation
 #+author: Paul ROUX
 #+setupfile: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
-#+setupfile: #+setupfile: ~/.doom.d/setupfiles/org-basic-latex-export.org
-#+options: toc:3 num:1
+#+setupfile: ~/.doom.d/setupfiles/org-basic-latex-export.org
+#+options: toc:3 num:2
 #+startup: latexpreview
-#+property: header_args:julia :session JuliVirBootstrap :eval no-export
+#+property: header_args: :eval never-export
 
 * Table of contents :toc:noexport:
 - [[#overview][Overview]]
 - [[#conformal-bootstrap-equations-in-2d][Conformal bootstrap equations in 2D]]
   - [[#notations-parametrisations][Notations, parametrisations]]
+  - [[#special-functions][Special functions]]
   - [[#four-point-functions-on-the-sphere][Four point functions on the sphere]]
   - [[#one-point-functions-on-the-torus][One point functions on the torus]]
   - [[#logarithmic-blocks][Logarithmic blocks]]
@@ -23,7 +24,7 @@
   - [[#the-onepointcorrelationfunctions-module][The ~OnePointCorrelationFunctions~ module]]
   - [[#the-fourpointblockssphere-module][The ~FourPointBlocksSphere~ module]]
   - [[#the-onepointblockstorus-module][The ~OnePointBlocksTorus~ module]]
-  - [[#the-special-functions-module][The ~Special functions~ module]]
+  - [[#the-specialfunctions-module][The ~SpecialFunctions~ module]]
   - [[#setting-up-bootstrap-equations][Setting-up bootstrap equations]]
   - [[#unit-testing][Unit testing]]
   - [[#development-tests][Development tests]]
@@ -38,13 +39,13 @@ The program relies on the assumption that the spectrum of the model contains deg
 
 ** Notations, parametrisations
 
-**** Central charge
+*** Central charge
 
 We parametrise the central charge of our theories in terms of variables \(B\), \(b\) or \(\beta\) related by
 
 \[c = 13 + 6B + 6 B^{-1} \quad , \quad B = b^2 = -\beta^2, \quad B = \frac{c-13 \pm \sqrt{(c-1)(c-25)}}{12}\]
 
-**** Fields
+*** Fields
 
 We parametrise the conformal dimensions $(\Delta, \bar\Delta)$ of fields in terms of variables $P, p, \delta$, related by
 
@@ -64,6 +65,30 @@ where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in 
 This convention is consistent with the one in [[https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git][Sylvain's code]].
 
 In loop models, we denote \(V_{(r,s)}\) a non-diagonal field of left and right momenta \((P_{(r,s)},P_{(r,-s)})\).
+
+** Special functions
+
+Expressions of correlation functions in CFT involve special functions. In this paragraph we introduce some representations and regularisations of special functions.
+
+*** Digamma function
+
+The digamma function is defined for as
+
+\begin{align}
+  \psi(z) = \frac{\Gamma'(z)}{\Gamma(z)}
+\end{align}
+
+The function $\psi$ has poles at negative integers. We regularise the digamma function thanks to the equation
+
+\begin{align}
+  \psi(1-x) - \psi(x) = \pi \operatorname{cot}(\pi x)
+\end{align}
+
+which means we use the regularization
+
+\begin{align}
+  \psi(-r) \underset{r\in\mathbb{N}}{=} \psi(r+1)
+\end{align}
 
 ** Four point functions on the sphere
 
@@ -237,13 +262,28 @@ $\mathcal L V_{(r,s)}$ and $\bar{\mathcal L} V_{(r,s)}$ are non-diagonal primary
   W^{-}_{(r,s)} = \partial_{P} V_{P_{(r,-s)}} - \mathcal{L}_{(r,s)} \bar{\mathcal{L}}_{(r,s)} \partial_{P} V_{P_{(r,s)}}
 \end{align}
 
-This is found by studying the OPE
+This is the necessary condition for the OPE
 
 \begin{align}
-  V^{d}_{\langle r,0\rangle} V_{P_{(r,0)}+\epsilon}.
+  V^{d}_{\langle 1,s_{0}\rangle} V_{P_{(r,0)}+\epsilon}.
 \end{align}
 
-Logarithmic conformal blocks in principle depend on the parameter $\kappa$. In this code, we only compute their value at the value of $\kappa$ fixed by the presence of $V^d_{\langle1,2\rangle}$.
+to be finite.
+
+Logarithmic conformal blocks in general depend on the parameter $\kappa$. In this code, we only compute their value at the value of $\kappa$ fixed by the presence of $V^d_{\langle1,2\rangle}$.
+
+#+begin_src julia :results output
+using SpecialFunctions
+setprecision(BigInt, 50, base=10)
+r=BigInt(4)
+println(digamma(-r))
+println(digamma(r+1))
+#+end_src
+
+#+RESULTS:
+: 4
+: NaN
+: 1.506117668431800472726821243250930902291173997393409734527566098448465606555671
 
 *** Four-point logarithmic blocks on the sphere
 
@@ -255,7 +295,7 @@ $$
 
 where the chiral logarithmic blocks are
 
-$$\label{eq:log_block}
+$$\label{eq:log_block_chiral}
 \mathcal{F}_{( r,s)}^\text{log}
 = \frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{\delta_{(r,s)}}^\text{reg} -2q_{(r,-s)}\mathcal{F}'_{\delta_{(r,-s)}}
 = \lim_{\epsilon\to 0} \left(\frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{q_{(r,s)}+\epsilon} +\frac{B^{-1}}{\epsilon} \mathcal{F}_{q_{(r,-s)}+\epsilon}\right)
@@ -279,15 +319,19 @@ $$
 q_{(r,s)} = \frac{r}{2}+\frac{s}{2B}.
 $$
 
-The regularised chiral block $\mathcal F^{\text{log}}_{\delta_{(r,s)}}$ is the regularised part of $\mathcal F_{\delta_{(r,s)} + \epsilon}$ when $\epsilon \to 0$.
+The regularised chiral block $\mathcal F^{\text{reg}}_{\delta_{(r,s)}}$ is the regularised part of $\mathcal F_{\delta_{(r,s)} + \epsilon}$ when $\epsilon \to 0$.
 
-The $R_{r,s}$ factor in the denominator of ref:eq:log_block cannot vanish; this would require all four external fields to be
+The $R_{r,s}$ factor in the denominator of ref:eq:log_block_chiral vanishes if and only if $\mathcal F_{\delta_{(r,s)}}$ is regular. In this case, the block $\mathcal G_{(r,s)}$ is actually not logarithmic. The structure constants of $V_{(r,s)}$ and $V_{(r,-s)}$ are still related by shift equations though, so we compute the block
+
+\begin{align}
+\mathcal G^{{\text{normalized}}}_{(r,s)}  = \mathcal{F}_{(r,s)} \bar{\mathcal{F}}_{\delta_{(r,-s)}} + (-1)^{\# \text{zeros}} \frac{R^{\text{reg}}_{r,s}}{\bar R^{\text{reg}}_{r,s}}\mathcal{F}_{\delta_{( r,-s)}} \bar{\mathcal{F}}_{(r,s)}
+\end{align}
 
 We may want to normalize the blocks such that the term that corresponds to the primary field $V^N_{(r,s)}$ comes with the coefficient $1$. This is useful in particular when using shift equations for structure constants. To do this, we define
 
-$$
+\begin{align}
 \mathcal{G}_{(r,s)}^\text{normalized} = \frac{R_{r, s}}{2q_{(r,s)}} \mathcal{G}_{(r,s)}
-$$
+\end{align}
 
 In general, we have $\mathcal{G}_{( r,s)} = \mathcal{G}_{(r,-s)}$ but $\mathcal{G}^\text{normalized}_{(r,s)} \neq \mathcal{G}^\text{normalized}_{( r,-s)}$ since $R_{r,s}\neq \bar R_{r,s}$.
 
@@ -1395,10 +1439,12 @@ end
 end # end module
 #+end_src
 
-** The ~Special functions~ module
+** The ~SpecialFunctions~ module
 :PROPERTIES:
 :header-args:julia: :tangle ./src/SpecialFunctions.jl
 :END:
+
+*** Header
 
 #+begin_src julia
 #==================
@@ -1407,14 +1453,44 @@ SpecialFunctions.jl computes the special functions relevant for our applications
 
 ==================#
 
-using EllipticFunctions
+module SpecialFunctions
 
+import SpecialFunctions: digamma as digamma_w_poles
+
+export digamma
+
+#+end_src
+
+*** Digamma Function
+
+#+begin_src julia
+"""Regularised digamma function"""
+function digamma(z)
+    if real(z) > 0
+        return digamma_w_poles(z)
+    elseif imag(z) == 0 and real(z)%1 == 0
+        return digamma_w_poles(1-z)
+    else
+        return digamma_w_poles(1-z) - π/tan(π*z)
+    end
+end
+#+end_src
+
+*** Double gamma function
+
+#+begin_src julia
 function log_double_gamma(beta, w)
 end
 
 function double_gamma(beta, w)
     return exp(log_double_gamma(beta, w))
 end
+#+end_src
+
+*** End module
+
+#+begin_src julia
+end # end module
 #+end_src
 
 ** Setting-up bootstrap equations

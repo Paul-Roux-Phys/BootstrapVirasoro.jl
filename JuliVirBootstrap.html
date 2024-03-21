@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2024-03-18 Mon 11:15 -->
+<!-- 2024-03-21 Thu 10:33 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>JuliVirBootstrap Documentation</title>
@@ -55,64 +55,81 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#orgf39cf6a">1. Overview</a></li>
-<li><a href="#orgad32fd3">2. Conformal bootstrap equations in 2D</a>
+<li><a href="#orgf1be0da">1. Overview</a></li>
+<li><a href="#orge9370e1">2. Conformal bootstrap equations in 2D</a>
 <ul>
-<li><a href="#org4efdb14">Notations, parametrisations</a></li>
-<li><a href="#org58724f0">Four point functions on the sphere</a>
+<li><a href="#org38842f4">2.1. Notations, parametrisations</a>
 <ul>
-<li><a href="#orgcc728c1">Zamolodchikov&rsquo;s recursion for four-point blocks</a></li>
+<li><a href="#org39fb4e3">Central charge</a></li>
+<li><a href="#org6b66cd5">Fields</a></li>
 </ul>
 </li>
-<li><a href="#org15478ef">One point functions on the torus</a>
+<li><a href="#orgabdfec8">2.2. Special functions</a>
 <ul>
-<li><a href="#org9e58b1d">Zamolodchikov&rsquo;s recursion for torus one-point blocks</a></li>
+<li><a href="#org9721ce1">Digamma function</a></li>
 </ul>
 </li>
-<li><a href="#orge768963">Logarithmic blocks</a>
+<li><a href="#org7bc95c5">2.3. Four point functions on the sphere</a>
 <ul>
-<li><a href="#org3d1d0c8">Four-point logarithmic blocks on the sphere</a></li>
+<li><a href="#org656ec42">Zamolodchikov&rsquo;s recursion for four-point blocks</a></li>
 </ul>
 </li>
-<li><a href="#org536cddb">Relation between sphere four-point blocks and torus one-point blocks</a></li>
-<li><a href="#orgac7c4ca">Crossing symmetry for four-point functions on the sphere</a></li>
-<li><a href="#org9c52c0f">Modular invariance for one-point functions on the torus</a></li>
+<li><a href="#org6112151">2.4. One point functions on the torus</a>
+<ul>
+<li><a href="#org1cefa6f">Zamolodchikov&rsquo;s recursion for torus one-point blocks</a></li>
 </ul>
 </li>
-<li><a href="#org27e0e33">3. Code of the package</a>
+<li><a href="#org21dcba7">2.5. Logarithmic blocks</a>
 <ul>
-<li><a href="#orgdd2eafa">Main module</a></li>
-<li><a href="#org282aa1a">The <code>CFTData</code> module</a>
-<ul>
-<li><a href="#orgb168c64">Header</a></li>
-<li><a href="#orgab28a2e">Central charge</a></li>
-<li><a href="#org23541e3">Fields</a></li>
-<li><a href="#org175d7c5">End of module</a></li>
+<li><a href="#orge8b3654">Four-point logarithmic blocks on the sphere</a></li>
 </ul>
 </li>
-<li><a href="#org9436327">The <code>FourPointCorrelationFunctions</code> module</a></li>
-<li><a href="#orgbc3294c">The <code>OnePointCorrelationFunctions</code> module</a></li>
-<li><a href="#org038eefa">The <code>FourPointBlocksSphere</code> module</a>
-<ul>
-<li><a href="#org496e37d">Header</a></li>
-<li><a href="#org8a489db">Four-point block sphere type</a></li>
-<li><a href="#org536f863">Change of channel</a></li>
-<li><a href="#org10f8343">Prefactors, elliptic nome</a></li>
-<li><a href="#org30b0b3e">Computation of the block</a></li>
-<li><a href="#org7ebd4ad">End of module</a></li>
+<li><a href="#orgeebd481">2.6. Relation between sphere four-point blocks and torus one-point blocks</a></li>
+<li><a href="#org95150e5">2.7. Crossing symmetry for four-point functions on the sphere</a></li>
+<li><a href="#orge5d0d06">2.8. Modular invariance for one-point functions on the torus</a></li>
 </ul>
 </li>
-<li><a href="#org3a4ce5f">The <code>OnePointBlocksTorus</code> module</a></li>
-<li><a href="#org2b02381">The <code>Special functions</code> module</a></li>
-<li><a href="#org425b278">Setting-up bootstrap equations</a>
+<li><a href="#org5107154">3. Code of the package</a>
 <ul>
-<li><a href="#orgd9f8f88">Multithreading</a></li>
+<li><a href="#org8db9d4d">3.1. Main module</a></li>
+<li><a href="#org27556b8">3.2. The <code>CFTData</code> module</a>
+<ul>
+<li><a href="#org1e361ac">Header</a></li>
+<li><a href="#orgcf63a30">Central charge</a></li>
+<li><a href="#org51a0fc7">Fields</a></li>
+<li><a href="#org1ddff16">End of module</a></li>
 </ul>
 </li>
-<li><a href="#orgdbb770d">Unit testing</a></li>
-<li><a href="#orgb99fc89">Development tests</a>
+<li><a href="#org9172a14">3.3. The <code>FourPointCorrelationFunctions</code> module</a></li>
+<li><a href="#org6643b01">3.4. The <code>OnePointCorrelationFunctions</code> module</a></li>
+<li><a href="#org6c6110f">3.5. The <code>FourPointBlocksSphere</code> module</a>
 <ul>
-<li><a href="#orga10a598">Relation between four-point blocks on the sphere and one-point blocks on the torus</a></li>
+<li><a href="#org32f462a">Header</a></li>
+<li><a href="#orgca80c24">Four-point block sphere type</a></li>
+<li><a href="#org45563ea">Change of channel</a></li>
+<li><a href="#org72c8a33">Prefactors, elliptic nome</a></li>
+<li><a href="#org004b990">Computation of the block</a></li>
+<li><a href="#org3d0bee2">End of module</a></li>
+</ul>
+</li>
+<li><a href="#org10d2051">3.6. The <code>OnePointBlocksTorus</code> module</a></li>
+<li><a href="#org8e1bdf9">3.7. The <code>SpecialFunctions</code> module</a>
+<ul>
+<li><a href="#orgee90f28">Header</a></li>
+<li><a href="#orgbe89777">Digamma Function</a></li>
+<li><a href="#orgbe61ff5">Double gamma function</a></li>
+<li><a href="#org2bd915a">End module</a></li>
+</ul>
+</li>
+<li><a href="#org897a1dd">3.8. Setting-up bootstrap equations</a>
+<ul>
+<li><a href="#org137ffdb">Multithreading</a></li>
+</ul>
+</li>
+<li><a href="#org631e12d">3.9. Unit testing</a></li>
+<li><a href="#orgd77be63">3.10. Development tests</a>
+<ul>
+<li><a href="#org92aa437">Relation between four-point blocks on the sphere and one-point blocks on the torus</a></li>
 </ul>
 </li>
 </ul>
@@ -120,8 +137,8 @@
 </ul>
 </div>
 </div>
-<div id="outline-container-orgf39cf6a" class="outline-2">
-<h2 id="orgf39cf6a"><span class="section-number-2">1.</span> Overview</h2>
+<div id="outline-container-orgf1be0da" class="outline-2">
+<h2 id="orgf1be0da"><span class="section-number-2">1.</span> Overview</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 This document contains a program for performing conformal bootstrap computations in 2D loop models.
@@ -132,17 +149,17 @@ The program relies on the assumption that the spectrum of the model contains deg
 </p>
 </div>
 </div>
-<div id="outline-container-orgad32fd3" class="outline-2">
-<h2 id="orgad32fd3"><span class="section-number-2">2.</span> Conformal bootstrap equations in 2D</h2>
+<div id="outline-container-orge9370e1" class="outline-2">
+<h2 id="orge9370e1"><span class="section-number-2">2.</span> Conformal bootstrap equations in 2D</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-org4efdb14" class="outline-3">
-<h3 id="org4efdb14">Notations, parametrisations</h3>
-<div class="outline-text-3" id="text-org4efdb14">
+<div id="outline-container-org38842f4" class="outline-3">
+<h3 id="org38842f4"><span class="section-number-3">2.1.</span> Notations, parametrisations</h3>
+<div class="outline-text-3" id="text-2-1">
 </div>
-<ul class="org-ul">
-<li><a id="org12ee775"></a>Central charge<br />
-<div class="outline-text-5" id="text-org12ee775">
+<div id="outline-container-org39fb4e3" class="outline-4">
+<h4 id="org39fb4e3">Central charge</h4>
+<div class="outline-text-4" id="text-org39fb4e3">
 <p>
 We parametrise the central charge of our theories in terms of variables \(B\), \(b\) or \(\beta\) related by
 </p>
@@ -151,9 +168,10 @@ We parametrise the central charge of our theories in terms of variables \(B\), \
 \[c = 13 + 6B + 6 B^{-1} \quad , \quad B = b^2 = -\beta^2, \quad B = \frac{c-13 \pm \sqrt{(c-1)(c-25)}}{12}\]
 </p>
 </div>
-</li>
-<li><a id="org1990ff9"></a>Fields<br />
-<div class="outline-text-5" id="text-org1990ff9">
+</div>
+<div id="outline-container-org6b66cd5" class="outline-4">
+<h4 id="org6b66cd5">Fields</h4>
+<div class="outline-text-4" id="text-org6b66cd5">
 <p>
 We parametrise the conformal dimensions \((\Delta, \bar\Delta)\) of fields in terms of variables \(P, p, \delta\), related by
 </p>
@@ -189,12 +207,47 @@ This convention is consistent with the one in <a href="https://gitlab.com/s.g.ri
 In loop models, we denote \(V_{(r,s)}\) a non-diagonal field of left and right momenta \((P_{(r,s)},P_{(r,-s)})\).
 </p>
 </div>
-</li>
-</ul>
 </div>
-<div id="outline-container-org58724f0" class="outline-3">
-<h3 id="org58724f0">Four point functions on the sphere</h3>
-<div class="outline-text-3" id="text-org58724f0">
+</div>
+<div id="outline-container-orgabdfec8" class="outline-3">
+<h3 id="orgabdfec8"><span class="section-number-3">2.2.</span> Special functions</h3>
+<div class="outline-text-3" id="text-2-2">
+<p>
+Expressions of correlation functions in CFT involve special functions. In this paragraph we introduce some representations and regularisations of special functions.
+</p>
+</div>
+<div id="outline-container-org9721ce1" class="outline-4">
+<h4 id="org9721ce1">Digamma function</h4>
+<div class="outline-text-4" id="text-org9721ce1">
+<p>
+The digamma function is defined for as
+</p>
+
+\begin{align}
+  \psi(z) = \frac{\Gamma'(z)}{\Gamma(z)}
+\end{align}
+
+<p>
+The function \(\psi\) has poles at negative integers. We regularise the digamma function thanks to the equation
+</p>
+
+\begin{align}
+  \psi(1-x) - \psi(x) = \pi \operatorname{cot}(\pi x)
+\end{align}
+
+<p>
+which means we use the regularization
+</p>
+
+\begin{align}
+  \psi(-r) \underset{r\in\mathbb{N}}{=} \psi(r+1)
+\end{align}
+</div>
+</div>
+</div>
+<div id="outline-container-org7bc95c5" class="outline-3">
+<h3 id="org7bc95c5"><span class="section-number-3">2.3.</span> Four point functions on the sphere</h3>
+<div class="outline-text-3" id="text-2-3">
 <p>
 Because of conformal invariance, computation of any four-point correlation function reduces to the computation of
 </p>
@@ -257,9 +310,9 @@ Together with the invariance of \(\left\langle \prod_{i=1}^4 V_{\Delta_i}(z_i) \
 where \(S=\Delta-\bar\Delta\) is the conformal spin, which we assume to be integer.
 </p>
 </div>
-<div id="outline-container-orgcc728c1" class="outline-4">
-<h4 id="orgcc728c1">Zamolodchikov&rsquo;s recursion for four-point blocks</h4>
-<div class="outline-text-4" id="text-orgcc728c1">
+<div id="outline-container-org656ec42" class="outline-4">
+<h4 id="org656ec42">Zamolodchikov&rsquo;s recursion for four-point blocks</h4>
+<div class="outline-text-4" id="text-org656ec42">
 <p>
 Four-point blocks can be computed efficiently thanks to <a href="https://en.wikipedia.org/wiki/Virasoro_conformal_block">Zamolodchikov&rsquo;s recursion</a>.
 </p>
@@ -347,7 +400,7 @@ We do not actually take square roots, because each factor appears twice, except 
 </p>
 
 \begin{equation}
-\label{org5ef8277}
+\label{org88040ff}
 D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
 \prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
 \prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2.
@@ -355,9 +408,9 @@ D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
 </div>
 </div>
 </div>
-<div id="outline-container-org15478ef" class="outline-3">
-<h3 id="org15478ef">One point functions on the torus</h3>
-<div class="outline-text-3" id="text-org15478ef">
+<div id="outline-container-org6112151" class="outline-3">
+<h3 id="org6112151"><span class="section-number-3">2.4.</span> One point functions on the torus</h3>
+<div class="outline-text-3" id="text-2-4">
 <p>
 A one-point function on the torus can be written
 </p>
@@ -379,9 +432,9 @@ Because of translation invariance, one-point functions on the torus do not depen
 The conformal block \(\mathcal G_\Delta(\tau, c, \Delta_1|x)\) again factorises for non-logarithmic theories, and we write \(\mathcal F_\Delta(\tau, c, \Delta_1 | x)\) the corresponding Virasoro block.
 </p>
 </div>
-<div id="outline-container-org9e58b1d" class="outline-4">
-<h4 id="org9e58b1d">Zamolodchikov&rsquo;s recursion for torus one-point blocks</h4>
-<div class="outline-text-4" id="text-org9e58b1d">
+<div id="outline-container-org1cefa6f" class="outline-4">
+<h4 id="org1cefa6f">Zamolodchikov&rsquo;s recursion for torus one-point blocks</h4>
+<div class="outline-text-4" id="text-org1cefa6f">
 <p>
 Like four-point blocks, torus one-point blocks can be computed recursively. We introduce \(H\) defined by
 </p>
@@ -404,7 +457,7 @@ The coefficients \(C_{m,n}^{N,\text{torus}}\) have the recursive representation
 </p>
 
 \begin{equation}
-\label{orge4d4699}
+\label{org6a5de09}
 C^{N,\text{torus}}_{m,n} = R^{\text{torus}}_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
 \end{equation}
 
@@ -419,14 +472,14 @@ R_{m,n}^{\text{torus}} = \frac{1}{2 D_{m,n}} \prod_{r\overset2=1-2m}^{2m-1} \pro
 </p>
 
 <p>
-where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the \eqref{org5ef8277} case <a href="Dmn">Dmn</a>
+where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the \eqref{org88040ff} case <a href="Dmn">Dmn</a>
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-orge768963" class="outline-3">
-<h3 id="orge768963">Logarithmic blocks</h3>
-<div class="outline-text-3" id="text-orge768963">
+<div id="outline-container-org21dcba7" class="outline-3">
+<h3 id="org21dcba7"><span class="section-number-3">2.5.</span> Logarithmic blocks</h3>
+<div class="outline-text-3" id="text-2-5">
 <p>
 See <a href="https://arxiv.org/abs/2007.04190">this paper</a> for more detail (<a href="file:///Users/Paul/Downloads/log_CFT_ribault_nivesvivat.pdf">here</a> on my laptop).
 </p>
@@ -437,7 +490,7 @@ The structure of a logarithmic module \(\mathcal W^\kappa_{(r,s)}\) is the follo
 </p>
 
 
-<div id="org4a390de" class="figure">
+<div id="org6ba52e3" class="figure">
 <p><img src="./imgs/logarithmic_module.png" alt="logarithmic_module.png" />
 </p>
 </div>
@@ -451,20 +504,33 @@ The structure of a logarithmic module \(\mathcal W^\kappa_{(r,s)}\) is the follo
 \end{align}
 
 <p>
-This is found by studying the OPE
+This is the necessary condition for the OPE
 </p>
 
 \begin{align}
-  V^{d}_{\langle r,0\rangle} V_{P_{(r,0)}+\epsilon}.
+  V^{d}_{\langle 1,s_{0}\rangle} V_{P_{(r,0)}+\epsilon}.
 \end{align}
 
 <p>
-Logarithmic conformal blocks in principle depend on the parameter \(\kappa\). In this code, we only compute their value at the value of \(\kappa\) fixed by the presence of \(V^d_{\langle1,2\rangle}\).
+to be finite.
 </p>
+
+<p>
+Logarithmic conformal blocks in general depend on the parameter \(\kappa\). In this code, we only compute their value at the value of \(\kappa\) fixed by the presence of \(V^d_{\langle1,2\rangle}\).
+</p>
+
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #8959a8;">using</span> SpecialFunctions
+setprecision(BigInt, <span style="color: #f5871f; font-weight: bold;">50</span>, base=<span style="color: #f5871f; font-weight: bold;">10</span>)
+r=BigInt(<span style="color: #f5871f; font-weight: bold;">4</span>)
+println(digamma(<span style="color: #bb9200;">-</span>r))
+println(digamma(r<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1</span>))
+</pre>
 </div>
-<div id="outline-container-org3d1d0c8" class="outline-4">
-<h4 id="org3d1d0c8">Four-point logarithmic blocks on the sphere</h4>
-<div class="outline-text-4" id="text-org3d1d0c8">
+</div>
+<div id="outline-container-orge8b3654" class="outline-4">
+<h4 id="orge8b3654">Four-point logarithmic blocks on the sphere</h4>
+<div class="outline-text-4" id="text-orge8b3654">
 <p>
 For \((r,s)\in \mathbb{Z}^*\), we compute the non-chiral logarithmic blocks
 </p>
@@ -480,7 +546,7 @@ where the chiral logarithmic blocks are
 </p>
 
 <p>
-\[\label{eq:log_block}
+\[\label{eq:log_block_chiral}
 \mathcal{F}_{( r,s)}^\text{log}
 = \frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{\delta_{(r,s)}}^\text{reg} -2q_{(r,-s)}\mathcal{F}'_{\delta_{(r,-s)}}
 = \lim_{\epsilon\to 0} \left(\frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{q_{(r,s)}+\epsilon} +\frac{B^{-1}}{\epsilon} \mathcal{F}_{q_{(r,-s)}+\epsilon}\right)
@@ -512,22 +578,24 @@ q_{(r,s)} = \frac{r}{2}+\frac{s}{2B}.
 </p>
 
 <p>
-The regularised chiral block \(\mathcal F^{\text{log}}_{\delta_{(r,s)}}\) is the regularised part of \(\mathcal F_{\delta_{(r,s)} + \epsilon}\) when \(\epsilon \to 0\).
+The regularised chiral block \(\mathcal F^{\text{reg}}_{\delta_{(r,s)}}\) is the regularised part of \(\mathcal F_{\delta_{(r,s)} + \epsilon}\) when \(\epsilon \to 0\).
 </p>
 
 <p>
-The \(R_{r,s}\) factor in the denominator of <a href="eq:log_block">eq:log_block</a> cannot vanish; this would require all four external fields to be
+The \(R_{r,s}\) factor in the denominator of <a href="eq:log_block_chiral">eq:log_block_chiral</a> vanishes if and only if \(\mathcal F_{\delta_{(r,s)}}\) is regular. In this case, the block \(\mathcal G_{(r,s)}\) is actually not logarithmic. The structure constants of \(V_{(r,s)}\) and \(V_{(r,-s)}\) are still related by shift equations though, so we compute the block
 </p>
+
+\begin{align}
+\mathcal G^{{\text{normalized}}}_{(r,s)}  = \mathcal{F}_{(r,s)} \bar{\mathcal{F}}_{\delta_{(r,-s)}} + (-1)^{\# \text{zeros}} \frac{R^{\text{reg}}_{r,s}}{\bar R^{\text{reg}}_{r,s}}\mathcal{F}_{\delta_{( r,-s)}} \bar{\mathcal{F}}_{(r,s)}
+\end{align}
 
 <p>
 We may want to normalize the blocks such that the term that corresponds to the primary field \(V^N_{(r,s)}\) comes with the coefficient \(1\). This is useful in particular when using shift equations for structure constants. To do this, we define
 </p>
 
-<p>
-\[
+\begin{align}
 \mathcal{G}_{(r,s)}^\text{normalized} = \frac{R_{r, s}}{2q_{(r,s)}} \mathcal{G}_{(r,s)}
-\]
-</p>
+\end{align}
 
 <p>
 In general, we have \(\mathcal{G}_{( r,s)} = \mathcal{G}_{(r,-s)}\) but \(\mathcal{G}^\text{normalized}_{(r,s)} \neq \mathcal{G}^\text{normalized}_{( r,-s)}\) since \(R_{r,s}\neq \bar R_{r,s}\).
@@ -535,9 +603,9 @@ In general, we have \(\mathcal{G}_{( r,s)} = \mathcal{G}_{(r,-s)}\) but \(\mathc
 </div>
 </div>
 </div>
-<div id="outline-container-org536cddb" class="outline-3">
-<h3 id="org536cddb">Relation between sphere four-point blocks and torus one-point blocks</h3>
-<div class="outline-text-3" id="text-org536cddb">
+<div id="outline-container-orgeebd481" class="outline-3">
+<h3 id="orgeebd481"><span class="section-number-3">2.6.</span> Relation between sphere four-point blocks and torus one-point blocks</h3>
+<div class="outline-text-3" id="text-2-6">
 <p>
 The recursion formulas for torus one-point blocks and sphere four-point blocks imply that four point blocks on the sphere are related to one-point blocks on the torus through the relation
 </p>
@@ -606,21 +674,21 @@ sphere block = 1.000005991527301 - 1.1912765042311957e-5im
 </p>
 </div>
 </div>
-<div id="outline-container-orgac7c4ca" class="outline-3">
-<h3 id="orgac7c4ca">Crossing symmetry for four-point functions on the sphere</h3>
+<div id="outline-container-org95150e5" class="outline-3">
+<h3 id="org95150e5"><span class="section-number-3">2.7.</span> Crossing symmetry for four-point functions on the sphere</h3>
 </div>
 
-<div id="outline-container-org9c52c0f" class="outline-3">
-<h3 id="org9c52c0f">Modular invariance for one-point functions on the torus</h3>
+<div id="outline-container-orge5d0d06" class="outline-3">
+<h3 id="orge5d0d06"><span class="section-number-3">2.8.</span> Modular invariance for one-point functions on the torus</h3>
 </div>
 </div>
-<div id="outline-container-org27e0e33" class="outline-2">
-<h2 id="org27e0e33"><span class="section-number-2">3.</span> Code of the package</h2>
+<div id="outline-container-org5107154" class="outline-2">
+<h2 id="org5107154"><span class="section-number-2">3.</span> Code of the package</h2>
 <div class="outline-text-2" id="text-3">
 </div>
-<div id="outline-container-orgdd2eafa" class="outline-3">
-<h3 id="orgdd2eafa">Main module</h3>
-<div class="outline-text-3" id="text-orgdd2eafa">
+<div id="outline-container-org8db9d4d" class="outline-3">
+<h3 id="org8db9d4d"><span class="section-number-3">3.1.</span> Main module</h3>
+<div class="outline-text-3" id="text-3-1">
 <p>
 The module <code>JuliVirBootstrap</code> is the main module of this package, and it includes the sub-modules.
 </p>
@@ -681,9 +749,9 @@ include(<span style="color: #718c00;">"SpecialFunctions.jl"</span>)
 </div>
 </div>
 </div>
-<div id="outline-container-org282aa1a" class="outline-3">
-<h3 id="org282aa1a">The <code>CFTData</code> module</h3>
-<div class="outline-text-3" id="text-org282aa1a">
+<div id="outline-container-org27556b8" class="outline-3">
+<h3 id="org27556b8"><span class="section-number-3">3.2.</span> The <code>CFTData</code> module</h3>
+<div class="outline-text-3" id="text-3-2">
 <p>
 The file <a href="src/CFTData.jl">CFTData.jl</a> defines
 </p>
@@ -692,9 +760,9 @@ The file <a href="src/CFTData.jl">CFTData.jl</a> defines
 <li>a struct <code>Field</code> that represents a field \(V\). The field can be defined from its Kac indices \(r, s\), be diagonal, logarithmic, or degenerate. The struct contains booleans for these three characteristics, as well as rationals for \(r\) and \(s\), and the pairs of (left, right) values \((\Delta, \bar \Delta)\), \((p, \bar p)\), \((\delta, \bar \delta)\), \((P, \bar P)\).</li>
 </ul>
 </div>
-<div id="outline-container-orgb168c64" class="outline-4">
-<h4 id="orgb168c64">Header</h4>
-<div class="outline-text-4" id="text-orgb168c64">
+<div id="outline-container-org1e361ac" class="outline-4">
+<h4 id="org1e361ac">Header</h4>
+<div class="outline-text-4" id="text-org1e361ac">
 <div class="org-src-container">
 <pre class="src src-julia">
 <span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
@@ -725,9 +793,9 @@ The file <a href="src/CFTData.jl">CFTData.jl</a> defines
 </div>
 </div>
 </div>
-<div id="outline-container-orgab28a2e" class="outline-4">
-<h4 id="orgab28a2e">Central charge</h4>
-<div class="outline-text-4" id="text-orgab28a2e">
+<div id="outline-container-orgcf63a30" class="outline-4">
+<h4 id="orgcf63a30">Central charge</h4>
+<div class="outline-text-4" id="text-orgcf63a30">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Get B from given parameter"""</span>
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Bfrom</span>(parameter, value)
@@ -792,8 +860,8 @@ The file <a href="src/CFTData.jl">CFTData.jl</a> defines
 </div>
 </div>
 <ul class="org-ul">
-<li><a id="org51161b6"></a>Pretty printing<br />
-<div class="outline-text-5" id="text-org51161b6">
+<li><a id="orgd2347f2"></a>Pretty printing<br />
+<div class="outline-text-5" id="text-orgd2347f2">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Display an object of type CentralCharge"""</span>
 <span style="color: #8959a8;">function</span> Base.<span style="color: #4271ae;">show</span>(io<span style="color: #bb9200;">::IO</span>, charge<span style="color: #bb9200;">::CentralCharge</span>)
@@ -821,9 +889,9 @@ Base.<span style="color: #4271ae;">getindex</span>(charge<span style="color: #bb
 </li>
 </ul>
 </div>
-<div id="outline-container-org23541e3" class="outline-4">
-<h4 id="org23541e3">Fields</h4>
-<div class="outline-text-4" id="text-org23541e3">
+<div id="outline-container-org51a0fc7" class="outline-4">
+<h4 id="org51a0fc7">Fields</h4>
+<div class="outline-text-4" id="text-org51a0fc7">
 <p>
 Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Optional keyword arguments lets us choose whether the field is diagonal, degenerate, logarithmic. The field can also be defined from its r and s indices using the keyword argument Kac = true.
 </p>
@@ -957,8 +1025,8 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
 </div>
 </div>
 <ul class="org-ul">
-<li><a id="orgecf2b8b"></a>Pretty printing<br />
-<div class="outline-text-5" id="text-orgecf2b8b">
+<li><a id="orgbffb77a"></a>Pretty printing<br />
+<div class="outline-text-5" id="text-orgbffb77a">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Display field"""</span>
 <span style="color: #8959a8;">function</span> Base.<span style="color: #4271ae;">show</span>(io<span style="color: #bb9200;">::IO</span>,field<span style="color: #bb9200;">::Field</span>)
@@ -1023,9 +1091,9 @@ Base.<span style="color: #4271ae;">getindex</span>(field<span style="color: #bb9
 </li>
 </ul>
 </div>
-<div id="outline-container-org175d7c5" class="outline-4">
-<h4 id="org175d7c5">End of module</h4>
-<div class="outline-text-4" id="text-org175d7c5">
+<div id="outline-container-org1ddff16" class="outline-4">
+<h4 id="org1ddff16">End of module</h4>
+<div class="outline-text-4" id="text-org1ddff16">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1033,9 +1101,9 @@ Base.<span style="color: #4271ae;">getindex</span>(field<span style="color: #bb9
 </div>
 </div>
 </div>
-<div id="outline-container-org9436327" class="outline-3">
-<h3 id="org9436327">The <code>FourPointCorrelationFunctions</code> module</h3>
-<div class="outline-text-3" id="text-org9436327">
+<div id="outline-container-org9172a14" class="outline-3">
+<h3 id="org9172a14"><span class="section-number-3">3.3.</span> The <code>FourPointCorrelationFunctions</code> module</h3>
+<div class="outline-text-3" id="text-3-3">
 <p>
 The module <code>FourPointCorrelationFunctions</code> defines
 </p>
@@ -1055,8 +1123,8 @@ a struct <code>FourPointCorrelation</code> that represents a four point function
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="org53d249c"></a>Header<br />
-<div class="outline-text-5" id="text-org53d249c">
+<li><a id="org51612bb"></a>Header<br />
+<div class="outline-text-5" id="text-org51612bb">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 
@@ -1076,8 +1144,8 @@ a struct <code>FourPointCorrelation</code> that represents a four point function
 </div>
 </div>
 </li>
-<li><a id="org2050eab"></a>Four-point function type<br />
-<div class="outline-text-5" id="text-org2050eab">
+<li><a id="orgc5edd18"></a>Four-point function type<br />
+<div class="outline-text-5" id="text-orgc5edd18">
 <p>
 We create a struct <code>FourPointCorrelation</code> for representing a four-point function on the sphere, that is, a central charge and four external fields.
 </p>
@@ -1112,8 +1180,8 @@ We create a struct <code>FourPointCorrelation</code> for representing a four-poi
 </div>
 </div>
 </li>
-<li><a id="orgbe39874"></a>Compute \(C^N_{m,n}\)<br />
-<div class="outline-text-5" id="text-orgbe39874">
+<li><a id="org97f16ee"></a>Compute \(C^N_{m,n}\)<br />
+<div class="outline-text-5" id="text-org97f16ee">
 <p>
 The function <code>permute_ext_fields</code> permutes the external fields such that the first two and last two are fused together in the channel.
 </p>
@@ -1280,8 +1348,8 @@ This is given by (some expression)
 </div>
 </div>
 </li>
-<li><a id="org93753b9"></a>End module<br />
-<div class="outline-text-5" id="text-org93753b9">
+<li><a id="orge17d53d"></a>End module<br />
+<div class="outline-text-5" id="text-orge17d53d">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1290,9 +1358,9 @@ This is given by (some expression)
 </li>
 </ul>
 </div>
-<div id="outline-container-orgbc3294c" class="outline-3">
-<h3 id="orgbc3294c">The <code>OnePointCorrelationFunctions</code> module</h3>
-<div class="outline-text-3" id="text-orgbc3294c">
+<div id="outline-container-org6643b01" class="outline-3">
+<h3 id="org6643b01"><span class="section-number-3">3.4.</span> The <code>OnePointCorrelationFunctions</code> module</h3>
+<div class="outline-text-3" id="text-3-4">
 <p>
 The module <code>OnePointCorrelationFunctions</code> defines
 </p>
@@ -1305,8 +1373,8 @@ The module <code>OnePointCorrelationFunctions</code> defines
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="org3df2fe8"></a>Header<br />
-<div class="outline-text-5" id="text-org3df2fe8">
+<li><a id="orgdb26dbc"></a>Header<br />
+<div class="outline-text-5" id="text-orgdb26dbc">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">module</span> OnePointCorrelationFunctions
 
@@ -1318,8 +1386,8 @@ The module <code>OnePointCorrelationFunctions</code> defines
 </div>
 </div>
 </li>
-<li><a id="org911a369"></a>One-point function type<br />
-<div class="outline-text-5" id="text-org911a369">
+<li><a id="org84c54eb"></a>One-point function type<br />
+<div class="outline-text-5" id="text-org84c54eb">
 <p>
 zzeaiprybaeaiprybazer b
 </p>
@@ -1338,10 +1406,10 @@ zzeaiprybaeaiprybazer b
 </div>
 </div>
 </li>
-<li><a id="org4fedf21"></a>Compute \(C^{N,\text{torus}}_{m,n}\)<br />
-<div class="outline-text-5" id="text-org4fedf21">
+<li><a id="orgb88b7a0"></a>Compute \(C^{N,\text{torus}}_{m,n}\)<br />
+<div class="outline-text-5" id="text-orgb88b7a0">
 <p>
-The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of the <a href="#orgbe39874">coefficients \(C^{N}_{m,n}\)</a>. We re-use much of the code.
+The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of the <a href="#org97f16ee">coefficients \(C^{N}_{m,n}\)</a>. We re-use much of the code.
 </p>
 
 <div class="org-src-container">
@@ -1391,8 +1459,8 @@ The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of t
 </div>
 </div>
 </li>
-<li><a id="orgdd24406"></a>End module<br />
-<div class="outline-text-5" id="text-orgdd24406">
+<li><a id="org9bda5d9"></a>End module<br />
+<div class="outline-text-5" id="text-org9bda5d9">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1401,9 +1469,9 @@ The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of t
 </li>
 </ul>
 </div>
-<div id="outline-container-org038eefa" class="outline-3">
-<h3 id="org038eefa">The <code>FourPointBlocksSphere</code> module</h3>
-<div class="outline-text-3" id="text-org038eefa">
+<div id="outline-container-org6c6110f" class="outline-3">
+<h3 id="org6c6110f"><span class="section-number-3">3.5.</span> The <code>FourPointBlocksSphere</code> module</h3>
+<div class="outline-text-3" id="text-3-5">
 <p>
 The module <code>FourPointBlocksSphere</code> exports
 </p>
@@ -1413,9 +1481,9 @@ The module <code>FourPointBlocksSphere</code> exports
 <li>a function <code>F_four_point_sphere(block, charge, x)</code> which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) as defined in this paragraph.</li>
 </ul>
 </div>
-<div id="outline-container-org496e37d" class="outline-4">
-<h4 id="org496e37d">Header</h4>
-<div class="outline-text-4" id="text-org496e37d">
+<div id="outline-container-org32f462a" class="outline-4">
+<h4 id="org32f462a">Header</h4>
+<div class="outline-text-4" id="text-org32f462a">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 
@@ -1444,9 +1512,9 @@ The module <code>FourPointBlocksSphere</code> exports
 </div>
 </div>
 </div>
-<div id="outline-container-org8a489db" class="outline-4">
-<h4 id="org8a489db">Four-point block sphere type</h4>
-<div class="outline-text-4" id="text-org8a489db">
+<div id="outline-container-orgca80c24" class="outline-4">
+<h4 id="orgca80c24">Four-point block sphere type</h4>
+<div class="outline-text-4" id="text-orgca80c24">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Struct FourPointBlockSphere</span>
@@ -1500,9 +1568,9 @@ The module <code>FourPointBlocksSphere</code> exports
 </div>
 </div>
 </div>
-<div id="outline-container-org536f863" class="outline-4">
-<h4 id="org536f863">Change of channel</h4>
-<div class="outline-text-4" id="text-org536f863">
+<div id="outline-container-org45563ea" class="outline-4">
+<h4 id="org45563ea">Change of channel</h4>
+<div class="outline-text-4" id="text-org45563ea">
 <p>
 The $t$- and $u$-channel blocks are computed from the $s$-channel one, using described above.
 </p>
@@ -1532,9 +1600,9 @@ The $t$- and $u$-channel blocks are computed from the $s$-channel one, using des
 </div>
 </div>
 </div>
-<div id="outline-container-org10f8343" class="outline-4">
-<h4 id="org10f8343">Prefactors, elliptic nome</h4>
-<div class="outline-text-4" id="text-org10f8343">
+<div id="outline-container-org72c8a33" class="outline-4">
+<h4 id="org72c8a33">Prefactors, elliptic nome</h4>
+<div class="outline-text-4" id="text-org72c8a33">
 <p>
 The nome \(q\) is related to \(x\) via
 </p>
@@ -1584,9 +1652,9 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 </div>
 </div>
 </div>
-<div id="outline-container-org30b0b3e" class="outline-4">
-<h4 id="org30b0b3e">Computation of the block</h4>
-<div class="outline-text-4" id="text-org30b0b3e">
+<div id="outline-container-org004b990" class="outline-4">
+<h4 id="org004b990">Computation of the block</h4>
+<div class="outline-text-4" id="text-org004b990">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Compute the conformal block</span>
@@ -1649,9 +1717,9 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 </div>
 </div>
 </div>
-<div id="outline-container-org7ebd4ad" class="outline-4">
-<h4 id="org7ebd4ad">End of module</h4>
-<div class="outline-text-4" id="text-org7ebd4ad">
+<div id="outline-container-org3d0bee2" class="outline-4">
+<h4 id="org3d0bee2">End of module</h4>
+<div class="outline-text-4" id="text-org3d0bee2">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1659,9 +1727,9 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 </div>
 </div>
 </div>
-<div id="outline-container-org3a4ce5f" class="outline-3">
-<h3 id="org3a4ce5f">The <code>OnePointBlocksTorus</code> module</h3>
-<div class="outline-text-3" id="text-org3a4ce5f">
+<div id="outline-container-org10d2051" class="outline-3">
+<h3 id="org10d2051"><span class="section-number-3">3.6.</span> The <code>OnePointBlocksTorus</code> module</h3>
+<div class="outline-text-3" id="text-3-6">
 <p>
 The module <code>OnePointBlocksTorus</code> exports
 </p>
@@ -1672,8 +1740,8 @@ The module <code>OnePointBlocksTorus</code> exports
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="orgcaecb9f"></a>Header<br />
-<div class="outline-text-5" id="text-orgcaecb9f">
+<li><a id="org51808df"></a>Header<br />
+<div class="outline-text-5" id="text-org51808df">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""</span>
 <span style="color: #718c00;">Series expansion of one-point blocks on the torus</span>
@@ -1699,8 +1767,8 @@ The module <code>OnePointBlocksTorus</code> exports
 </div>
 </div>
 </li>
-<li><a id="org330204a"></a>Computation of the block<br />
-<div class="outline-text-5" id="text-org330204a">
+<li><a id="org9d869e6"></a>Computation of the block<br />
+<div class="outline-text-5" id="text-org9d869e6">
 <div class="org-src-container">
 <pre class="src src-julia">
 <span style="color: #4271ae;">qfromtau</span>(&#964;) = exp(<span style="color: #f5871f; font-weight: bold;">2</span>im<span style="color: #bb9200;">*</span>&#960;<span style="color: #bb9200;">*</span>&#964;)
@@ -1755,8 +1823,8 @@ The module <code>OnePointBlocksTorus</code> exports
 </div>
 </div>
 </li>
-<li><a id="org61bc1e3"></a>End of module<br />
-<div class="outline-text-5" id="text-org61bc1e3">
+<li><a id="org91b83f2"></a>End of module<br />
+<div class="outline-text-5" id="text-org91b83f2">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1765,9 +1833,13 @@ The module <code>OnePointBlocksTorus</code> exports
 </li>
 </ul>
 </div>
-<div id="outline-container-org2b02381" class="outline-3">
-<h3 id="org2b02381">The <code>Special functions</code> module</h3>
-<div class="outline-text-3" id="text-org2b02381">
+<div id="outline-container-org8e1bdf9" class="outline-3">
+<h3 id="org8e1bdf9"><span class="section-number-3">3.7.</span> The <code>SpecialFunctions</code> module</h3>
+<div class="outline-text-3" id="text-3-7">
+</div>
+<div id="outline-container-orgee90f28" class="outline-4">
+<h4 id="orgee90f28">Header</h4>
+<div class="outline-text-4" id="text-orgee90f28">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">==================</span>
 
@@ -1775,9 +1847,39 @@ The module <code>OnePointBlocksTorus</code> exports
 
 <span style="color: #07c365;">==================#</span>
 
-<span style="color: #8959a8;">using</span> EllipticFunctions
+<span style="color: #8959a8;">module</span> SpecialFunctions
 
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_double_gamma</span>(beta, w)
+<span style="color: #8959a8;">import</span> SpecialFunctions: digamma as digamma_w_poles
+
+<span style="color: #8959a8;">export</span> digamma
+
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgbe89777" class="outline-4">
+<h4 id="orgbe89777">Digamma Function</h4>
+<div class="outline-text-4" id="text-orgbe89777">
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #718c00;">"""Regularised digamma function"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">digamma</span>(z)
+    <span style="color: #8959a8;">if</span> real(z) <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>
+        <span style="color: #8959a8;">return</span> digamma_w_poles(z)
+    <span style="color: #8959a8;">elseif</span> imag(z) <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span> and real(z)<span style="color: #bb9200;">%</span><span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span>
+        <span style="color: #8959a8;">return</span> digamma_w_poles(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>z)
+    <span style="color: #8959a8;">else</span>
+        <span style="color: #8959a8;">return</span> digamma_w_poles(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>z) <span style="color: #bb9200;">-</span> &#960;<span style="color: #bb9200;">/</span>tan(&#960;<span style="color: #bb9200;">*</span>z)
+    <span style="color: #8959a8;">end</span>
+<span style="color: #8959a8;">end</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgbe61ff5" class="outline-4">
+<h4 id="orgbe61ff5">Double gamma function</h4>
+<div class="outline-text-4" id="text-orgbe61ff5">
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_double_gamma</span>(beta, w)
 <span style="color: #8959a8;">end</span>
 
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">double_gamma</span>(beta, w)
@@ -1787,13 +1889,23 @@ The module <code>OnePointBlocksTorus</code> exports
 </div>
 </div>
 </div>
-<div id="outline-container-org425b278" class="outline-3">
-<h3 id="org425b278">Setting-up bootstrap equations</h3>
-<div class="outline-text-3" id="text-org425b278">
+<div id="outline-container-org2bd915a" class="outline-4">
+<h4 id="org2bd915a">End module</h4>
+<div class="outline-text-4" id="text-org2bd915a">
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
+</pre>
 </div>
-<div id="outline-container-orgd9f8f88" class="outline-4">
-<h4 id="orgd9f8f88">Multithreading</h4>
-<div class="outline-text-4" id="text-orgd9f8f88">
+</div>
+</div>
+</div>
+<div id="outline-container-org897a1dd" class="outline-3">
+<h3 id="org897a1dd"><span class="section-number-3">3.8.</span> Setting-up bootstrap equations</h3>
+<div class="outline-text-3" id="text-3-8">
+</div>
+<div id="outline-container-org137ffdb" class="outline-4">
+<h4 id="org137ffdb">Multithreading</h4>
+<div class="outline-text-4" id="text-org137ffdb">
 <p>
 Setting-up bootstrap equations requires evaluating conformal blocks at hundreds of positions. We parallelize this computation.
 </p>
@@ -1818,9 +1930,9 @@ help(Field)
 </div>
 </div>
 </div>
-<div id="outline-container-orgdbb770d" class="outline-3">
-<h3 id="orgdbb770d">Unit testing</h3>
-<div class="outline-text-3" id="text-orgdbb770d">
+<div id="outline-container-org631e12d" class="outline-3">
+<h3 id="org631e12d"><span class="section-number-3">3.9.</span> Unit testing</h3>
+<div class="outline-text-3" id="text-3-9">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">using</span> JuliVirBootstrap
 <span style="color: #8959a8;">using</span> Test
@@ -1882,9 +1994,9 @@ help(Field)
 </div>
 </div>
 </div>
-<div id="outline-container-orgb99fc89" class="outline-3">
-<h3 id="orgb99fc89">Development tests</h3>
-<div class="outline-text-3" id="text-orgb99fc89">
+<div id="outline-container-orgd77be63" class="outline-3">
+<h3 id="orgd77be63"><span class="section-number-3">3.10.</span> Development tests</h3>
+<div class="outline-text-3" id="text-3-10">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">import</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
 <span style="color: #8959a8;">using</span> JuliVirBootstrap
@@ -1924,9 +2036,9 @@ ERROR: LoadError: UndefVarError: `@btime` not defined
 in expression starting at none:1
 </pre>
 </div>
-<div id="outline-container-orga10a598" class="outline-4">
-<h4 id="orga10a598">Relation between four-point blocks on the sphere and one-point blocks on the torus</h4>
-<div class="outline-text-4" id="text-orga10a598">
+<div id="outline-container-org92aa437" class="outline-4">
+<h4 id="org92aa437">Relation between four-point blocks on the sphere and one-point blocks on the torus</h4>
+<div class="outline-text-4" id="text-org92aa437">
 <p>
 Four point blocks on the sphere are related to one-point blocks on the torus through the relation
 </p>
@@ -2009,7 +2121,7 @@ h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; fo
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Paul ROUX</p>
-<p class="date">Created: 2024-03-18 Mon 11:15</p>
+<p class="date">Created: 2024-03-21 Thu 10:33</p>
 </div>
 </body>
 </html>

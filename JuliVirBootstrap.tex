@@ -1,0 +1,1888 @@
+% Created 2024-03-21 Thu 10:36
+% Intended LaTeX compiler: pdflatex
+\documentclass[a4paper]{article}
+                      \usepackage[utf8]{inputenc}
+\usepackage{amsmath, amssymb, amsfonts, amsthm,multirow}
+\usepackage{geometry}
+\geometry{margin=2cm}
+\usepackage[colorlinks=true, linktoc=all, linkcolor=black, citecolor=red, urlcolor=blue]{hyperref}
+\numberwithin{equation}{section}
+\setcounter{secnumdepth}{2}
+\setcounter{tocdepth}{2}
+\usepackage{listings}
+\setcounter{secnumdepth}{2}
+\author{Paul ROUX}
+\date{\today}
+\title{JuliVirBootstrap Documentation}
+\hypersetup{
+ pdfauthor={Paul ROUX},
+ pdftitle={JuliVirBootstrap Documentation},
+ pdfkeywords={},
+ pdfsubject={},
+ pdfcreator={Emacs 29.1 (Org mode 9.7)}, 
+ pdflang={English}}
+
+% Setup for code blocks [1/2]
+
+\usepackage{fvextra}
+
+\fvset{%
+  commandchars=\\\{\},
+  highlightcolor=white!95!black!80!blue,
+  breaklines=true,
+  breaksymbol=\color{white!60!black}\tiny\ensuremath{\hookrightarrow}}
+
+% Make line numbers smaller and grey.
+\renewcommand\theFancyVerbLine{\footnotesize\color{black!40!white}\arabic{FancyVerbLine}}
+
+\usepackage{xcolor}
+
+% In case engrave-faces-latex-gen-preamble has not been run.
+\providecolor{EfD}{HTML}{f7f7f7}
+\providecolor{EFD}{HTML}{28292e}
+
+% Define a Code environment to prettily wrap the fontified code.
+\usepackage[breakable,xparse]{tcolorbox}
+\DeclareTColorBox[]{Code}{o}%
+{colback=EfD!98!EFD, colframe=EfD!95!EFD,
+  fontupper=\footnotesize\setlength{\fboxsep}{0pt},
+  colupper=EFD,
+  IfNoValueTF={#1}%
+  {boxsep=2pt, arc=2.5pt, outer arc=2.5pt,
+    boxrule=0.5pt, left=2pt}%
+  {boxsep=2.5pt, arc=0pt, outer arc=0pt,
+    boxrule=0pt, leftrule=1.5pt, left=0.5pt},
+  right=2pt, top=1pt, bottom=0.5pt,
+  breakable}
+
+% Support listings with captions
+\usepackage{float}
+\floatstyle{plain}
+\newfloat{listing}{htbp}{lst}
+\newcommand{\listingsname}{Listing}
+\floatname{listing}{\listingsname}
+\newcommand{\listoflistingsname}{List of Listings}
+\providecommand{\listoflistings}{\listof{listing}{\listoflistingsname}}
+
+
+% Setup for code blocks [2/2]: syntax highlighting colors
+
+\newcommand\efstrut{\vrule height 2.1ex depth 0.8ex width 0pt}
+\definecolor{EFD}{HTML}{000000}
+\definecolor{EfD}{HTML}{ffffff}
+\newcommand{\EFD}[1]{\textcolor{EFD}{#1}} % default
+\definecolor{EFvp}{HTML}{000000}
+\newcommand{\EFvp}[1]{\textcolor{EFvp}{#1}} % variable-pitch
+\definecolor{EFh}{HTML}{7f7f7f}
+\newcommand{\EFh}[1]{\textcolor{EFh}{#1}} % shadow
+\definecolor{EFsc}{HTML}{228b22}
+\newcommand{\EFsc}[1]{\textcolor{EFsc}{\textbf{#1}}} % success
+\definecolor{EFw}{HTML}{ff8e00}
+\newcommand{\EFw}[1]{\textcolor{EFw}{\textbf{#1}}} % warning
+\definecolor{EFe}{HTML}{ff0000}
+\newcommand{\EFe}[1]{\textcolor{EFe}{\textbf{#1}}} % error
+\definecolor{EFl}{HTML}{ff0000}
+\newcommand{\EFl}[1]{\textcolor{EFl}{#1}} % link
+\definecolor{EFlv}{HTML}{ff0000}
+\newcommand{\EFlv}[1]{\textcolor{EFlv}{#1}} % link-visited
+\definecolor{EFhi}{HTML}{ff0000}
+\newcommand{\EFhi}[1]{\textcolor{EFhi}{#1}} % highlight
+\definecolor{EFc}{HTML}{b22222}
+\newcommand{\EFc}[1]{\textcolor{EFc}{#1}} % font-lock-comment-face
+\definecolor{EFcd}{HTML}{b22222}
+\newcommand{\EFcd}[1]{\textcolor{EFcd}{#1}} % font-lock-comment-delimiter-face
+\definecolor{EFs}{HTML}{8b2252}
+\newcommand{\EFs}[1]{\textcolor{EFs}{#1}} % font-lock-string-face
+\definecolor{EFd}{HTML}{8b2252}
+\newcommand{\EFd}[1]{\textcolor{EFd}{#1}} % font-lock-doc-face
+\definecolor{EFm}{HTML}{008b8b}
+\newcommand{\EFm}[1]{\textcolor{EFm}{#1}} % font-lock-doc-markup-face
+\definecolor{EFk}{HTML}{9370db}
+\newcommand{\EFk}[1]{\textcolor{EFk}{#1}} % font-lock-keyword-face
+\definecolor{EFb}{HTML}{483d8b}
+\newcommand{\EFb}[1]{\textcolor{EFb}{#1}} % font-lock-builtin-face
+\definecolor{EFf}{HTML}{0000ff}
+\newcommand{\EFf}[1]{\textcolor{EFf}{#1}} % font-lock-function-name-face
+\definecolor{EFv}{HTML}{a0522d}
+\newcommand{\EFv}[1]{\textcolor{EFv}{#1}} % font-lock-variable-name-face
+\definecolor{EFt}{HTML}{228b22}
+\newcommand{\EFt}[1]{\textcolor{EFt}{#1}} % font-lock-type-face
+\definecolor{EFo}{HTML}{008b8b}
+\newcommand{\EFo}[1]{\textcolor{EFo}{#1}} % font-lock-constant-face
+\definecolor{EFwr}{HTML}{ff0000}
+\newcommand{\EFwr}[1]{\textcolor{EFwr}{\textbf{#1}}} % font-lock-warning-face
+\newcommand{\EFnc}[1]{#1} % font-lock-negation-char-face
+\definecolor{EFpp}{HTML}{483d8b}
+\newcommand{\EFpp}[1]{\textcolor{EFpp}{#1}} % font-lock-preprocessor-face
+\newcommand{\EFrc}[1]{\textbf{#1}} % font-lock-regexp-grouping-construct
+\newcommand{\EFrb}[1]{\textbf{#1}} % font-lock-regexp-grouping-backslash
+\newcommand{\EFob}[1]{#1} % org-block
+\newcommand{\EFobb}[1]{#1} % org-block-begin-line
+\newcommand{\EFobe}[1]{#1} % org-block-end-line
+\definecolor{EFOa}{HTML}{0000ff}
+\newcommand{\EFOa}[1]{\textcolor{EFOa}{#1}} % outline-1
+\definecolor{EFOb}{HTML}{a0522d}
+\newcommand{\EFOb}[1]{\textcolor{EFOb}{#1}} % outline-2
+\definecolor{EFOc}{HTML}{a020f0}
+\newcommand{\EFOc}[1]{\textcolor{EFOc}{#1}} % outline-3
+\definecolor{EFOd}{HTML}{b22222}
+\newcommand{\EFOd}[1]{\textcolor{EFOd}{#1}} % outline-4
+\definecolor{EFOe}{HTML}{228b22}
+\newcommand{\EFOe}[1]{\textcolor{EFOe}{#1}} % outline-5
+\definecolor{EFOf}{HTML}{008b8b}
+\newcommand{\EFOf}[1]{\textcolor{EFOf}{#1}} % outline-6
+\definecolor{EFOg}{HTML}{483d8b}
+\newcommand{\EFOg}[1]{\textcolor{EFOg}{#1}} % outline-7
+\definecolor{EFOh}{HTML}{8b2252}
+\newcommand{\EFOh}[1]{\textcolor{EFOh}{#1}} % outline-8
+\definecolor{EFhn}{HTML}{008b8b}
+\newcommand{\EFhn}[1]{\textcolor{EFhn}{#1}} % highlight-numbers-number
+\definecolor{EFhq}{HTML}{9370db}
+\newcommand{\EFhq}[1]{\textcolor{EFhq}{#1}} % highlight-quoted-quote
+\definecolor{EFhs}{HTML}{008b8b}
+\newcommand{\EFhs}[1]{\textcolor{EFhs}{#1}} % highlight-quoted-symbol
+\definecolor{EFrda}{HTML}{707183}
+\newcommand{\EFrda}[1]{\textcolor{EFrda}{#1}} % rainbow-delimiters-depth-1-face
+\definecolor{EFrdb}{HTML}{7388d6}
+\newcommand{\EFrdb}[1]{\textcolor{EFrdb}{#1}} % rainbow-delimiters-depth-2-face
+\definecolor{EFrdc}{HTML}{909183}
+\newcommand{\EFrdc}[1]{\textcolor{EFrdc}{#1}} % rainbow-delimiters-depth-3-face
+\definecolor{EFrdd}{HTML}{709870}
+\newcommand{\EFrdd}[1]{\textcolor{EFrdd}{#1}} % rainbow-delimiters-depth-4-face
+\definecolor{EFrde}{HTML}{907373}
+\newcommand{\EFrde}[1]{\textcolor{EFrde}{#1}} % rainbow-delimiters-depth-5-face
+\definecolor{EFrdf}{HTML}{6276ba}
+\newcommand{\EFrdf}[1]{\textcolor{EFrdf}{#1}} % rainbow-delimiters-depth-6-face
+\definecolor{EFrdg}{HTML}{858580}
+\newcommand{\EFrdg}[1]{\textcolor{EFrdg}{#1}} % rainbow-delimiters-depth-7-face
+\definecolor{EFrdh}{HTML}{80a880}
+\newcommand{\EFrdh}[1]{\textcolor{EFrdh}{#1}} % rainbow-delimiters-depth-8-face
+\definecolor{EFrdi}{HTML}{887070}
+\newcommand{\EFrdi}[1]{\textcolor{EFrdi}{#1}} % rainbow-delimiters-depth-9-face
+\usepackage{biblatex}
+
+\begin{document}
+
+\maketitle
+\setcounter{tocdepth}{3}
+\tableofcontents
+
+\section{Overview}
+\label{sec:org7d1d660}
+
+This document contains a program for performing conformal bootstrap computations in 2D loop models.
+
+The program relies on the assumption that the spectrum of the model contains degenerate fields \(V^d_{\langle1,s\rangle}\) (see below).
+\section{Conformal bootstrap equations in 2D}
+\label{sec:org6f59526}
+
+\subsection{Notations, parametrisations}
+\label{sec:org1e14d99}
+
+\subsubsection*{Central charge}
+\label{sec:org009c0e4}
+
+We parametrise the central charge of our theories in terms of variables \(B\), \(b\) or \(\beta\) related by
+
+\[c = 13 + 6B + 6 B^{-1} \quad , \quad B = b^2 = -\beta^2, \quad B = \frac{c-13 \pm \sqrt{(c-1)(c-25)}}{12}\]
+\subsubsection*{Fields}
+\label{sec:orga0a500d}
+
+We parametrise the conformal dimensions \((\Delta, \bar\Delta)\) of fields in terms of variables \(P, p, \delta\), related by
+
+\[
+\Delta = \frac{c-1}{24} + \delta  \quad , \quad \delta = -P^2 = p^2
+\]
+
+The variable \(P\) is called the momentum. Moreover, we introduce the following parametrisation of dimensions in terms of Kac indices \(r, s\):
+
+\[P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)\]
+
+Or equivalently
+
+\[p_{(r,s)} = -\frac{1}{2} (\beta r - \beta^{-1}s)\]
+
+where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in \mathbb Z\) and \(rs > 0\).
+This convention is consistent with the one in \href{https://gitlab.com/s.g.ribault/Bootstrap\_Virasoro.git}{Sylvain's code}.
+
+In loop models, we denote \(V_{(r,s)}\) a non-diagonal field of left and right momenta \((P_{(r,s)},P_{(r,-s)})\).
+\subsection{Special functions}
+\label{sec:org2c78d31}
+
+Expressions of correlation functions in CFT involve special functions. In this paragraph we introduce some representations and regularisations of special functions.
+\subsubsection*{Digamma function}
+\label{sec:org8a83eb3}
+
+The digamma function is defined for as
+
+\begin{align}
+  \psi(z) = \frac{\Gamma'(z)}{\Gamma(z)}
+\end{align}
+
+The function \(\psi\) has poles at negative integers. We regularise the digamma function thanks to the equation
+
+\begin{align}
+  \psi(1-x) - \psi(x) = \pi \operatorname{cot}(\pi x)
+\end{align}
+
+which means we use the regularization
+
+\begin{align}
+  \psi(-r) \underset{r\in\mathbb{N}}{=} \psi(r+1)
+\end{align}
+\subsection{Four point functions on the sphere}
+\label{sec:org9b5e4a5}
+
+Because of conformal invariance, computation of any four-point correlation function reduces to the computation of
+
+$$ \mathcal G(x) = \langle V_{1}(x) V_{2}(0) V_{3}(\infty) V_{4}(1) \rangle $$
+
+Four-point correlation functions can be written in terms of Virasoro blocks as
+
+\begin{align}
+  \mathcal G(x) = \sum_{k \in \mathcal S} \frac{C_{12k} C_{k34}}{B_{k}} \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\end{align}
+
+We call \(\mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\) a (non-chiral) conformal block.
+In the case of a non-logarithmic theory, conformal blocks factorise as
+
+\begin{align}
+  \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z) = \left| \mathcal F^{(s)}_{\Delta_{k}}(c | \Delta_{1}, \dots, \Delta_{4} | z) \right|^{2}
+\end{align}
+
+where we have introduced the notation \(\left|\mathcal F(\Delta, z)\right|^2 = \mathcal{F}(\Delta, z) \mathcal{F}(\bar\Delta, \bar z)\), and \(\mathcal F^{(s)}_{\Delta_k}\) is called a Virasoro block (also called chiral conformal block).
+
+The coefficients \(C_{ijk}\) are the three-point structure constants.
+
+Conformal blocks are characterized by the normalization conditions
+
+\begin{align}
+ \mathcal{G}^{(s)}_\Delta(x) & \underset{x\to 0}{=} \left| x^{\Delta-\Delta_1-\Delta_2}\right|^2 \left(1+O(x)\right)
+ \\
+ \mathcal{G}^{(t)}_\Delta(x) & \underset{x\to 1}{=} \left|(1-x)^{\Delta-\Delta_1-\Delta_4}\right|^2 \left(1+O(1-x)\right)
+ \\
+ \mathcal{G}^{(u)}_\Delta(x) & \underset{x\to \infty}{=} \left|\left(\frac{1}{x}\right)^{\Delta+\Delta_1-\Delta_3} \right|^2\left(1+O\left(\frac{1}{x}\right)\right)
+\end{align}
+
+Together with the invariance of \(\left\langle \prod_{i=1}^4 V_{\Delta_i}(z_i) \right\rangle\) under permutations, this leads to the relations
+
+\begin{align}
+\mathcal{G}^{(t)}_{\Delta}(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
+&= (-1)^{S_1+S_2+S_3+S_4}
+\mathcal{G}^{(s)}_{\Delta}(\Delta_1,\Delta_4,\Delta_3,\Delta_2|1-x)
+\\
+\mathcal{G}^{(u)}_\Delta(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
+&= (-1)^{S_1+S_2+S_3+S_4}
+\left|x^{-2\Delta_1}\right|^2 \mathcal{G}^{(s)}_\Delta(\Delta_1,\Delta_3,\Delta_2,\Delta_4|\tfrac{1}{x})
+\end{align}
+
+where \(S=\Delta-\bar\Delta\) is the conformal spin, which we assume to be integer.
+\subsubsection*{Zamolodchikov's recursion for four-point blocks}
+\label{sec:org6398ced}
+
+Four-point blocks can be computed efficiently thanks to \href{https://en.wikipedia.org/wiki/Virasoro\_conformal\_block}{Zamolodchikov's recursion}.
+
+We introduce a variable \(q\) related to \(z\) through
+
+\[
+z = \frac{\theta_2(q)^4}{\theta_3(q)^4}, \quad q = e^{-\pi\frac{K(1-x)}{ K(x)}}
+\]
+
+where
+
+\[
+\theta_3(q) = \sum_{n\in\mathbb{Z}} q^{n^2} \quad , \quad \theta_2(q) = 2q^\frac14\sum_{n=0}^\infty q^{n(n+1)}
+\]
+
+are Jacobi special \(\theta\)-functions, and \(K(x)\) is the elliptic \(K\) function.
+
+In terms of these variables, our chiral \(s\)-channel conformal block is
+
+\[
+\mathcal{F}^{(s)}_{\delta}(c | \Delta_{1}, \dots, \Delta_{4} | x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2}
+(16q)^{\delta} H_{\delta}(c | \Delta_{1},\dots, \Delta_{4} | q)
+\]
+
+where we use the exponents
+
+\[
+E_0 = -\delta_1-\delta_2-\frac{c-1}{24} \quad , \quad E_1 = -\delta_1-\delta_4-\frac{c-1}{24} \quad ,
+\quad E_2 = \delta_1+\delta_2+\delta_3+\delta_4+\frac{c-1}{24}
+\]
+
+The non-trivial coefficient is the series
+
+\[
+H_{\delta}(q) = 1 + \sum_{N=1}^{N_{max}} \sum_{mn\leq N} C_{m,n}^N \frac{(16q)^N}{\delta-\delta_{(m,n)}}
+\]
+
+Where the coefficient \(C_{m,n}^N\) is defined by the recursive formula
+
+\[
+C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
+\]
+
+And the coefficents \(R_{m,n}\) can be written
+
+\begin{align}
+ R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}}
+\prod_{r\overset{2}{=} 1-m}^{m-1}
+\prod_{s\overset{2}{=}1-n}^{n-1}
+&\sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2}\nonumber\\
+&\sqrt{(\delta_3-\delta_4)^2 -2\delta_{(r,s)}(\delta_3+\delta_4) + \delta_{(r,s)}^2}
+\end{align}
+
+We do not actually take square roots, because each factor appears twice, except the \((r,s)=(0,0)\) factor which is however a perfect square. The normalization factor is
+
+\begin{equation}
+\label{Dmn}
+D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
+\prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
+\prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2.
+\end{equation}
+\subsection{One point functions on the torus}
+\label{sec:orge665de3}
+
+A one-point function on the torus can be written
+
+\begin{align}
+ \mathcal G(x) = <V_{\Delta_1}(x)> = \operatorname{Tr} (q^{L_0-\frac{c}{24}} \bar q^{\bar L_{0}-\frac{c}{24}} V_{\Delta_{1}}(x))
+\end{align}
+
+Because of translation invariance, one-point functions on the torus do not depend on the field's position. The trace can be written as
+
+\begin{align}
+  \mathcal G(x) &= \sum_{V_{\Delta} \in \mathcal S} < V_{\sigma} | V_{\Delta_{1}}(x) |V_{\sigma}> \\
+                   &= \sum_{V_{\Delta} \in \mathcal S} C_{\Delta \Delta \Delta_{1}} \mathcal G_{\Delta} (\tau, c, \Delta_{1} | x)
+\end{align}
+
+The conformal block \(\mathcal G_\Delta(\tau, c, \Delta_1|x)\) again factorises for non-logarithmic theories, and we write \(\mathcal F_\Delta(\tau, c, \Delta_1 | x)\) the corresponding Virasoro block.
+\subsubsection*{Zamolodchikov's recursion for torus one-point blocks}
+\label{sec:orgcd94007}
+
+Like four-point blocks, torus one-point blocks can be computed recursively. We introduce \(H\) defined by
+
+\begin{align}
+  \mathcal F_{\Delta}(\tau, c, \Delta_{1} | x) = \frac{q^{\delta}}{\eta(q)} H^{\text{torus}}_{\Delta}(\tau, c, \Delta_{1} | q),
+\end{align}
+
+where \(q=e^{2i\pi \tau}\).
+The recursion formula for \(H^{\text{torus}}_{\Delta}(\tau, c, \Delta_{1} | q)\) is
+
+\begin{align}
+  H_{\Delta}^{\text{torus}} (\tau, c, \Delta_{1} | q) = 1 + \sum_{N=1}^{N_{\text{max}}}\sum C^{N, \text{torus}}_{m,n} \frac{q^N}{\delta - \delta_{(m,n)}}
+\end{align}
+
+The coefficients \(C_{m,n}^{N,\text{torus}}\) have the recursive representation
+
+\begin{equation}
+\label{CNmn-torus}
+C^{N,\text{torus}}_{m,n} = R^{\text{torus}}_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
+\end{equation}
+
+An expression for the \(R_{m,n}^{\text{torus}}\) can be found on \href{https://en.wikipedia.org/wiki/Virasoro\_conformal\_block}{this wikipedia article}. It can be rewritten
+
+\[
+R_{m,n}^{\text{torus}} = \frac{1}{2 D_{m,n}} \prod_{r\overset2=1-2m}^{2m-1} \prod_{s\overset2=1-2n}^{2n-1} \sqrt{\delta_{(r,s)} - \delta_1}
+\]
+
+where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the \hyperref[Dmn]{four-point} case \ref{Dmn}
+\subsection{Logarithmic blocks}
+\label{sec:orgdea4174}
+
+See \href{https://arxiv.org/abs/2007.04190}{this paper} for more detail (\href{file:///Users/Paul/Downloads/log\_CFT\_ribault\_nivesvivat.pdf}{here} on my laptop).
+
+In loop models the action of \(L_0\) is not diagonalisable, said otherwise some of the modules are logarithmic.
+The structure of a logarithmic module \(\mathcal W^\kappa_{(r,s)}\) is the following:
+
+\begin{center}
+\includegraphics[width=.9\linewidth]{./imgs/logarithmic_module.png}
+\end{center}
+
+\(\mathcal L V_{(r,s)}\) and \(\bar{\mathcal L} V_{(r,s)}\) are non-diagonal primary fields. The parameter \(\kappa\) is fixed in the presence of \(V^d_{\langle1,2\rangle}\), in which case the logarithmic module is generated by
+
+\begin{align}
+  W^{-}_{(r,s)} = \partial_{P} V_{P_{(r,-s)}} - \mathcal{L}_{(r,s)} \bar{\mathcal{L}}_{(r,s)} \partial_{P} V_{P_{(r,s)}}
+\end{align}
+
+This is the necessary condition for the OPE
+
+\begin{align}
+  V^{d}_{\langle 1,s_{0}\rangle} V_{P_{(r,0)}+\epsilon}.
+\end{align}
+
+to be finite.
+
+Logarithmic conformal blocks in general depend on the parameter \(\kappa\). In this code, we only compute their value at the value of \(\kappa\) fixed by the presence of \(V^d_{\langle1,2\rangle}\).
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{using} SpecialFunctions
+setprecision(BigInt, \EFhn{50}, base=\EFhn{10})
+r=BigInt(\EFhn{4})
+println(digamma(\EFt{-}r))
+println(digamma(r\EFt{+}\EFhn{1}))
+\end{Verbatim}
+\end{Code}
+\subsubsection*{Four-point logarithmic blocks on the sphere}
+\label{sec:orgcf597f3}
+
+For \((r,s)\in \mathbb{Z}^*\), we compute the non-chiral logarithmic blocks
+
+$$
+\mathcal{G}_{(r,s)} = \mathcal{F}^\text{log}_{(r,s)} \bar{\mathcal{F}}_{\delta_{(r,-s)}} +\mathcal{F}_{\delta_{( r,-s)}} \bar{\mathcal{F}}^\text{log}_{(r,s)} - B^{-1}\ell_{(r,s)}\left| \mathcal{F}_{\delta_{(r,-s)}}\right|^2
+$$
+
+where the chiral logarithmic blocks are
+
+$$\label{eq:log_block_chiral}
+\mathcal{F}_{( r,s)}^\text{log}
+= \frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{\delta_{(r,s)}}^\text{reg} -2q_{(r,-s)}\mathcal{F}'_{\delta_{(r,-s)}}
+= \lim_{\epsilon\to 0} \left(\frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{q_{(r,s)}+\epsilon} +\frac{B^{-1}}{\epsilon} \mathcal{F}_{q_{(r,-s)}+\epsilon}\right)
+$$
+
+and
+
+\begin{align}
+ \ell_{(r,s)} &= 4\sum_{j=1-s}^s \Big\{ \psi(-2q_{( r,j)}) +\psi(2q_{( r,-j)}) \Big\}
+ - 4\pi \cot(\pi s B^{-1})
+ \\
+ &\quad -\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm} \sum_{\varepsilon\in\{0,1\}}  \Big\{
+ \psi\left(\tfrac12 -(-)^\varepsilon q_{(r,j)}\pm q^\varepsilon_1\pm q^\varepsilon_2\right)
+  +
+ \psi\left(\tfrac12 - (-)^\varepsilon q_{(r,j)}\pm q^\varepsilon_3\pm q^\varepsilon_4\right) \Big\}
+ \end{align}
+
+where \(\psi(x) = \frac{\Gamma'(x)}{\Gamma(x)}\) is the digamma function, regularized such that \(\psi(-r)=\psi(r+1)\) for \(r\in\mathbb{N}\), we define \(q^0 = q\) and \(q^1 = \bar{q}\), and we define \(q = b^{-1}P=\beta^{-1}p\), in particular
+
+$$
+q_{(r,s)} = \frac{r}{2}+\frac{s}{2B}.
+$$
+
+The regularised chiral block \(\mathcal F^{\text{reg}}_{\delta_{(r,s)}}\) is the regularised part of \(\mathcal F_{\delta_{(r,s)} + \epsilon}\) when \(\epsilon \to 0\).
+
+The \(R_{r,s}\) factor in the denominator of \ref{eq:log_block_chiral} vanishes if and only if \(\mathcal F_{\delta_{(r,s)}}\) is regular. In this case, the block \(\mathcal G_{(r,s)}\) is actually not logarithmic. The structure constants of \(V_{(r,s)}\) and \(V_{(r,-s)}\) are still related by shift equations though, so we compute the block
+
+\begin{align}
+\mathcal G^{{\text{normalized}}}_{(r,s)}  = \mathcal{F}_{(r,s)} \bar{\mathcal{F}}_{\delta_{(r,-s)}} + (-1)^{\# \text{zeros}} \frac{R^{\text{reg}}_{r,s}}{\bar R^{\text{reg}}_{r,s}}\mathcal{F}_{\delta_{( r,-s)}} \bar{\mathcal{F}}_{(r,s)}
+\end{align}
+
+We may want to normalize the blocks such that the term that corresponds to the primary field \(V^N_{(r,s)}\) comes with the coefficient \(1\). This is useful in particular when using shift equations for structure constants. To do this, we define
+
+\begin{align}
+\mathcal{G}_{(r,s)}^\text{normalized} = \frac{R_{r, s}}{2q_{(r,s)}} \mathcal{G}_{(r,s)}
+\end{align}
+
+In general, we have \(\mathcal{G}_{( r,s)} = \mathcal{G}_{(r,-s)}\) but \(\mathcal{G}^\text{normalized}_{(r,s)} \neq \mathcal{G}^\text{normalized}_{( r,-s)}\) since \(R_{r,s}\neq \bar R_{r,s}\).
+\subsection{Relation between sphere four-point blocks and torus one-point blocks}
+\label{sec:orgdc5cddc}
+The recursion formulas for torus one-point blocks and sphere four-point blocks imply that four point blocks on the sphere are related to one-point blocks on the torus through the relation
+
+\begin{align}
+H^{\text{torus}}_{P}(\tau, c | P_{1} | q^{2}) = H_{\sqrt{2}P}\left(c' \left|\left. P_{(0,\frac12)}, \frac{P_{1}}{\sqrt{2}}, P_{(0,\frac12)}, P_{(0,\frac12)} \right.\right| q \right)
+\end{align}
+
+where
+\begin{itemize}
+\item \(c'\) is related to \(c\) via \(\beta'=\frac\beta{\sqrt 2}\).
+\item Fields on the RHS have dimensions \(\Delta = \frac{c'-1}{24} - P^2\).
+\end{itemize}
+
+Our code successfully reproduces this relation:
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{import} Pkg; Pkg.activate(\EFs{"."})
+\EFk{using} JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+\EFk{import} JuliVirBootstrap.FourPointBlocksSphere.qfromx
+q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(\EFhn{0.05})
+
+left=\EFhn{1};
+right=\EFhn{2};
+c\_torus = CentralCharge(\EFs{"b"}, \EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im);
+c\_sphere = CentralCharge(\EFs{"b"}, (\EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im)\EFt{/}sqrt(\EFhn{2}))
+
+P = \EFhn{0.23}\EFt{+}.\EFhn{11}im
+P1 = \EFhn{0.41}\EFt{+}\EFhn{1.03}im
+V\_torus\_chan = Field(c\_torus, \EFs{"P"}, P, diagonal=\EFo{true})
+δ\_torus = V\_torus\_chan[\EFs{"δ"}][left]
+δ11\_torus = Field(c\_torus, Kac=\EFo{true}, r=\EFhn{1}, s=\EFhn{1}, diagonal=\EFo{true})[\EFs{"δ"}][left]
+V\_torus\_ext = Field(c\_torus, \EFs{"P"}, P1, diagonal=\EFo{true})
+corr\_torus = OnePointCorrelation
+
+V\_sphere\_chan = Field(c\_sphere, \EFs{"P"}, sqrt(\EFhn{2})\EFt{*}P, diagonal=\EFo{true})
+δ\_sphere = V\_sphere\_chan[\EFs{"δ"}][left]
+δ21\_sphere = Field(c\_sphere, Kac=\EFo{true}, r=\EFhn{2}, s=\EFhn{1}, diagonal=\EFo{true})[\EFs{"δ"}][left]
+δ12\_sphere = Field(c\_sphere, Kac=\EFo{true}, r=\EFhn{1}, s=\EFhn{2}, diagonal=\EFo{true})[\EFs{"δ"}][left]
+V\_sphere\_ext = Field(c\_sphere, \EFs{"P"}, P1\EFt{/}sqrt(\EFhn{2}), diagonal=\EFo{true})
+VKac\_sphere = Field(c\_sphere, Kac=\EFo{true}, r=\EFhn{0}, s=\EFhn{1}\EFt{//}\EFhn{2}, diagonal=\EFo{true})
+
+corr\_torus = OnePointCorrelation(c\_torus, V\_torus\_ext)
+block\_torus = OnePointBlockTorus(V\_torus\_chan)
+
+corr\_sphere = FourPointCorrelation(c\_sphere, [VKac\_sphere, V\_sphere\_ext, VKac\_sphere,VKac\_sphere])
+block\_sphere = FourPointBlockSphere(\EFs{"s"}, V\_sphere\_chan)
+
+h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q\EFt{\char94{}}\EFhn{2}, \EFhn{5}, block\_torus, corr\_torus, left)
+h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
+\end{Verbatim}
+\end{Code}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}println(\EFs{"torus block = \$h1"})
+println(\EFs{"sphere block = \$h2"})
+\end{Verbatim}
+\end{Code}
+torus block = 1.0000059915273005 - 1.1912765043504052e-5im
+sphere block = 1.000005991527301 - 1.1912765042311957e-5im
+\subsection{Crossing symmetry for four-point functions on the sphere}
+\label{sec:org69236ad}
+
+\subsection{Modular invariance for one-point functions on the torus}
+\label{sec:org8f01574}
+\section{Code of the package}
+\label{sec:orgefbde10}
+
+\subsection{Main module}
+\label{sec:org4900318}
+The module \texttt{JuliVirBootstrap} is the main module of this package, and it includes the sub-modules.
+
+\begin{itemize}
+\item \texttt{CFTData} provides types for central charges and fields.
+\item \texttt{CorrelationFunctions} provides types for one-point and four-point correlation functions, as well as methods for computing coefficients appearing in their conformal blocks.
+\item \texttt{VirasoroConformalBlocks} provides types for representing four-point conformal blocks on the sphere and one-point conformal blocks on the torus, as well as methods for computing them.
+\end{itemize}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFcd{\#}\EFc{===========================================================================================}
+
+\EFc{Written by Paul Roux, adapting a Python code written by Sylvain Ribault \& Rongvoram}
+\EFc{Nivesvivat}
+
+\EFc{===========================================================================================\#}
+
+\EFk{module} JuliVirBootstrap
+
+\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Central charges and fields}
+\EFc{===========================================================================================\#}
+include(\EFs{"CFTData.jl"})
+\EFk{using} .CFTData
+\EFk{export} CentralCharge, Field
+
+\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Correlation functions}
+\EFc{===========================================================================================\#}
+include(\EFs{"CorrelationFunctions.jl"})
+\EFk{using} .FourPointCorrelationFunctions
+\EFk{export} FourPointCorrelation
+
+\EFk{using} .OnePointCorrelationFunctions
+\EFk{export} OnePointCorrelation
+
+\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Conformal blocks}
+\EFc{===========================================================================================\#}
+include(\EFs{"ConformalBlocks.jl"})
+\EFk{using} .FourPointBlocksSphere
+\EFk{export} FourPointBlockSphere, F\_four\_point\_sphere
+
+\EFk{using} .OnePointBlocksTorus
+\EFk{export} OnePointBlockTorus, F\_one\_point\_torus
+
+
+\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Special functions}
+\EFc{===========================================================================================\#}
+include(\EFs{"SpecialFunctions.jl"})
+\EFk{export} log\_double\_gamma, double\_gamma
+
+
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\subsection{The \texttt{CFTData} module}
+\label{sec:orgdc7d2a3}
+The file \href{src/CFTData.jl}{CFTData.jl} defines
+\begin{itemize}
+\item a struct \texttt{CentralCharge} that represents a central charge \(c\) and contains the value of the four corresponding parameters \(b, B, \beta, c\)
+\item a struct \texttt{Field} that represents a field \(V\). The field can be defined from its Kac indices \(r, s\), be diagonal, logarithmic, or degenerate. The struct contains booleans for these three characteristics, as well as rationals for \(r\) and \(s\), and the pairs of (left, right) values \((\Delta, \bar \Delta)\), \((p, \bar p)\), \((\delta, \bar \delta)\), \((P, \bar P)\).
+\end{itemize}
+\subsubsection*{Header}
+\label{sec:org43e5117}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}
+\EFcd{\#}\EFc{===========================================================================================}
+
+\EFc{CFTData.jl contains a module CFTData that provides types representing}
+\EFc{central charges and fields in 2D CFTs with Virasoro symmetry.}
+
+\EFc{Written by Paul Roux, adapting a Python code written by Sylvain Ribault \& Rongvoram}
+\EFc{Nivesvivat}
+
+\EFc{============================================================================================\#}
+
+\EFs{"""}
+\EFs{Provides types representing central charges and fields in CFT.}
+\EFs{"""}
+\EFk{module} CFTData
+
+\EFk{using} Match;
+
+\EFk{export} CentralCharge, Field
+
+\EFs{"""print complex numbers in latex format"""}
+\EFk{function} Base.\EFf{show}(io\EFt{::IO},\EFt{::MIME}\EFs{"text/latex"},z\EFt{::Complex})
+    print(\EFs{"\$(real(z)) + \$(imag(z))i"})
+\EFk{end}
+
+\end{Verbatim}
+\end{Code}
+\subsubsection*{Central charge}
+\label{sec:org656306b}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFs{"""Get B from given parameter"""}
+\EFk{function} \EFf{Bfrom}(parameter, value)
+    \textcolor[HTML]{483d8b}{\textbf{@match}} parameter \EFk{begin}
+        \EFs{"c"} \EFt{=>} (value\EFt{-}\EFhn{13}\EFt{+}sqrt(complex((value\EFt{-}\EFhn{1})\EFt{*}(value\EFt{-}\EFhn{25}))))\EFt{/}\EFhn{12}
+        \EFs{"b"} \EFt{=>} value\EFt{\char94{}}\EFhn{2}
+        \EFs{"β"} \EFt{=>} \EFt{-}value\EFt{\char94{}}\EFhn{2}
+        \EFs{"B"} \EFt{=>} value
+    \EFk{end}
+\EFk{end}
+
+\EFs{"""Get asked parameter from B"""}
+\EFk{function} \EFf{Bto}(parameter, value)
+    \textcolor[HTML]{483d8b}{\textbf{@match}} parameter \EFk{begin}
+        \EFs{"c"} \EFt{=>} \EFhn{13}\EFt{+}\EFhn{6}\EFt{*}value\EFt{+}\EFhn{6}\EFt{/}value
+        \EFs{"b"} \EFt{=>} sqrt(complex(value))
+        \EFs{"β"} \EFt{=>} im\EFt{*}sqrt(complex(value))
+        \EFs{"B"} \EFt{=>} value
+    \EFk{end}
+\EFk{end}
+
+\EFs{"""}
+    \EFs{CentralCharge\{T\}}
+\EFs{Object representing the central charge.}
+\EFs{Contains the values of the 4 parameters representing it.}
+\EFs{"""}
+\EFk{struct} \EFt{CentralCharge}\{T\}
+
+    \EFcd{\#}\EFc{= T is the type of the parameters; either Complex\{Float64\} or Complex\{BigFloat\}}
+    \EFc{for arbitrary precision. =\#}
+    values\EFt{::Dict}\{String, T\}
+
+\EFk{end}
+
+\EFs{"""}
+    \EFs{CentralCharge(parameter, value)}
+
+\EFs{Constructor function for the CentralCharge type.}
+
+\EFs{Given one of the four parameters `"c"`, `"b"`, `"β"`, `"B"` and its value,}
+\EFs{creates an object CentralCharge\{T\} where T is the type of `value`.}
+
+\EFs{\# Example}
+\EFs{```julia-repl}
+\EFs{julia> setprecision(BigFloat, 20, base=10)}
+\EFs{julia> charge = CentralCharge("β", sqrt(big(2)))}
+\EFs{Central charge :}
+\EFs{B = -2.0 + 0.0im}
+\EFs{c = -2.0 + 0.0im}
+\EFs{b = 0.0 + 1.414213562373095048804im}
+\EFs{β = -1.414213562373095048804 + 0.0im}
+\EFs{```}
+\EFs{"""}
+\EFk{function} \EFf{CentralCharge}(parameter = \EFs{"c"}, value = \EFhn{1})
+    \EFcd{\#} \EFc{Constructor}
+    T=typeof(AbstractFloat(real(value)))
+    B=Bfrom(parameter, value)
+    dict=Dict(key \EFt{=>} Bto(key, B) \EFk{for} key \EFk{in} (\EFs{"c"}, \EFs{"b"}, \EFs{"β"}, \EFs{"B"}))
+    CentralCharge\{complex(T)\}(dict)
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\begin{itemize}
+\item Pretty printing
+\label{sec:org62ab659}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFs{"""Display an object of type CentralCharge"""}
+\EFk{function} Base.\EFf{show}(io\EFt{::IO}, charge\EFt{::CentralCharge})
+    println(\EFs{"Central charge:"})
+    \EFk{for} (key, value) \EFk{in} charge.values
+        println(io, \EFs{"\$key = \$value"})
+    \EFk{end}
+\EFk{end}
+
+\EFs{"""Display the value of the central charge in LaTeX format"""}
+\EFk{function} Base.\EFf{show}(io\EFt{::IO}, \EFt{::MIME}\EFs{"text/latex"}, charge\EFt{::CentralCharge}, parameter)
+    \EFk{if} parameter\EFt{==}\EFs{"β"}
+        print(\EFs{"\char92{}\char92{}beta = "})
+    \EFk{else}
+        print(parameter,\EFs{" = "})
+    \EFk{end}
+    show(io, MIME(\EFs{"text/latex"}), charge[parameter])
+\EFk{end}
+
+\EFs{"""Overload of [] to access values in charge"""}
+Base.\EFf{getindex}(charge\EFt{::CentralCharge}, key) = charge.values[key];
+\end{Verbatim}
+\end{Code}
+\end{itemize}
+\subsubsection*{Fields}
+\label{sec:org8a5e52e}
+
+Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Optional keyword arguments lets us choose whether the field is diagonal, degenerate, logarithmic. The field can also be defined from its r and s indices using the keyword argument Kac = true.
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFs{"""Get p from any given parameter"""}
+\EFk{function} \EFf{p\_from}(parameter, value, charge\EFt{::CentralCharge})
+    \textcolor[HTML]{483d8b}{\textbf{@match}} parameter \EFk{begin}
+        \EFs{"Δ"} \EFt{=>} sqrt(complex(value \EFt{-} (charge[\EFs{"c"}]\EFt{-}\EFhn{1})\EFt{/}\EFhn{24}))
+        \EFs{"δ"} \EFt{=>} sqrt(complex(value))
+        \EFs{"P"} \EFt{=>} \EFt{-}im\EFt{*}value
+        \EFs{"p"} \EFt{=>} value
+    \EFk{end}
+\EFk{end}
+
+\EFs{"""Get all parameters from p"""}
+\EFk{function} \EFf{p\_to}(parameter, value, charge\EFt{::CentralCharge})
+    \textcolor[HTML]{483d8b}{\textbf{@match}} parameter \EFk{begin}
+        \EFs{"Δ"} \EFt{=>} value\EFt{\char94{}}\EFhn{2} \EFt{+} (charge[\EFs{"c"}]\EFt{-}\EFhn{1})\EFt{/}\EFhn{24}
+        \EFs{"δ"} \EFt{=>} value\EFt{\char94{}}\EFhn{2}
+        \EFs{"P"} \EFt{=>} im\EFt{*}value
+        \EFs{"p"} \EFt{=>} value
+    \EFk{end}
+\EFk{end}
+
+\EFs{"""}
+    \EFs{Field\{T\}}
+\EFs{Object representing a conformal field.}
+\EFs{Contains the values of the 4 parameters `"Δ"`,`"δ"`,`"P"`,`"p"` for its conformal dimension,}
+\EFs{and flags saying whether the field is in the Kac table, degenerate, logarithmic or diagonal.}
+\EFs{"""}
+\EFk{struct} \EFt{Field}\{T\}
+
+    values\EFt{::Dict}\{String, Vector\{T\}\}
+    isKac\EFt{::Bool}
+    r\EFt{::Rational}
+    s\EFt{::Rational}
+    isdegenerate\EFt{::Bool}
+    islogarithmic\EFt{::Bool}
+    isdiagonal\EFt{::Bool}
+
+\EFk{end}
+
+\EFs{"""}
+    \EFs{Field(charge, parameter, leftvalue, rightvalue; kwargs...)}
+
+\EFs{Constructor function for the Field type.}
+
+\EFs{Given a charge `charge`, one of the four parameters `"Δ"`, `"δ"`, `"P"`, `"p"` and two values,}
+\EFs{create an object Field\{T\} (where T is the type of the values in `charge`) that represents a}
+\EFs{field of left and right dimensions given by leftvalue and rightvalue in the chosen}
+\EFs{parametrisation.}
+
+\EFs{\# keyword arguments:}
+
+\EFs{- `Kac::Bool`: if set to true, the field can be constructed from the values of its r and s}
+\EFs{indices,}
+\EFs{- `r::Rational`,`s::Rational`: used in conjunction to `Kac=true`, must be given rational}
+\EFs{values,}
+\EFs{- `logarithmic::Bool`: set to True if the field is logarithmic,}
+\EFs{- `degenerate::Bool`: set to True if the field is degenerate,}
+\EFs{- `diagonal::Bool`: set to True to get a diagonal field ; only the leftvalue needs to be}
+\EFs{given.}
+
+\EFs{\# Examples}
+\EFs{```julia-repl}
+\EFs{julia> charge = CentralCharge("b", big(0.5));}
+\EFs{julia> field = Field(charge, Kac=true, r=0, s=1)}
+\EFs{Non-diagonal field with Kac indices r = 0//1, s = 1//1 and (left,right) dimensions:}
+\EFs{Δ = ( 2.5625 + 0.0im, 2.5625 + 0.0im )}
+\EFs{P = ( -0.0 - 1.0im, 0.0 + 1.0im )}
+\EFs{δ = ( 1.0 - 0.0im, 1.0 + 0.0im )}
+\EFs{p = ( -1.0 + 0.0im, 1.0 + 0.0im )}
+\EFs{```}
+\EFs{```julia-repl}
+\EFs{julia> charge = CentralCharge("β", 1.5+im);}
+\EFs{julia> Field(charge, "δ", 2, 3)}
+\EFs{Non-diagonal field with (left, right) dimensions:}
+\EFs{Δ = ( 2.1579142011834325 - 0.6789940828402367im, 3.1579142011834316 - 0.6789940828402367im )}
+\EFs{P = ( 0.0 + 1.4142135623730951im, 0.0 + 1.7320508075688772im )}
+\EFs{δ = ( 2.0000000000000004 + 0.0im, 2.9999999999999996 + 0.0im )}
+\EFs{p = ( 1.4142135623730951 + 0.0im, 1.7320508075688772 + 0.0im )}
+\EFs{```}
+\EFs{```julia-repl}
+\EFs{julia> charge = CentralCharge();}
+\EFs{julia> Field(charge, "δ", 1, diagonal=true)}
+\EFs{Diagonal field of dimension:}
+\EFs{Δ = 1.0 + 0.0im}
+\EFs{P = 0.0 + 1.0im}
+\EFs{δ = 1.0 + 0.0im}
+\EFs{p = 1.0 + 0.0im}
+\EFs{```}
+\EFs{"""}
+\EFk{function} \EFf{Field}(
+    charge\EFt{::CentralCharge} = CentralCharge(\EFs{"c"}, \EFhn{1}),
+    parameter = \EFs{"Δ"},
+    leftvalue = \EFhn{0}, rightvalue = \EFhn{0};
+    Kac = \EFo{false}, r = \EFhn{0}, s = \EFhn{0},
+    logarithmic = \EFo{false}, degenerate = \EFo{false}, diagonal = \EFo{false}
+    )
+
+    T=typeof(charge.values[\EFs{"c"}])   \EFcd{\#}\EFc{dimensions have the same type as central charges}
+    \EFk{if} degenerate
+        Kac = \EFo{true}
+    \EFk{end}
+    \EFk{if} Kac
+        pleft = \EFt{-}\EFhn{1}\EFt{/}\EFhn{2}\EFt{*}(charge[\EFs{"β"}]\EFt{*}r \EFt{-} \EFhn{1}\EFt{/}charge[\EFs{"β"}]\EFt{*}s)
+        pright = \EFt{-}\EFhn{1}\EFt{/}\EFhn{2}\EFt{*}(charge[\EFs{"β"}]\EFt{*}r \EFt{-} \EFhn{1}\EFt{/}charge[\EFs{"β"}]\EFt{*}s)
+    \EFk{else}
+        pleft, pright = p\_from.(parameter, [leftvalue, rightvalue], Ref(charge))
+    \EFk{end}
+    \EFk{if} diagonal
+        pright = pleft
+    \EFk{end}
+    values = Dict(key \EFt{=>} p\_to.(key, [pleft, pright], Ref(charge))
+                  \EFk{for} key \EFk{in} (\EFs{"Δ"}, \EFs{"δ"}, \EFs{"P"}, \EFs{"p"})
+                      )
+    Field\{complex(T)\}(values, Kac, r, s, degenerate, logarithmic, diagonal)
+\EFk{end}
+
+\EFs{"""Compute the spin Δleft - Δright of a field."""}
+\EFk{function} \EFf{spin}(field\EFt{::Field})
+    \EFcd{\#}\EFc{Computes the spin Δ-Δbar}
+    \EFk{if} field.isdiagonal
+        \EFk{return} \EFhn{0}
+    \EFk{else}
+        \EFk{return} field[\EFs{"Δ"}][\EFhn{1}] \EFt{-} field[\EFs{"Δ"}][\EFhn{2}]
+    \EFk{end}
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\begin{itemize}
+\item Pretty printing
+\label{sec:org96d2cbb}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFs{"""Display field"""}
+\EFk{function} Base.\EFf{show}(io\EFt{::IO},field\EFt{::Field})
+    \EFcd{\#}\EFc{Print fields}
+    \EFk{if} field.isdiagonal
+        println(\EFs{"Diagonal field of dimension:"})
+        \EFk{for} (key, value) \EFk{in} field.values
+            println(io, \EFs{"  \$key = \$(value[1])"})
+        \EFk{end}
+    \EFk{else}
+        print(\EFs{"Non-diagonal field "})
+        \EFk{if} field.isKac
+            print(\EFs{"with Kac indices r = \$(field.r), s = \$(field.s) and "})
+        \EFk{else}
+            print(\EFs{"with "})
+        \EFk{end}
+        println(\EFs{"(left, right) dimensions:"})
+        \EFk{for} (key, value) \EFk{in} field.values
+            println(io, \EFs{"  \$key = (\$(value[1]), \$(value[2]))"})
+        \EFk{end}
+    \EFk{end}
+\EFk{end}
+
+\EFs{"""Display dimension of field in latex format"""}
+\EFk{function} Base.\EFf{show}(io\EFt{::IO},\EFt{::MIME}\EFs{"text/latex"}, field\EFt{::Field},parameter)
+    \EFk{if} field.isdiagonal
+        \EFk{if} parameter \EFt{==} \EFs{"Δ"}
+            print(\EFs{"\char92{}\char92{}Delta = "})
+        \EFk{elseif} parameter \EFt{==} \EFs{"δ"}
+            print(\EFs{"\char92{}\char92{}delta = "})
+        \EFk{else}
+            print(parameter,\EFs{" = "})
+        \EFk{end}
+        show(io, MIME(\EFs{"text/latex"}), field[parameter][\EFhn{1}])
+    \EFk{else}
+        \EFk{if} parameter\EFt{==}\EFs{"Δ"}
+            print(\EFs{"(\char92{}\char92{}Delta, \char92{}\char92{}bar\char92{}\char92{}Delta) = "})
+        \EFk{elseif} parameter\EFt{==}\EFs{"δ"}
+            print(\EFs{"(\char92{}\char92{}delta, \char92{}\char92{}bar\char92{}\char92{}delta) = "})
+        \EFk{else}
+            print(\EFs{"(\$parameter, \char92{}\char92{}bar\$parameter) = "})
+        \EFk{end}
+        print(\EFs{"("}); show(io, MIME(\EFs{"text/latex"}), field[parameter][\EFhn{1}]); print(\EFs{", "});
+        show(io, MIME(\EFs{"text/latex"}), field[parameter][\EFhn{2}]); print(\EFs{")"})
+    \EFk{end}
+\EFk{end}
+
+\EFcd{\#} \EFc{function Base.show(io::IO, arr::Vector\{Field\{T\}\}) where \{T\}}
+\EFcd{\#}     \EFc{println(io, "Vector\{Field\{\$T\}\} with \$(length(arr)) elements:")}
+\EFcd{\#}     \EFc{for (index, field) in enumerate(arr)}
+\EFcd{\#}         \EFc{print(io, "\$(index): ")}
+\EFcd{\#}         \EFc{show(io, field)}
+\EFcd{\#}         \EFc{println()}
+\EFcd{\#}     \EFc{end}
+\EFcd{\#} \EFc{end}
+
+\EFs{"""Overload []"""}
+Base.\EFf{getindex}(field\EFt{::Field},key) = field.values[key];
+\end{Verbatim}
+\end{Code}
+\end{itemize}
+\subsubsection*{End of module}
+\label{sec:org8255063}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{end} \EFcd{\#} \EFc{end module}
+\end{Verbatim}
+\end{Code}
+\subsection{The \texttt{FourPointCorrelationFunctions} module}
+\label{sec:org5a04c64}
+The module \texttt{FourPointCorrelationFunctions} defines
+
+\begin{itemize}
+\item a struct \texttt{FourPointCorrelation} that represents a four point function
+
+\[
+  < V_1(0) V_2(1) V_3(\infty) V_4(x)>
+  \]
+
+\item a method \texttt{computeCNmn} that computes the coefficients \(C^N_{m,n}\) which serve to compute the conformal blocks that enter the expansion of the 4-pt function.
+\end{itemize}
+\begin{itemize}
+\item Header
+\label{sec:org8f1787b}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFcd{\#}\EFc{===========================================================================================}
+
+\EFc{Written by Paul Roux, adapting a Python code written by Sylvain Ribault \& Rongvoram}
+\EFc{Nivesvivat}
+
+\EFc{===========================================================================================\#}
+
+\EFk{module} FourPointCorrelationFunctions
+
+\EFk{export} FourPointCorrelation, computeCNmn
+
+\EFk{using} ..CFTData
+\EFk{using} Match
+\EFk{import} Memoization: \textcolor[HTML]{483d8b}{\textbf{@memoize}}
+\end{Verbatim}
+\end{Code}
+\item Four-point function type
+\label{sec:org4d2078b}
+
+We create a struct \texttt{FourPointCorrelation} for representing a four-point function on the sphere, that is, a central charge and four external fields.
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFs{"""Struct representing a four-point function. Contains}
+\EFs{- a central charge}
+\EFs{- 4 external fields}
+\EFs{"""}
+\EFk{struct} \EFt{FourPointCorrelation}\{T\}
+    charge\EFt{::CentralCharge}\{T\}
+    fields\EFt{::Vector}\{Field\{T\}\}
+\EFk{end}
+
+\EFk{function} \EFf{FourPointCorrelation}(charge\EFt{::CentralCharge}\{T\}, V1, V2, V3, V4) \EFk{where} \{T\}
+    \EFk{return} FourPointCorrelation\{T\}(charge, [V1, V2, V3, V4])
+\EFk{end}
+
+\EFs{"""Display a four-point function"""}
+\EFk{function} Base.\EFf{show}(io\EFt{::IO}, corr\EFt{::FourPointCorrelation})
+    println(\EFs{"Four-point correlation function: < V\_1 V\_2 V\_3 V\_4 > where "})
+    print(\EFs{"V\_1 = "}); show(corr.fields[\EFhn{1}])
+    print(\EFs{"V\_2 = "}); show(corr.fields[\EFhn{2}])
+    print(\EFs{"V\_3 = "}); show(corr.fields[\EFhn{3}])
+    print(\EFs{"V\_4 = "}); show(corr.fields[\EFhn{4}])
+\EFk{end}
+
+\EFcd{\#} \EFc{explicit names for the indices of left and right dimensions}
+\EFk{const} \EFv{left} = \EFhn{1}
+\EFk{const} \EFv{right} = \EFhn{2}
+\end{Verbatim}
+\end{Code}
+\item Compute \(C^N_{m,n}\)
+\label{sec:orga71ddf8}
+
+The function \texttt{permute\_ext\_fields} permutes the external fields such that the first two and last two are fused together in the channel.
+
+The function \texttt{Rmn\_zero\_order} computes the order of a zero of R, to avoid computing 0/0 in \(\frac{R_{m,n}}{\delta - \delta_{r,s}}\). At generic central charge (non-rational) \(R_{m,n}\) is zero iff one of the two pairs of fused fields have Kac indices such that \(r_1 \pm r_2 \in \{1-m, 3-m, \dots, m-1\}\) or \(s_1 \pm s_2 \in \{1-n, 3-n, \dots, n-1\}\).
+
+When \(R_{m,n}=0\), we compute a regularisation of it, i.e. the \(O(\epsilon)\) term in the residue of the conformal block where the channel field's dimension is shifted by \(\epsilon\).
+
+This is given by (some expression)
+
+\begin{align}
+&\left(\delta_2-\delta_1\right)_\text{reg} = 2p_2 \\
+&\left((\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2\right)_\text{reg} = 8p_1p_2p_{(r,s)}
+\end{align}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFf{double\_prod\_in\_Dmn}(m, n, B) = prod(prod((r\EFt{\char94{}}\EFhn{2}\EFt{*}B \EFt{-} s\EFt{\char94{}}\EFhn{2}\EFt{/}B)\EFt{\char94{}}\EFhn{2} \EFk{for} s in \EFhn{1}:n\EFt{-}\EFhn{1}) \EFk{for} r \EFk{in} \EFhn{1}:m\EFt{-}\EFhn{1})
+
+\EFf{δrs}(r, s, B) = \EFt{-}\EFhn{1}\EFt{/}\EFhn{4} \EFt{*} (B\EFt{*}r\EFt{\char94{}}\EFhn{2} \EFt{+} \EFhn{2}\EFt{*}r\EFt{*}s \EFt{+} s\EFt{\char94{}}\EFhn{2}\EFt{/}B)
+
+\EFk{function} \EFf{Dmn}(m, n, B)
+    \EFk{if} m \EFt{==} \EFhn{1} \EFt{\&\&} n \EFt{==} \EFhn{1} \EFcd{\#} \EFc{treat cases m = 1, n=1 separately}
+        \EFk{return} \EFhn{1}
+    \EFk{elseif} m \EFt{==} \EFhn{1}
+        \EFk{return} n \EFt{*} prod(s\EFt{\char94{}}\EFhn{2}\EFt{/}B \EFt{*} (s\EFt{\char94{}}\EFhn{2}\EFt{/}B \EFt{-} m\EFt{\char94{}}\EFhn{2}\EFt{*}B) \EFk{for} s \EFk{in} \EFhn{1}:n\EFt{-}\EFhn{1})
+    \EFk{elseif} n \EFt{==} \EFhn{1}
+        \EFk{return} m \EFt{*} prod(r\EFt{\char94{}}\EFhn{2}\EFt{*}B \EFt{*} (r\EFt{\char94{}}\EFhn{2}\EFt{*}B \EFt{-} n\EFt{\char94{}}\EFhn{2}\EFt{/}B) \EFk{for} r \EFk{in} \EFhn{1}:m\EFt{-}\EFhn{1})
+    \EFk{else}
+        f1 = prod(r\EFt{\char94{}}\EFhn{2}\EFt{*}B \EFt{*} (r\EFt{\char94{}}\EFhn{2}\EFt{*}B \EFt{-} n\EFt{\char94{}}\EFhn{2}\EFt{/}B) \EFk{for} r \EFk{in} \EFhn{1}:m\EFt{-}\EFhn{1})
+        f2 = prod(s\EFt{\char94{}}\EFhn{2}\EFt{/}B \EFt{*} (s\EFt{\char94{}}\EFhn{2}\EFt{/}B \EFt{-} m\EFt{\char94{}}\EFhn{2}\EFt{*}B) \EFk{for} s \EFk{in} \EFhn{1}:n\EFt{-}\EFhn{1})
+        f3 = double\_prod\_in\_Dmn(m, n, B)
+        \EFk{return} m\EFt{*}n\EFt{*}f1\EFt{*}f2\EFt{*}f3
+    \EFk{end}
+\EFk{end}
+
+\EFs{"""Permute the external fields to get t- or u-channels from s-channel"""}
+\EFk{function} \EFf{permute\_ext\_fields}(corr\EFt{::FourPointCorrelation}, channel)
+    Vs=corr.fields
+    Vs = \textcolor[HTML]{483d8b}{\textbf{@match}} channel \EFk{begin}
+        \EFs{"s"} \EFt{=>} [Vs[\EFhn{1}], Vs[\EFhn{2}], Vs[\EFhn{3}], Vs[\EFhn{4}]]
+        \EFs{"t"} \EFt{=>} [Vs[\EFhn{1}], Vs[\EFhn{4}], Vs[\EFhn{3}], Vs[\EFhn{2}]]
+        \EFs{"u"} \EFt{=>} [Vs[\EFhn{1}], Vs[\EFhn{3}], Vs[\EFhn{2}], Vs[\EFhn{4}]]
+    \EFk{end}
+    \EFk{return} FourPointCorrelation(corr.charge, Vs)
+\EFk{end}
+
+\EFs{"""}
+        \EFs{Order of a pole of Rmn, assuming the central charge is generic. Also return the indices of the vanishing term.}
+
+\EFs{"""}
+\EFk{function} \EFf{Rmn\_zero\_order}(m, n, corr\EFt{::FourPointCorrelation}, channel)
+    B = corr.charge[\EFs{"B"}]
+    order = \EFhn{0}
+    V=permute\_ext\_fields(corr, channel).fields
+
+    \EFk{if} \EFt{!}((V[\EFhn{1}].isKac \EFt{\&\&} V[\EFhn{2}].isKac) \EFt{||} (V[\EFhn{3}].isKac \EFt{\&\&} V[\EFhn{4}].isKac))
+        \EFk{return} \EFhn{0}
+    \EFk{end}
+
+    r=[V[i].r \EFk{for} i \EFk{in} \EFhn{1}:\EFhn{4}]
+    s=[V[i].s \EFk{for} i \EFk{in} \EFhn{1}:\EFhn{4}]
+
+    \EFcd{\#}\EFc{= Rmn is zero if r1 \char92{}pm r2 or r3 \char92{}pm r4 is an integer in 1-m:2:m-1, and}
+    \EFc{s1 \char92{}pm s2 or s3 \char92{}pm s4 is an integer in 1-n:2:n-1.}
+    \EFc{equivalently, if (|r1 \char92{}pm r2| <= m-1 and r1-r2 - (m-1) \% 2 == 0)}
+    \EFc{and (|s1 \char92{}pm s2| <= n-1 and s1-s2 - (n-1) \% 2 == 0)}
+    \EFc{=\#}
+    \EFk{for} pm \EFk{in} (\EFt{-}\EFhn{1},\EFhn{1})
+        \EFk{for} (i,j) \EFk{in} ((\EFhn{1},\EFhn{2}), (\EFhn{3},\EFhn{4}))
+            \EFk{if} V[i].isKac \EFt{\&\&} V[j].isKac
+                \EFk{if} (abs(r[i]\EFt{+}pm\EFt{*}r[j]) \EFt{<=} m\EFt{-}\EFhn{1} \EFt{\&\&} (r[i]\EFt{+}pm\EFt{*}r[j]\EFt{-}(m\EFt{-}\EFhn{1}))\EFt{\%}\EFhn{2} \EFt{==} \EFhn{0}) \EFt{\&\&}
+                    (abs(s[i]\EFt{+}pm\EFt{*}s[j]) \EFt{<=} n\EFt{-}\EFhn{1} \EFt{\&\&} (s[i]\EFt{+}pm\EFt{*}s[j]\EFt{-}(n\EFt{-}\EFhn{1}))\EFt{\%}\EFhn{2} \EFt{==} \EFhn{0})
+                    order \EFt{+=} \EFhn{1}
+                \EFk{end}
+            \EFk{end}
+        \EFk{end}
+    \EFk{end}
+
+    \EFk{return} order
+\EFk{end}
+
+\EFs{"""Compute one of the terms in the double product of Rmn"""}
+\EFk{function} \EFf{Rmn\_term}(r0, s0, corr:FourPointCorrelation, channel)
+    B = corr.charge[\EFs{"B"}]
+    V = permute\_ext\_fields(corr.fields, channel).fields
+    r = [V[i].r \EFk{for} i \EFk{in} \EFhn{1}:\EFhn{4}]
+    s = [V[i].s \EFk{for} i \EFk{in} \EFhn{1}:\EFhn{4}]
+    δ = [V[i][\EFs{"δ"}] \EFk{for} i \EFk{in} \EFhn{1}:\EFhn{4}]
+    res = \EFhn{1}
+    \EFcd{\#}\EFc{= if r1 \char92{}pm r2 = (\char92{}pm)' r0 and s1 \char92{}pm s2 = (\char92{}pm)' s0, compute the regularization of the term}
+    \EFc{same for 3 and 4}
+    \EFc{=\#}
+    \EFk{for} pm \EFk{in} (\EFt{-}\EFhn{1},\EFhn{1})
+        \EFk{for} pm2 \EFk{in} (\EFt{-}\EFhn{1},\EFhn{1})
+            \EFk{for} (i,j) \EFk{in} ((\EFhn{1},\EFhn{2}), (\EFhn{3},\EFhn{4}))
+                \EFk{if} V[i].isKac \EFt{\&\&} V[j].isKac \EFt{\&\&} (r[i]\EFt{+}pm\EFt{*}r[j], s[i]\EFt{+}pm\EFt{*}s[j]) \EFt{==} (pm2\EFt{*}r0, pm2\EFt{*}s0)
+                    \EFk{if} r0 \EFt{==} \EFhn{0} \EFt{\&\&} s0 \EFt{==} \EFhn{0}
+                        res \EFt{*=} \EFhn{2}\EFt{*}V[j][\EFs{"p"}]
+                    \EFk{else}
+                        res \EFt{*=} \EFhn{8}\EFt{*}V[i][\EFs{"p"}]\EFt{*}V[j][\EFs{"p"}]\EFt{*}Field(corr.charge, Kac=\EFo{true}, r=pm2\EFt{*}r0, s=pm2\EFt{*}s0)[\EFs{"p"}]
+                    \EFk{end}
+                    \EFk{return} res
+                \EFk{end}
+            \EFk{end}
+        \EFk{end}
+    \EFk{end}
+\EFk{end}
+\EFs{"""}
+\EFs{Compute `Rmn`.}
+\EFs{lr indicates the left or right moving parts of the fields}
+\EFs{Cache the result.}
+\textcolor[HTML]{ff8e00}{\textbf{TODO:}} \EFs{value of regularisation}
+\EFs{"""}
+\textcolor[HTML]{483d8b}{\textbf{@memoize}} \EFk{function} Rmn(m, n, corr\EFt{::FourPointCorrelation}, channel, lr)
+
+    B = corr.charge[\EFs{"B"}]
+    Vs = permute\_ext\_fields(corr, channel).fields
+    δ1 = Vs[\EFhn{1}][\EFs{"δ"}][lr]
+    δ2 = Vs[\EFhn{2}][\EFs{"δ"}][lr]
+    δ3 = Vs[\EFhn{3}][\EFs{"δ"}][lr]
+    δ4 = Vs[\EFhn{4}][\EFs{"δ"}][lr]
+
+    \EFk{if} Rmn\_zero\_order(m, n, corr, channel) \EFt{>} \EFhn{0}
+        \EFk{if} m \EFt{==} \EFhn{1}
+            res = a
+        \EFk{end}
+    \EFk{else}
+        \EFk{if} m \EFt{==} \EFhn{1}
+            res = prod(Rmn\_term(\EFhn{0}, s, corr, channel) \EFk{for} s \EFk{in} \EFhn{1}\EFt{-}n:\EFhn{2}:\EFhn{0})
+        \EFk{else} \EFcd{\#} \EFc{m > 1}
+            res = prod(prod(Rmn\_term(r, s, corr, channel)
+                            \EFk{for} s in \EFhn{1}\EFt{-}n:\EFhn{2}:n\EFt{-}\EFhn{1}) \EFk{for} r \EFk{in} \EFhn{1}\EFt{-}m:\EFhn{2}:\EFt{-}\EFhn{1})
+            \EFk{if} m\EFt{\%}\EFhn{2} \EFt{==} \EFhn{1} \EFcd{\#} \EFc{m odd -> treat r=0 term separately}
+                res \EFt{*=} prod(Rmn\_term(\EFhn{0}, s, corr, channel) \EFk{for} s \EFk{in} \EFhn{1}\EFt{-}n:\EFhn{2}:\EFhn{0})
+            \EFk{end}
+        \EFk{end}
+    \EFk{end}
+
+    \EFk{return} res\EFt{/}(\EFhn{2}\EFt{*}Dmn(m, n, B))
+\EFk{end}
+
+\textcolor[HTML]{483d8b}{\textbf{@memoize}} \EFk{function} computeCNmn(N, m, n, corr\EFt{::FourPointCorrelation}, channel, lr)
+    B = corr.charge[\EFs{"B"}]
+    \EFk{if} Rmn\_zero\_order(m, n, corr, channel) \EFt{>} \EFhn{0}
+        \EFk{return} \EFhn{0}
+    \EFk{elseif} m\EFt{*}n \EFt{>} N
+        \EFk{return} \EFhn{0}
+    \EFk{elseif} m\EFt{*}n \EFt{==} N
+        \EFk{return} Rmn(m, n, corr, channel, lr)
+    \EFk{else}
+        res = sum(sum(computeCNmn(N\EFt{-}m\EFt{*}n, mp, np, corr, channel, lr)\EFt{/}(δrs(m, \EFt{-}n, B) \EFt{-} δrs(mp, np, B))
+                      \EFk{for} mp \EFk{in} \EFhn{1}:N\EFt{-}m\EFt{*}n \EFk{if} mp\EFt{*}np \EFt{<=} N\EFt{-}m\EFt{*}n)
+                  \EFk{for} np \EFk{in} \EFhn{1}:N\EFt{-}m\EFt{*}n)
+        \EFk{return} Rmn(m, n, corr, channel, lr) \EFt{*} res
+    \EFk{end}
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\item End module
+\label{sec:orga0bf5bf}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{end} \EFcd{\#} \EFc{end module}
+\end{Verbatim}
+\end{Code}
+\end{itemize}
+\subsection{The \texttt{OnePointCorrelationFunctions} module}
+\label{sec:org21b4d95}
+The module \texttt{OnePointCorrelationFunctions} defines
+
+\begin{itemize}
+\item a struct \texttt{OnePointCorrelation} that represents a one point function \[
+  < V >,
+  \]
+\item a method \texttt{computeCNmn} that computes the coefficients \(C^{N,\text{torus}}_{m,n}\) which serve to compute the conformal blocks that enter the expansion of the 1-pt function.
+\end{itemize}
+\begin{itemize}
+\item Header
+\label{sec:org965ffed}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{module} OnePointCorrelationFunctions
+
+\EFk{export} OnePointCorrelation, computeCNmn
+
+\EFk{using} ..CFTData
+\EFk{import} ..FourPointCorrelationFunctions: Dmn, δrs \EFcd{\#} \EFc{re-use the Dmn from four-point functions}
+\end{Verbatim}
+\end{Code}
+\item One-point function type
+\label{sec:org465cfb9}
+zzeaiprybaeaiprybazer b
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{struct} \EFt{OnePointCorrelation}\{T\}
+    charge\EFt{::CentralCharge}\{T\}
+    field\EFt{::Field}\{T\}
+\EFk{end}
+
+\EFs{"""Display a one-point function"""}
+\EFk{function} Base.\EFf{show}(io\EFt{::IO}, corr\EFt{::OnePointCorrelation})
+    println(\EFs{"One-point correlation function: < V > where "})
+    print(\EFs{"V = "}); show(corr.field)
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\item Compute \(C^{N,\text{torus}}_{m,n}\)
+\label{sec:org491ba63}
+
+The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of the \hyperref[sec:orga71ddf8]{coefficients \(C^{N}_{m,n}\)}. We re-use much of the code.
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFs{"""Order of a pole of Rmn\char94{}torus, assuming the central charge is generic"""}
+\EFk{function} \EFf{Rmn\_zero\_order}(m, n, corr\EFt{::OnePointCorrelation})
+    B = corr.charge[\EFs{"B"}]
+    V = corr.field
+    \EFk{if} V.isKac \EFt{\&\&} V.r\EFt{\%}\EFhn{2}\EFt{==}\EFhn{1} \EFt{\&\&} V.s\EFt{\%}\EFhn{2}\EFt{==}\EFhn{1} \EFt{\&\&} abs(V.r) \EFt{<=} \EFhn{2}\EFt{*}m\EFt{-}\EFhn{1} \EFt{\&\&} abs(V.s) \EFt{<=} \EFhn{2}\EFt{*}n\EFt{-}\EFhn{1}
+        \EFk{return} \EFhn{1}
+    \EFk{end}
+    \EFk{return} \EFhn{0}
+\EFk{end}
+
+\EFs{"""}
+\EFs{Compute `Rmn\char94{}torus`.}
+\EFs{lr indicates the left or right moving parts of the fields}
+\textcolor[HTML]{ff8e00}{\textbf{TODO:}} \EFs{value of regularisation}
+\EFs{"""}
+\EFk{function} \EFf{Rmn}(m, n, corr\EFt{::OnePointCorrelation}, lr)
+    B = corr.charge[\EFs{"B"}]
+    V = corr.field
+    δ1 = V[\EFs{"δ"}][lr]
+    \EFk{if} Rmn\_zero\_order(m, n, corr) \EFt{>} \EFhn{0}
+        \EFk{return} \EFhn{0}
+    \EFk{else}
+        res = prod(prod(δrs(r, s, B) \EFt{-} δ1 \EFk{for} r in \EFhn{1}:\EFhn{2}:\EFhn{2}\EFt{*}m\EFt{-}\EFhn{1}) \EFk{for} s \EFk{in} \EFhn{1}\EFt{-}\EFhn{2}n:\EFhn{2}:\EFhn{2}n\EFt{-}\EFhn{1})
+        \EFk{return} res\EFt{/}(\EFhn{2}\EFt{*}Dmn(m, n, B))
+    \EFk{end}
+\EFk{end}
+
+\EFk{function} \EFf{computeCNmn}(N, m, n, corr\EFt{::OnePointCorrelation}, lr)
+    B = corr.charge[\EFs{"B"}]
+    \EFk{if} Rmn\_zero\_order(m, n, corr) \EFt{>} \EFhn{0}
+        \EFk{return} \EFhn{0}
+    \EFk{elseif} m\EFt{*}n \EFt{>} N
+        \EFk{return} \EFhn{0}
+    \EFk{elseif} m\EFt{*}n \EFt{==} N
+        \EFk{return} Rmn(m, n, corr, lr)
+    \EFk{else}
+        res = sum(sum(computeCNmn(N\EFt{-}m\EFt{*}n, mp, np, corr, lr)\EFt{/}(δrs(m, \EFt{-}n, B)\EFt{-}δrs(mp, np, B))
+                      \EFk{for} mp \EFk{in} \EFhn{1}:N\EFt{-}m\EFt{*}n \EFk{if} mp\EFt{*}np \EFt{<=} N\EFt{-}m\EFt{*}n)
+                  \EFk{for} np \EFk{in} \EFhn{1}:N\EFt{-}m\EFt{*}n)
+        \EFk{return} Rmn(m, n, corr, lr) \EFt{*} ((N\EFt{-}m\EFt{*}n\EFt{==}\EFhn{0})\EFt{+}res)
+    \EFk{end}
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\item End module
+\label{sec:orgf2e6869}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{end} \EFcd{\#} \EFc{end module}
+\end{Verbatim}
+\end{Code}
+\end{itemize}
+\subsection{The \texttt{FourPointBlocksSphere} module}
+\label{sec:org9003e09}
+The module \texttt{FourPointBlocksSphere} exports
+
+\begin{itemize}
+\item a struct \texttt{FourPointBlockSphere} that encapsulates the data needed to compute a 4pt conformal block, namely a channel, four external fields and the field propagating in the channel
+\item a function \texttt{F\_four\_point\_sphere(block, charge, x)} which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) as defined in this paragraph.
+\end{itemize}
+\subsubsection*{Header}
+\label{sec:orge4df249}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFcd{\#}\EFc{===========================================================================================}
+
+\EFc{ConformalBlocks.jl contains modules that compute series expansions for}
+\EFc{Virasoro four-point conformal blocks on the sphere and Virasoro one-point conformal blocks}
+\EFc{on the torus.}
+
+\EFc{Written by Paul Roux, adapting a Python code written by Sylvain Ribault \& Rongvoram}
+\EFc{Nivesvivat}
+
+\EFc{===========================================================================================\#}
+
+
+\EFs{"""}
+\EFs{Series expansion of four-point blocks on the sphere.}
+\EFs{"""}
+\EFk{module} FourPointBlocksSphere
+
+\EFk{export} FourPointBlockSphere, block
+
+\EFk{using} ..CFTData, ..FourPointCorrelationFunctions
+\EFk{import} ..FourPointCorrelationFunctions: permute\_ext\_fields
+\EFk{using} Match, EllipticFunctions, Memoization
+
+\end{Verbatim}
+\end{Code}
+\subsubsection*{Four-point block sphere type}
+\label{sec:orgddfb13b}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Struct FourPointBlockSphere}
+\EFc{===========================================================================================\#}
+\EFs{"""}
+    \EFs{FourPointBlockSphere\{T\}}
+
+\EFs{Composite type that represents the list of arguments of a four-point conformal block:}
+\EFs{a channel and a field propagating in the channel. The external fields and central charge are}
+\EFs{provided in a `FourPointCorrelation` object.}
+
+\EFs{\# Example}
+
+\EFs{```julia-repl}
+\EFs{julia> c = CentralCharge("c",0.5); V = Field(c, "δ", 0.6, diagonal = true);}
+\EFs{julia> FourPointBlockSphere("s", V)}
+\EFs{Four-point block}
+\EFs{Channel:        s}
+\EFs{Channel Field:}
+\EFs{Diagonal field of dimension:}
+  \EFs{Δ = 0.5791666666666667 + 0.0im}
+  \EFs{P = 0.0 + 0.7745966692414834im}
+  \EFs{δ = 0.6000000000000001 + 0.0im}
+  \EFs{p = 0.7745966692414834 + 0.0im}
+\EFs{```}
+\EFs{"""}
+\EFk{struct} \EFt{FourPointBlockSphere}\{T\}
+
+    channel\EFt{::String}
+    channelField\EFt{::Field}\{T\}
+
+\EFk{end}
+
+\EFs{"""Display blocks"""}
+\EFk{function} Base.\EFf{show}(io\EFt{::IO}, block\EFt{::FourPointBlockSphere})
+    println(\EFs{"Four-point block"})
+    println(\EFs{"Channel:\char92{}t\$(block.channel)"})
+    println(\EFs{"Channel Field:"})
+    show(block.channelField)
+    \EFcd{\#} \EFc{println("External Fields:")}
+    \EFcd{\#} \EFc{print("1. "); show(block.extFields[1])}
+    \EFcd{\#} \EFc{print("2. "); show(block.extFields[2])}
+    \EFcd{\#} \EFc{print("3. "); show(block.extFields[3])}
+    \EFcd{\#} \EFc{print("4. "); show(block.extFields[4])}
+\EFk{end}
+
+\EFcd{\#} \EFc{explicit names for the indices of left and right dimensions}
+\EFk{const} \EFv{left} = \EFhn{1}
+\EFk{const} \EFv{right} = \EFhn{2}
+\end{Verbatim}
+\end{Code}
+\subsubsection*{Change of channel}
+\label{sec:orgc2254ac}
+
+The \$t\$- and \$u\$-channel blocks are computed from the \$s\$-channel one, using described above.
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Get t- and u- channel blocks from s-channel block}
+\EFc{===========================================================================================\#}
+\EFs{"""Prefactor to get t- or u-channel blocks from the s-channel block"""}
+\EFk{function} \EFf{channelprefactor}(block\EFt{::FourPointBlockSphere}, corr\EFt{::FourPointCorrelation}, x)
+    \textcolor[HTML]{483d8b}{\textbf{@match}} block.channel \EFk{begin}
+        \EFs{"s"} \EFt{=>} \EFhn{1}
+        \EFs{"t"} \EFt{=>} (\EFt{-}\EFhn{1})\EFt{\char94{}}(sum(spin(corr.fields)))
+        \EFs{"u"} \EFt{=>} (\EFt{-}\EFhn{1})\EFt{\char94{}}(sum(spin.(corr.fields)))\EFt{*}abs2(x)\EFt{\char94{}}(\EFt{-}\EFhn{2}\EFt{*}corr.fields[\EFhn{1}][\EFs{"Δ"}])
+    \EFk{end}
+\EFk{end}
+
+\EFs{"""Cross-ratio at which to evaluate the s-channel block to get t- or u-channel block"""}
+\EFk{function} \EFf{crossratio}(channel, x)
+    \textcolor[HTML]{483d8b}{\textbf{@match}} channel \EFk{begin}
+        \EFs{"s"} \EFt{=>} x
+        \EFs{"t"} \EFt{=>} \EFhn{1}\EFt{-}x
+        \EFs{"u"} \EFt{=>} \EFhn{1}\EFt{/}x
+    \EFk{end}
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\subsubsection*{Prefactors, elliptic nome}
+\label{sec:org8601cfc}
+
+The nome \(q\) is related to \(x\) via
+
+\[
+q(x) = \exp(-\pi \frac{K(1-x)}{K(x)})
+\]
+
+where \(K\) is the elliptic \(K\) function. The inverse of this relation is
+
+\[
+x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
+\]
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Set prefactors, relate the cross-ratio x and the elliptic nome q}
+\EFc{===========================================================================================\#}
+\EFs{"""Nome `q` from the cross-ratio `x`"""}
+\textcolor[HTML]{483d8b}{\textbf{@memoize}} qfromx(x) = exp(\EFt{-}π\EFt{*}ellipticK(\EFhn{1}\EFt{-}x) \EFt{/} ellipticK(x))
+
+\EFs{""""Cross ratio `x` from the nome `q`"""}
+\EFf{xfromq}(q) = jtheta2(\EFhn{0},q)\EFt{\char94{}}\EFhn{4} \EFt{/} jtheta3(\EFhn{0},q)\EFt{\char94{}}\EFhn{4}
+
+\EFs{"""Prefactor for getting the block F from H. The argument `lr` indicates if we are working}
+\EFs{with a left or right moving block"""}
+\EFk{function} \EFf{blockprefactor}(block\EFt{::FourPointBlockSphere}, corr\EFt{::FourPointCorrelation}, x, lr)
+
+    c = corr.charge[\EFs{"c"}]
+    e0 = \EFt{-} corr.fields[\EFhn{1}][\EFs{"δ"}][lr] \EFt{-} corr.fields[\EFhn{2}][\EFs{"δ"}][lr] \EFt{-} (c\EFt{-}\EFhn{1})\EFt{/}\EFhn{24}
+    e1 = \EFt{-} corr.fields[\EFhn{1}][\EFs{"δ"}][lr] \EFt{-} corr.fields[\EFhn{4}][\EFs{"δ"}][lr] \EFt{-} (c\EFt{-}\EFhn{1})\EFt{/}\EFhn{24}
+    e2 = sum(corr.fields[i][\EFs{"δ"}][lr] \EFk{for} i \EFk{in} \EFhn{1}:\EFhn{4}) \EFt{+} (c\EFt{-}\EFhn{1})\EFt{/}\EFhn{24}
+    q=qfromx(x)
+
+    \EFk{return} x\EFt{\char94{}}e0 \EFt{*} (\EFhn{1}\EFt{-}x)\EFt{\char94{}}e1 \EFt{*} jtheta3(\EFhn{0},q)\EFt{\char94{}}(\EFt{-}\EFhn{4}\EFt{*}e2) \EFt{*} (\EFhn{16}\EFt{*}q)\EFt{\char94{}}block.channelField[\EFs{"δ"}][\EFhn{1}]
+\EFk{end}
+
+\EFs{"""Degenerate dimensions"""}
+\EFf{δrs}(r, s, B) = \EFt{-}\EFhn{1}\EFt{/}\EFhn{4} \EFt{*} (B\EFt{*}r\EFt{\char94{}}\EFhn{2} \EFt{+} \EFhn{2}\EFt{*}r\EFt{*}s \EFt{+} s\EFt{\char94{}}\EFhn{2}\EFt{/}B)
+\end{Verbatim}
+\end{Code}
+\subsubsection*{Computation of the block}
+\label{sec:org54985d2}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Compute the conformal block}
+\EFc{===========================================================================================\#}
+\EFs{"""Compute the function ``H(q,δ)``."""}
+\EFk{function} \EFf{H}(q, Nmax, block\EFt{::FourPointBlockSphere}, corr\EFt{::FourPointCorrelation}, lr)
+    δ = block.channelField[\EFs{"δ"}][lr]
+    B = corr.charge[\EFs{"B"}]
+    sq = \EFhn{16}\EFt{*}q
+    res=\EFhn{1}
+    pow = \EFhn{1}
+    \EFk{for} N \EFk{in} \EFhn{1}:Nmax
+        sum\_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)\EFt{/}(δ\EFt{-}δrs(m, n, B))
+                         \EFk{for} n in \EFhn{1}:N \EFk{if} m\EFt{*}n \EFt{<=} N) \EFk{for} m \EFk{in} \EFhn{1}:N)
+        pow \EFt{*=} sq
+        res \EFt{+=} pow \EFt{*} sum\_mn
+    \EFk{end}
+    \EFk{return} res
+\EFk{end}
+
+\EFs{"""}
+    \EFs{block\_chiral\_schan(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)}
+
+\EFs{Compute the chiral conformal block}
+
+\EFs{``\char92{}\char92{}mathcal F\char94{}\{(s)\}\_\{\char92{}\char92{}delta\}(x)``}
+
+\EFs{"""}
+\EFk{function} \EFf{block\_chiral\_schan}(x, Nmax, block\EFt{::FourPointBlockSphere}, corr\EFt{::FourPointCorrelation}, lr)
+    blockprefactor(block, corr, x, lr) \EFt{*} H(qfromx(x), Nmax, block, corr, lr)
+\EFk{end}
+
+\EFs{"""Compute the chiral conformal block}
+
+\EFs{``\char92{}\char92{}mathcal F\char94{}\{(\char92{}\char92{}text\{chan\})\}\_\{\char92{}\char92{}delta\}(x)``}
+
+\EFs{where `chan` is `s`, `t`, or `u`."""}
+\EFk{function} \EFf{block\_chiral}(x, Nmax, block\EFt{::FourPointBlockSphere}, corr\EFt{::FourPointCorrelation}, lr)
+    chan = block.channel
+    block\_chiral\_schan(crossratio(chan, x), Nmax, block, permute\_ext\_fields(corr, chan), lr)
+\EFk{end}
+
+\EFs{"""}
+    \EFs{G(x, Nmax, block, corr)}
+
+\EFs{Compute the non-chiral conformal block}
+
+\EFs{``\char92{}\char92{}mathcal F\char94{}\{(\char92{}\char92{}text\{chan\})\}\_\{\char92{}\char92{}delta\}(x) \char92{}\char92{}overline\{\char92{}\char92{}mathcal F\}\char94{}\{(\char92{}\char92{}text\{chan\})\}\_\{\char92{}\char92{}delta\}( \char92{}bar x )``}
+
+\EFs{where `chan` is `s`,`t` or `u`.}
+
+\textcolor[HTML]{ff8e00}{\textbf{TODO:}} \EFs{logarithmic blocks}
+\EFs{"""}
+\EFk{function} \EFf{block}(x, Nmax, block\EFt{::FourPointBlockSphere}, corr\EFt{::FourPointCorrelation})
+    channelprefactor(block, corr, x) \EFt{*} \EFt{\char92{}}
+        block\_chiral(x, Nmax, block\EFt{::FourPointBlockSphere}, corr\EFt{::FourPointCorrelation}, left) \EFt{*} \EFt{\char92{}}
+        conj(block\_chiral(conj(x), Nmax, block\EFt{::FourPointBlockSphere}, corr\EFt{::FourPointCorrelation}, right))
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\subsubsection*{End of module}
+\label{sec:orgb0970bd}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{end} \EFcd{\#} \EFc{end module}
+\end{Verbatim}
+\end{Code}
+\subsection{The \texttt{OnePointBlocksTorus} module}
+\label{sec:orgc2eb3c6}
+The module \texttt{OnePointBlocksTorus} exports
+
+\begin{itemize}
+\item a struct \texttt{OnePointBlockTorus} that encapsulates the data needed to compute a 4pt conformal block, namely an external field.
+\item a function \texttt{F\_one\_point\_torus(block, charge, x)} which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{\text{torus}}(\Delta | q(x))\) as defined in .
+\end{itemize}
+\begin{itemize}
+\item Header
+\label{sec:orgb3f3725}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFs{"""}
+\EFs{Series expansion of one-point blocks on the torus}
+\EFs{"""}
+\EFk{module} OnePointBlocksTorus
+
+\EFk{using} ..CFTData, ..OnePointCorrelationFunctions
+\EFk{import} EllipticFunctions: etaDedekind as η
+
+\EFk{export} OnePointBlockTorus, block
+
+\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Struct containing the data required to compute a block: an external field}
+\EFc{===========================================================================================\#}
+\EFk{struct} \EFt{OnePointBlockTorus}\{T\}
+    channelField\EFt{::Field}\{T\}
+\EFk{end}
+
+\EFcd{\#} \EFc{explicit names for the indices of left and right dimensions}
+\EFk{const} \EFv{left} = \EFhn{1}
+\EFk{const} \EFv{right} = \EFhn{2}
+\end{Verbatim}
+\end{Code}
+\item Computation of the block
+\label{sec:org62175fb}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}
+\EFf{qfromtau}(τ) = exp(\EFhn{2}im\EFt{*}π\EFt{*}τ)
+\EFf{δrs}(r, s, B) = \EFt{-}\EFhn{1}\EFt{/}\EFhn{4} \EFt{*} (B\EFt{*}r\EFt{\char94{}}\EFhn{2} \EFt{+} \EFhn{2}\EFt{*}r\EFt{*}s \EFt{+} s\EFt{\char94{}}\EFhn{2}\EFt{/}B)
+
+\EFcd{\#}\EFc{===========================================================================================}
+\EFc{Compute the conformal block}
+\EFc{===========================================================================================\#}
+\EFs{"""}
+    \EFs{H(q, Nmax, block, corr, leftright)}
+\EFs{Compute the function  ``H\char94{}\{\char92{}\char92{}text\{torus\}\}(q,δ)``."""}
+\EFk{function} \EFf{H}(q, Nmax, block\EFt{::OnePointBlockTorus}, corr\EFt{::OnePointCorrelation}, lr)
+    δ = block.channelField[\EFs{"δ"}][lr]
+    B = corr.charge[\EFs{"B"}]
+    res = \EFhn{1}
+    pow = \EFhn{1}
+    \EFk{for} N \EFk{in} \EFhn{1}:Nmax
+        sum\_mn = sum(sum(computeCNmn(N, m, n, corr, lr)\EFt{/}(δ\EFt{-}δrs(m, n, B))
+                         \EFk{for} n in \EFhn{1}:N \EFk{if} m\EFt{*}n \EFt{<=} N) \EFk{for} m \EFk{in} \EFhn{1}:N)
+        pow \EFt{*=} q
+        res \EFt{+=} pow \EFt{*} sum\_mn
+    \EFk{end}
+    \EFk{return} res
+\EFk{end}
+
+\EFs{"""}
+    \EFs{block\_chiral\_schan(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)}
+
+\EFs{Compute the chiral conformal block}
+
+\EFs{``\char92{}\char92{}mathcal F\char94{}\{\char92{}text\{torus\}\}\_\{\char92{}\char92{}delta\}(x)``}
+
+\EFs{"""}
+\EFk{function} \EFf{block\_chiral}(τ, Nmax, block\EFt{::OnePointBlockTorus}, corr\EFt{::OnePointCorrelation}, lr)
+    δ = block.channelField[\EFs{"δ"}][lr]
+    \EFk{return} q\EFt{\char94{}}δ\EFt{/}η(τ) \EFt{*} H(qfromtau(τ), Nmax, block, corr, lr)
+\EFk{end}
+
+\EFs{"""}
+\EFs{Compute the non-chiral conformal block}
+
+\EFs{`` \char92{}\char92{}mathcal F\_\{\char92{}\char92{}Delta\}\char94{}\{(\char92{}\char92{}text\{chan\})\}(\char92{}\char92{}Delta\_i| x)``}
+
+\EFs{where ``\char92{}\char92{}text\{chan\}`` is `s`,`t` or `u`.}
+
+\textcolor[HTML]{ff8e00}{\textbf{TODO:}} \EFs{logarithmic blocks}
+\EFs{"""}
+\EFk{function} \EFf{F\_one\_point\_torus}(τ, Nmax, block\EFt{::OnePointBlockTorus}, corr\EFt{::OnePointCorrelation})
+    block\_chiral(τ, Nmax, block, corr, left) \EFt{*} conj(block\_chiral(conj(τ), Nmax, block, corr, right))
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\item End of module
+\label{sec:org3c28135}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{end} \EFcd{\#} \EFc{end module}
+\end{Verbatim}
+\end{Code}
+\end{itemize}
+\subsection{The \texttt{SpecialFunctions} module}
+\label{sec:orgef3febe}
+\subsubsection*{Header}
+\label{sec:org7ae5406}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFcd{\#}\EFc{==================}
+
+\EFc{SpecialFunctions.jl computes the special functions relevant for our applications in 2D CFT.}
+
+\EFc{==================\#}
+
+\EFk{module} SpecialFunctions
+
+\EFk{import} SpecialFunctions: digamma as digamma\_w\_poles
+
+\EFk{export} digamma
+
+\end{Verbatim}
+\end{Code}
+\subsubsection*{Digamma Function}
+\label{sec:orgf029d78}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFs{"""Regularised digamma function"""}
+\EFk{function} \EFf{digamma}(z)
+    \EFk{if} real(z) \EFt{>} \EFhn{0}
+        \EFk{return} digamma\_w\_poles(z)
+    \EFk{elseif} imag(z) \EFt{==} \EFhn{0} and real(z)\EFt{\%}\EFhn{1} \EFt{==} \EFhn{0}
+        \EFk{return} digamma\_w\_poles(\EFhn{1}\EFt{-}z)
+    \EFk{else}
+        \EFk{return} digamma\_w\_poles(\EFhn{1}\EFt{-}z) \EFt{-} π\EFt{/}tan(π\EFt{*}z)
+    \EFk{end}
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\subsubsection*{Double gamma function}
+\label{sec:org38c4d7e}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{function} \EFf{log\_double\_gamma}(beta, w)
+\EFk{end}
+
+\EFk{function} \EFf{double\_gamma}(beta, w)
+    \EFk{return} exp(log\_double\_gamma(beta, w))
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\subsubsection*{End module}
+\label{sec:org8427fe7}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{end} \EFcd{\#} \EFc{end module}
+\end{Verbatim}
+\end{Code}
+\subsection{Setting-up bootstrap equations}
+\label{sec:org809478f}
+\subsubsection*{Multithreading}
+\label{sec:org4da2b4c}
+
+Setting-up bootstrap equations requires evaluating conformal blocks at hundreds of positions. We parallelize this computation.
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{using} Pkg; Pkg.activate(\EFs{"."})
+\EFk{using} JuliVirBootstrap
+
+help(Field)
+\end{Verbatim}
+\end{Code}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{function} \EFf{evaluate\_block}(positions, Nmax, corr, block)
+    res = zeros(length(positions))
+    threads.\textcolor[HTML]{483d8b}{\textbf{@Threads}} \EFk{for} (i,pos) \EFk{in} enumerate(positions)
+        res[i] = G(corr, block, pos)
+    \EFk{end}
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\subsection{Unit testing}
+\label{sec:org36f4d48}
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{using} JuliVirBootstrap
+\EFk{using} Test
+
+\textcolor[HTML]{483d8b}{\textbf{@testset}} \EFs{"CFTData.jl"} \EFk{begin}
+
+    \EFcd{\#}\EFc{ensure the relation between b and β does not change}
+    c1 = CentralCharge(\EFs{"c"}, \EFt{-}\EFhn{1.1}\EFt{+}.\EFhn{2}im)
+    b = c1[\EFs{"b"}]
+    c2 = CentralCharge(\EFs{"b"}, b)
+    \textcolor[HTML]{483d8b}{\textbf{@test}} c1[\EFs{"c"}] \EFt{==} c2[\EFs{"c"}]
+    \textcolor[HTML]{483d8b}{\textbf{@test}} c1[\EFs{"β"}] \EFt{==} c2[\EFs{"β"}]
+
+    \EFcd{\#}\EFc{ensure the relation between p and P does not change}
+    left = \EFhn{1}
+    right = \EFhn{2}
+    V1 = Field(c1, \EFs{"P"}, \EFhn{0.5}, diagonal=\EFo{true})
+    p = V1[\EFs{"p"}][left]
+    V2 = Field(c1, \EFs{"p"}, p, diagonal=\EFo{true})
+    \textcolor[HTML]{483d8b}{\textbf{@test}} V1[\EFs{"P"}] \EFt{==} V2[\EFs{"P"}]
+
+    \EFcd{\#}\EFc{ensure the keyword diagonal also works for fields given from Kac indices}
+    V1 = Field(c1, Kac=\EFo{true}, r=\EFhn{3}, s=\EFhn{4}, diagonal=\EFo{true})
+    \textcolor[HTML]{483d8b}{\textbf{@test}} V1[\EFs{"Δ"}][left] \EFt{==} V1[\EFs{"Δ"}][right]
+
+
+    \EFcd{\#}\EFc{ensure degenerate and diagonal work well together}
+    V1 = Field(c1, Kac=\EFo{true}, degenerate=\EFo{true}, r=\EFhn{2}, s=\EFhn{5}, diagonal=\EFo{true})
+    \textcolor[HTML]{483d8b}{\textbf{@test}} V1[\EFs{"Δ"}][left] \EFt{==} V1[\EFs{"Δ"}][right]
+
+\EFk{end}
+
+\textcolor[HTML]{483d8b}{\textbf{@testset}} \EFs{"FourPointCorrelationFunctions"} \EFk{begin}
+
+    left=\EFhn{1}
+    right=\EFhn{2}
+
+    c = CentralCharge(\EFs{"β"}, \EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im)
+    V1 = Field(c, \EFs{"Δ"}, \EFhn{0.23}\EFt{+}.\EFhn{11}im, diagonal=\EFo{true})
+    V2 = Field(c, \EFs{"Δ"}, \EFhn{3.43}, diagonal=\EFo{true})
+    V3 = Field(c, \EFs{"Δ"}, \EFhn{0.13}, diagonal=\EFo{true})
+    V4 = Field(c, \EFs{"Δ"}, \EFhn{1.3}, diagonal=\EFo{true})
+    corr = FourPointCorrelation(c, V1, V2, V3, V4)
+
+    \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.Rmn(\EFhn{2}, \EFhn{1}, corr, \EFs{"s"}, left),
+                   \EFhn{0.31097697185245077}\EFt{-}\EFhn{0.70523695127635733}im, \EFcd{\#} \EFc{value taken from Sylvain's code}
+                   atol=\EFhn{1e-8})
+
+    \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.Rmn(\EFhn{3}, \EFhn{3}, corr, \EFs{"t"}, left),
+                   \EFhn{4.3964194233662846e-5}\EFt{-}\EFhn{1.1534661157146291e-5}im, \EFcd{\#} \EFc{value taken from Sylvain's code}
+                   atol=\EFhn{1e-8})
+
+    \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(\EFhn{7}, \EFhn{2}, \EFhn{3}, corr, \EFs{"s"}, left),
+                   \EFhn{0.0019498393368877166}\EFt{+}\EFhn{0.0026353877950837049}im, \EFcd{\#} \EFc{value taken from Sylvain's code}
+                   atol=\EFhn{1e-8})
+
+\EFk{end}
+\end{Verbatim}
+\end{Code}
+\subsection{Development tests}
+\label{sec:orgbba3106}
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{import} Pkg; Pkg.activate(\EFs{"."})
+\EFk{using} JuliVirBootstrap
+\end{Verbatim}
+\end{Code}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{using} JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+
+left=\EFhn{1};
+right=\EFhn{2};
+
+c = CentralCharge(\EFs{"β"}, big(\EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im));
+V1 = Field(c, \EFs{"Δ"}, \EFhn{0.23}\EFt{+}.\EFhn{11}im, diagonal=\EFo{true});
+V2 = Field(c, \EFs{"Δ"}, \EFhn{3.43}, diagonal=\EFo{true});
+V3 = Field(c, \EFs{"Δ"}, \EFhn{0.13}, diagonal=\EFo{true});
+V4 = Field(c, \EFs{"Δ"}, \EFhn{1.3}, diagonal=\EFo{true});
+V = Field(c, \EFs{"Δ"}, \EFhn{0.1}, diagonal = \EFo{true});
+
+x = BigFloat(\EFs{"0.05"}, RoundUp);
+\EFk{function} \EFf{test}()
+    corr = FourPointCorrelation(c, V1, V2, V3, V4)
+    block = FourPointBlockSphere(\EFs{"s"}, V)
+    calc = JuliVirBootstrap.FourPointBlocksSphere.block\_chiral\_schan(x, \EFhn{20}, block, corr, left);
+\EFk{end};
+\end{Verbatim}
+\end{Code}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\textcolor[HTML]{483d8b}{\textbf{@btime}} test()
+\end{Verbatim}
+\end{Code}
+
+\begin{verbatim}
+test (generic function with 1 method)
+ERROR: LoadError: UndefVarError: `@btime` not defined
+in expression starting at none:1
+\end{verbatim}
+\subsubsection*{Relation between four-point blocks on the sphere and one-point blocks on the torus}
+\label{sec:org262e054}
+
+Four point blocks on the sphere are related to one-point blocks on the torus through the relation
+
+\[
+\mathcal H^{\text{torus}}_{c, P}(P_{1} | q^{2}) = \mathcal H_{c', \sqrt{2}P'}\left(\left. P'_{(0,\frac12)}, \left(\frac{P_{1}}{\sqrt{2}}\right)', P'_{(0,\frac12)}, P'_{(0,\frac12)} \right| q \right)
+\]
+
+where
+\begin{itemize}
+\item \(c'\) is related to \(c\) via \(\beta'=\frac\beta{\sqrt 2}\).
+\item \(P'\) denotes the Virasoro module with primary field of dimension \(\Delta'(P') = \frac{c'-1}{24} - P'^{2}\)
+\end{itemize}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}\EFk{import} Pkg; Pkg.activate(\EFs{"."})
+\EFk{using} JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+
+left=\EFhn{1};
+right=\EFhn{2};
+
+\EFk{import} JuliVirBootstrap.FourPointBlocksSphere.qfromx
+c\_torus = CentralCharge(\EFs{"b"}, \EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im);
+c\_sphere = CentralCharge(\EFs{"b"}, (\EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im)\EFt{/}sqrt(\EFhn{2}))
+
+q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(\EFhn{0.05})
+
+P = \EFhn{0.23}\EFt{+}.\EFhn{11}im
+P1 = \EFhn{0.41}\EFt{+}\EFhn{1.03}im
+V\_torus\_chan = Field(c\_torus, \EFs{"P"}, P, diagonal=\EFo{true})
+δ\_torus = V\_torus\_chan[\EFs{"δ"}][left]
+δ11\_torus = Field(c\_torus, Kac=\EFo{true}, r=\EFhn{1}, s=\EFhn{1}, diagonal=\EFo{true})[\EFs{"δ"}][left]
+V\_torus\_ext = Field(c\_torus, \EFs{"P"}, P1, diagonal=\EFo{true})
+corr\_torus = OnePointCorrelation
+
+V\_sphere\_chan = Field(c\_sphere, \EFs{"P"}, sqrt(\EFhn{2})\EFt{*}P, diagonal=\EFo{true})
+δ\_sphere = V\_sphere\_chan[\EFs{"δ"}][left]
+δ21\_sphere = Field(c\_sphere, Kac=\EFo{true}, r=\EFhn{2}, s=\EFhn{1}, diagonal=\EFo{true})[\EFs{"δ"}][left]
+δ12\_sphere = Field(c\_sphere, Kac=\EFo{true}, r=\EFhn{1}, s=\EFhn{2}, diagonal=\EFo{true})[\EFs{"δ"}][left]
+V\_sphere\_ext = Field(c\_sphere, \EFs{"P"}, P1\EFt{/}sqrt(\EFhn{2}), diagonal=\EFo{true})
+VKac\_sphere = Field(c\_sphere, Kac=\EFo{true}, r=\EFhn{0}, s=\EFhn{1}\EFt{//}\EFhn{2}, diagonal=\EFo{true})
+
+corr\_torus = OnePointCorrelation(c\_torus, V\_torus\_ext)
+block\_torus = OnePointBlockTorus(V\_torus\_chan)
+
+corr\_sphere = FourPointCorrelation(c\_sphere, [VKac\_sphere, V\_sphere\_ext, VKac\_sphere,VKac\_sphere])
+block\_sphere = FourPointBlockSphere(\EFs{"s"}, V\_sphere\_chan)
+
+
+C111\_torus = JuliVirBootstrap.OnePointCorrelationFunctions.computeCNmn(\EFhn{1}, \EFhn{1}, \EFhn{1}, corr\_torus, left)
+
+C212\_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(\EFhn{2}, \EFhn{1}, \EFhn{2}, corr\_sphere, \EFs{"s"}, left)
+C221\_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(\EFhn{2}, \EFhn{2}, \EFhn{1}, corr\_sphere, \EFs{"s"}, left)
+
+\EFhn{16}\EFt{\char94{}}\EFhn{2} \EFt{*} (C212\_sphere\EFt{/}(δ\_sphere\EFt{-}δ12\_sphere) \EFt{+} C221\_sphere\EFt{/}(δ\_sphere\EFt{-}δ21\_sphere))
+C111\_torus\EFt{/}(δ\_torus\EFt{-}δ11\_torus)
+
+h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q\EFt{\char94{}}\EFhn{2}, \EFhn{5}, block\_torus, corr\_torus, left)
+h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
+\end{Verbatim}
+\end{Code}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD}println(\EFs{"torus block = \$h1 \char92{}nsphere block = \$h2"})
+\end{Verbatim}
+\end{Code}
+
+\begin{Code}
+\begin{Verbatim}
+\color{EFD} o
+\end{Verbatim}
+\end{Code}
+\end{document}
