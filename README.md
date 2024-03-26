@@ -4,7 +4,7 @@
 #+setupfile: ~/.doom.d/setupfiles/org-basic-latex-export.org
 #+options: toc:3 num:2
 #+startup: latexpreview
-#+property: header_args: :eval never-export
+#+property: header_args :eval never-export
 
 * Table of contents :toc:noexport:
 - [[#overview][Overview]]
@@ -152,14 +152,16 @@ where
 \theta_3(q) = \sum_{n\in\mathbb{Z}} q^{n^2} \quad , \quad \theta_2(q) = 2q^\frac14\sum_{n=0}^\infty q^{n(n+1)}
 \]
 
+
 are Jacobi special \(\theta\)-functions, and \(K(x)\) is the elliptic \(K\) function.
 
 In terms of these variables, our chiral \(s\)-channel conformal block is
 
-\[
+\begin{align}
+\label{eq:chiral_block}
 \mathcal{F}^{(s)}_{\delta}(c | \Delta_{1}, \dots, \Delta_{4} | x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2}
 (16q)^{\delta} H_{\delta}(c | \Delta_{1},\dots, \Delta_{4} | q)
-\]
+\end{align}
 
 where we use the exponents
 
@@ -272,22 +274,10 @@ to be finite.
 
 Logarithmic conformal blocks in general depend on the parameter $\kappa$. In this code, we only compute their value at the value of $\kappa$ fixed by the presence of $V^d_{\langle1,2\rangle}$.
 
-#+begin_src julia :results output
-using SpecialFunctions
-setprecision(BigInt, 50, base=10)
-r=BigInt(4)
-println(digamma(-r))
-println(digamma(r+1))
-#+end_src
-
-#+RESULTS:
-: 4
-: NaN
-: 1.506117668431800472726821243250930902291173997393409734527566098448465606555671
-
 *** Four-point logarithmic blocks on the sphere
 
-For $(r,s)\in \mathbb{Z}^*$, we compute the non-chiral logarithmic blocks
+For $(r,s) \in \mathbb{Z}^{*}$, the block ref:eq:chiral_block has a pole at $\delta_{(r,s)}$. This pole is cancelled by the appearance in the channel of another primary field, due to the logarithmic nature of the representation propagating in the channel.
+In this case, we compute the non-chiral logarithmic block
 
 $$
 \mathcal{G}_{(r,s)} = \mathcal{F}^\text{log}_{(r,s)} \bar{\mathcal{F}}_{\delta_{(r,-s)}} +\mathcal{F}_{\delta_{( r,-s)}} \bar{\mathcal{F}}^\text{log}_{(r,s)} - B^{-1}\ell_{(r,s)}\left| \mathcal{F}_{\delta_{(r,-s)}}\right|^2
@@ -295,11 +285,11 @@ $$
 
 where the chiral logarithmic blocks are
 
-$$\label{eq:log_block_chiral}
+\begin{align}\label{eq:log_block_chiral}
 \mathcal{F}_{( r,s)}^\text{log}
 = \frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{\delta_{(r,s)}}^\text{reg} -2q_{(r,-s)}\mathcal{F}'_{\delta_{(r,-s)}}
 = \lim_{\epsilon\to 0} \left(\frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{q_{(r,s)}+\epsilon} +\frac{B^{-1}}{\epsilon} \mathcal{F}_{q_{(r,-s)}+\epsilon}\right)
-$$
+\end{align}
 
 and
 
@@ -319,7 +309,20 @@ $$
 q_{(r,s)} = \frac{r}{2}+\frac{s}{2B}.
 $$
 
-The regularised chiral block $\mathcal F^{\text{reg}}_{\delta_{(r,s)}}$ is the regularised part of $\mathcal F_{\delta_{(r,s)} + \epsilon}$ when $\epsilon \to 0$.
+The regularised chiral block $\mathcal F^{\text{reg}}_{\delta_{(r,s)}}$ is a regularisation of $\mathcal F_{\delta}$ near $\delta_{(r,s)}$:
+
+\begin{align}
+  \mathcal{F}_{\delta_{(r,s)}+\epsilon} = \frac{R_{r,s}}{\epsilon} \mathcal{F}_{\delta_{(r,-s)}} + \mathcal{F}_{\delta_{(r,s)}}^{\text{reg}} + O(\epsilon).
+\end{align}
+
+We use the following regularisation of the divergent term in $\mathcal F_{\delta}$, which has the advantage of *obeying shift equations* (to clarify)
+
+\begin{align}
+  \frac{(16q)^{p^{2}}}{p^{2} - p^{2}_{(r,s)}} &\underset{p \to p_{(r,s)}}{=} (16q)^{\delta_{(r,s)}} (1 + 2\epsilon p_{(r,s)}\log(16q))\frac{1}{2p} \left( \frac{-1}{\epsilon} + \frac{1}{p+p_{(r,s)}} \right) \\
+        & = (16q)^{\delta} \left( -\frac{1}{2p_{(r,s)}\epsilon} - \log(16q) + \frac{1}{4\delta_{(r,s)}}\right) + O(\epsilon)
+\end{align}
+
+where $\epsilon = P - P_{(r,s)}$.
 
 The $R_{r,s}$ factor in the denominator of ref:eq:log_block_chiral vanishes if and only if $\mathcal F_{\delta_{(r,s)}}$ is regular. In this case, the block $\mathcal G_{(r,s)}$ is actually not logarithmic. The structure constants of $V_{(r,s)}$ and $V_{(r,-s)}$ are still related by shift equations though, so we compute the block
 
@@ -493,7 +496,7 @@ module CFTData
 
 using Match;
 
-export CentralCharge, Field
+export CentralCharge, Field, spin
 
 """print complex numbers in latex format"""
 function Base.show(io::IO,::MIME"text/latex",z::Complex)
@@ -938,31 +941,28 @@ function Rmn_zero_order(m, n, corr::FourPointCorrelation, channel)
 end
 
 """Compute one of the terms in the double product of Rmn"""
-function Rmn_term(r0, s0, corr:FourPointCorrelation, channel)
+function Rmn_term(r, s, corr::FourPointCorrelation, channel, lr)
     B = corr.charge["B"]
-    V = permute_ext_fields(corr.fields, channel).fields
-    r = [V[i].r for i in 1:4]
-    s = [V[i].s for i in 1:4]
-    δ = [V[i]["δ"] for i in 1:4]
-    res = 1
-    #= if r1 \pm r2 = (\pm)' r0 and s1 \pm s2 = (\pm)' s0, compute the regularization of the term
-    same for 3 and 4
-    =#
-    for pm in (-1,1)
-        for pm2 in (-1,1)
-            for (i,j) in ((1,2), (3,4))
-                if V[i].isKac && V[j].isKac && (r[i]+pm*r[j], s[i]+pm*s[j]) == (pm2*r0, pm2*s0)
-                    if r0 == 0 && s0 == 0
-                        res *= 2*V[j]["p"]
-                    else
-                        res *= 8*V[i]["p"]*V[j]["p"]*Field(corr.charge, Kac=true, r=pm2*r0, s=pm2*s0)["p"]
-                    end
-                    return res
-                end
-            end
-        end
+    V = permute_ext_fields(corr, channel).fields
+    δ = [V[i]["δ"][lr] for i in 1:4]
+    if r == 0 && s == 0
+        return (δ[2]-δ[1])*(δ[3]-δ[4])
+    else
+        return (((δ[2]-δ[1])^2 - 2*δrs(r, s, B)*(δ[1]+δ[2]) + δrs(r, s, B)^2)
+                ,*((δ[3]-δ[4])^2 - 2*δrs(r, s, B)*(δ[3]+δ[4]) + δrs(r, s, B)^2))
     end
 end
+
+"""Compute the regularization of a term in the double product of Rmn"""
+function Rmn_term_reg(r, s, corr::FourPointCorrelation, channel, lr)
+    V = permute_ext_fields(corr, channel).fields
+    if r == 0 && s == 0
+        return 2*V[2]["p"][lr]
+    else
+        return 8*V[1]["p"][lr]*V[2]["p"][lr]*Field(corr.charge, Kac=true, r=r, s=s)
+    end
+end
+
 """
 Compute `Rmn`.
 lr indicates the left or right moving parts of the fields
@@ -984,12 +984,12 @@ TODO: value of regularisation
         end
     else
         if m == 1
-            res = prod(Rmn_term(0, s, corr, channel) for s in 1-n:2:0)
+            res = prod(Rmn_term(0, s, corr, channel, lr) for s in 1-n:2:0)
         else # m > 1
-            res = prod(prod(Rmn_term(r, s, corr, channel)
+            res = prod(prod(Rmn_term(r, s, corr, channel, lr)
                             for s in 1-n:2:n-1) for r in 1-m:2:-1)
             if m%2 == 1 # m odd -> treat r=0 term separately
-                res *= prod(Rmn_term(0, s, corr, channel) for s in 1-n:2:0)
+                res *= prod(Rmn_term(0, s, corr, channel, lr) for s in 1-n:2:0)
             end
         end
     end
@@ -1020,8 +1020,6 @@ end
 end # end module
 #+end_src
 
-
-
 ** The ~OnePointCorrelationFunctions~ module
 :PROPERTIES:
 :header-args:julia: :tangle ./src/CorrelationFunctions.jl
@@ -1046,7 +1044,7 @@ import ..FourPointCorrelationFunctions: Dmn, δrs # re-use the Dmn from four-poi
 #+end_src
 
 **** One-point function type
-zzeaiprybaeaiprybazer b
+
 #+begin_src julia
 struct OnePointCorrelation{T}
     charge::CentralCharge{T}
@@ -1109,8 +1107,6 @@ function computeCNmn(N, m, n, corr::OnePointCorrelation, lr)
 end
 #+end_src
 
-#+RESULTS:
-
 **** End module
 
 #+begin_src julia
@@ -1150,9 +1146,9 @@ module FourPointBlocksSphere
 export FourPointBlockSphere, block
 
 using ..CFTData, ..FourPointCorrelationFunctions
-import ..FourPointCorrelationFunctions: permute_ext_fields
 using Match, EllipticFunctions, Memoization
-
+import ..FourPointCorrelationFunctions: permute_ext_fields
+import SpecialFunctions: digamma as ψ
 #+end_src
 
 *** Four-point block sphere type
@@ -1239,15 +1235,16 @@ end
 
 The nome $q$ is related to $x$ via
 
-\[
+\begin{align}
 q(x) = \exp(-\pi \frac{K(1-x)}{K(x)})
-\]
+\end{align}
 
 where $K$ is the elliptic $K$ function. The inverse of this relation is
 
-\[
+\begin{align}
 x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
-\]
+\end{align}
+
 
 #+begin_src julia
 #===========================================================================================
@@ -1255,8 +1252,7 @@ Set prefactors, relate the cross-ratio x and the elliptic nome q
 ===========================================================================================#
 """Nome `q` from the cross-ratio `x`"""
 @memoize qfromx(x) = exp(-π*ellipticK(1-x) / ellipticK(x))
-
-""""Cross ratio `x` from the nome `q`"""
+"""Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
 
 """Prefactor for getting the block F from H. The argument `lr` indicates if we are working
@@ -1276,20 +1272,65 @@ end
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 #+end_src
 
+*** Logarithmic blocks
+
+We compute the derivative of a block with respect to $\delta$ as
+
+\begin{align}
+  \frac{\partial \mathcal{F}}{\partial \delta} = x^{E_{0}} (1-x)^{E_{1}} \theta_{3}(q)^{-4E_{2}} (16q)^{\delta} H_{\delta}^{\text{der}}
+\end{align}
+
+where
+
+\begin{align}
+H_{\delta}^{\text{der}} &= \log(16q) H_{\delta} + \frac{\partial }{\partial \delta} H_{\delta} \\
+                     &= \log(16q) + \sum_{N=1}^{N_{\text{max}}} \sum_{mn \leq N} (16q)^{N} \left(\frac{\log 16q}{\delta - \delta_{(m,n)}} - \frac{1}{(\delta - \delta_{(m,n)})^{2}} \right)
+\end{align}
+
+#+begin_src julia
+q(B, r, s) = r/2 + s/(2*B)
+
+"""Factor \ell_{(r,s)} that appears in logarithmic blocks"""
+function ell(corr, r, s)
+    B = corr.charge["B"]
+    b = corr.charge["b"]
+    q_ext = [[corr.fields[i]["P"][left]/b for i in 1:4], [corr.fields[i]["P"][right]/b for i in 1:4]]
+    term1(j) = ψ(-2q(B, r, j)) + ψ(2q(B, r, -j))
+    term2 = 4π/tan(π*s/B)
+    term3(lr, pm1, pm2, a, b) = ψ(1/2 - (-1)^ϵ*q(B, r, j) + pm1*q_ext[lr][a] + pm2*q_ext[lr][b])
+    return 4*sum(term1(j) for j in 1-s:s) - term2 - \
+        sum(term3(lr, pm1, pm2, 1, 2) + term3(lr, pm1, pm2, 3, 4)
+                        for lr in (left, right) for pm1 in (-1,1) for pm2 in (-1,1)
+                        for j in 1-s:2:s-1)
+end
+#+end_src
+
 *** Computation of the block
 
 #+begin_src julia
 #===========================================================================================
 Compute the conformal block
 ===========================================================================================#
-"""Compute the function ``H(q,δ)``."""
-function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
+"""
+    H(q, Nmax, block, corr, lr, derivative = false)
+
+Compute the function ``H(q,δ)``. If derivative=true, compute instead the function H^{\text{der}}
+"""
+function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr, derivative=false)
     δ = block.channelField["δ"][lr]
     B = corr.charge["B"]
     sq = 16*q
-    res=1
+    lsq = log(sq)
+    res = derivative ? lsq : 1
     pow = 1
     for N in 1:Nmax
+
+        if derivative
+            term = lsq*d
+        else
+            term = 1
+        end
+
         sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
                          for n in 1:N if m*n <= N) for m in 1:N)
         pow *= sq
@@ -1468,7 +1509,7 @@ export digamma
 function digamma(z)
     if real(z) > 0
         return digamma_w_poles(z)
-    elseif imag(z) == 0 and real(z)%1 == 0
+    elseif imag(z) == 0 && real(z)%1 == 0
         return digamma_w_poles(1-z)
     else
         return digamma_w_poles(1-z) - π/tan(π*z)
@@ -1617,9 +1658,6 @@ end;
 @btime test()
 #+end_src
 
-#+RESULTS:
-:   132.653 ms (1094930 allocations: 59.24 MiB)
-: 2337.403811916126625122326580582469276291308611169647345129357174845040805086673 + 4771.391284704253687680894658772605764303477461447331028240571631385564211692817im
 
 *** Relation between four-point blocks on the sphere and one-point blocks on the torus
 
@@ -1691,3 +1729,13 @@ println("torus block = $h1 \nsphere block = $h2")
 #+begin_src julia
  o
 #+end_src
+
+
+#+begin_src julia :results output
+using SpecialFunctions
+println(digamma(0.5))
+#+end_src
+
+#+RESULTS:
+:
+: -1.9635100260214235

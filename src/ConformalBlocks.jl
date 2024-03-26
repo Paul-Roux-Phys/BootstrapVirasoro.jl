@@ -18,8 +18,9 @@ module FourPointBlocksSphere
 export FourPointBlockSphere, block
 
 using ..CFTData, ..FourPointCorrelationFunctions
-import ..FourPointCorrelationFunctions: permute_ext_fields
 using Match, EllipticFunctions, Memoization
+import ..FourPointCorrelationFunctions: permute_ext_fields
+import SpecialFunctions: digamma as ψ
 
 #===========================================================================================
 Struct FourPointBlockSphere
@@ -96,8 +97,7 @@ Set prefactors, relate the cross-ratio x and the elliptic nome q
 ===========================================================================================#
 """Nome `q` from the cross-ratio `x`"""
 @memoize qfromx(x) = exp(-π*ellipticK(1-x) / ellipticK(x))
-
-""""Cross ratio `x` from the nome `q`"""
+"""Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
 
 """Prefactor for getting the block F from H. The argument `lr` indicates if we are working
@@ -116,17 +116,45 @@ end
 """Degenerate dimensions"""
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
+q(B, r, s) = r/2 + s/(2*B)
+
+"""Factor \ell_{(r,s)} that appears in logarithmic blocks"""
+function ell(corr, r, s)
+    B = corr.charge["B"]
+    b = corr.charge["b"]
+    q_ext = [[corr.fields[i]["P"][left]/b for i in 1:4], [corr.fields[i]["P"][right]/b for i in 1:4]]
+    term1(j) = ψ(-2q(B, r, j)) + ψ(2q(B, r, -j))
+    term2 = 4π/tan(π*s/B)
+    term3(lr, pm1, pm2, a, b) = ψ(1/2 - (-1)^ϵ*q(B, r, j) + pm1*q_ext[lr][a] + pm2*q_ext[lr][b])
+    return 4*sum(term1(j) for j in 1-s:s) - term2 - \
+        sum(term3(lr, pm1, pm2, 1, 2) + term3(lr, pm1, pm2, 3, 4)
+                        for lr in (left, right) for pm1 in (-1,1) for pm2 in (-1,1)
+                        for j in 1-s:2:s-1)
+end
+
 #===========================================================================================
 Compute the conformal block
 ===========================================================================================#
-"""Compute the function ``H(q,δ)``."""
-function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
+"""
+    H(q, Nmax, block, corr, lr, derivative = false)
+
+Compute the function ``H(q,δ)``. If derivative=true, compute instead the function H^{\text{der}}
+"""
+function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr, derivative=false)
     δ = block.channelField["δ"][lr]
     B = corr.charge["B"]
     sq = 16*q
-    res=1
+    lsq = log(sq)
+    res = derivative ? lsq : 1
     pow = 1
     for N in 1:Nmax
+
+        if derivative
+            term = lsq*d
+        else
+            term = 1
+        end
+
         sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
                          for n in 1:N if m*n <= N) for m in 1:N)
         pow *= sq

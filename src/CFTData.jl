@@ -15,7 +15,7 @@ module CFTData
 
 using Match;
 
-export CentralCharge, Field
+export CentralCharge, Field, spin
 
 """print complex numbers in latex format"""
 function Base.show(io::IO,::MIME"text/latex",z::Complex)

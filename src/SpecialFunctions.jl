@@ -14,7 +14,7 @@ export digamma
 function digamma(z)
     if real(z) > 0
         return digamma_w_poles(z)
-    elseif imag(z) == 0 and real(z)%1 == 0
+    elseif imag(z) == 0 && real(z)%1 == 0
         return digamma_w_poles(1-z)
     else
         return digamma_w_poles(1-z) - π/tan(π*z)
