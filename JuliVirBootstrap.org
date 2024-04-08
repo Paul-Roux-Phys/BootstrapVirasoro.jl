@@ -4,7 +4,7 @@
 #+setupfile: ~/.doom.d/setupfiles/org-basic-latex-export.org
 #+options: toc:3 num:2
 #+startup: latexpreview
-#+property: header_args :eval never-export
+#+property: header_args:julia :eval never-export
 
 * Table of contents :toc:noexport:
 - [[#overview][Overview]]
