@@ -39,7 +39,8 @@ export OnePointBlockTorus, F_one_point_torus
 Special functions
 ===========================================================================================#
 include("SpecialFunctions.jl")
-export log_double_gamma, double_gamma
+using .SpecialFunctions
+export Barnes_G, log_double_Gamma, double_Gamma, Barnes
 
 
 end

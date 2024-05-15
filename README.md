@@ -3,8 +3,8 @@
 #+setupfile: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 #+setupfile: ~/.doom.d/setupfiles/org-basic-latex-export.org
 #+options: toc:3 num:2
-#+startup: latexpreview
-#+property: header_args :eval never-export
+#+startup: folded
+#+property: header_args:julia :eval never-export
 
 * Table of contents :toc:noexport:
 - [[#overview][Overview]]
@@ -34,6 +34,8 @@
 This document contains a program for performing conformal bootstrap computations in 2D loop models.
 
 The program relies on the assumption that the spectrum of the model contains degenerate fields $V^d_{\langle1,s\rangle}$ (see below).
+
+**** TODO: remember to cite [[https://arxiv.org/abs/2105.03949][arXiv:2105.03949]] for Julia Symbolics
 
 * Conformal bootstrap equations in 2D
 
@@ -89,6 +91,78 @@ which means we use the regularization
 \begin{align}
   \psi(-r) \underset{r\in\mathbb{N}}{=} \psi(r+1)
 \end{align}
+
+*** Barne's G-function and the double Gamma function
+
+We need to compute the double Gamma function defined by the relations
+
+\begin{align}
+ \Gamma_{\beta}= \Gamma_{\beta^{-1}}, \quad, \Gamma_{\beta}\left( \frac{\beta + \beta^{-1}}{2} \right) = 1, \quad \Gamma_{\beta}(w + \beta) = \sqrt{2\pi} \frac{\beta^{\beta w-\frac{1}{2}}}{\Gamma(\beta w)} \Gamma_{\beta}(w)
+\end{align}
+
+For computing $\Gamma_\beta$ it is convenient to use its relation to the Barne's $G$ -function, which is related to $\Gamma_\beta$ as
+
+\begin{align}
+\Gamma_\beta(w) = \frac{\Gamma_2(w|\beta,\beta^{-1})}{\Gamma_2\left(\frac{\beta+\beta^{-1}}{2}\middle|\beta,\beta^{-1}\right)} \quad , \quad
+ \Gamma_2(w|\beta,\beta^{-1})=(2\pi)^{\frac{w}{2\beta}} \beta^{\frac{w}{2}(w-\beta-\beta^{-1})+1} G(\beta^{-1}w,\beta^{-2})^{-1}
+\end{align}
+
+According to the theorem 1 in [[https://arxiv.org/abs/2208.13876][arXiv:2208.13876]], the $G$ function has the following product representation
+
+\begin{align}
+  G(z, \tau) = G_{N}(z, \tau) \exp\left(z^{3} R_{M,N}(z,\tau) + O(N^{-M-1})\right)
+\end{align}
+
+where $G_N$ is defined in terms of Gamma and polygamma functions,
+
+\begin{align}\label{eq:Barnes_{GN}}
+ G_N(z,\tau) = \frac{1}{\tau\Gamma(z)} e^{a(\tau) \frac{z}{\tau}+b(\tau)\frac{z^2}{2\tau^2}}
+ \prod_{m=1}^N \frac{\Gamma(m\tau)}{\Gamma(z+m\tau)}e^{z\psi(m\tau)+\frac{z^2}{2}\psi'(m\tau)}
+\end{align}
+
+while $R_{M, N}$ is a linear combination of certain polynomials $P_k$,
+
+\begin{align}
+R_{M, N}(z,\tau) = \sum_{k=1}^M (k-1)!(-\tau)^{-k-1}P_k(z, -\tau) N^{-k}
+\end{align}
+
+where the polynomials are defined recursively by $P_1(z,\tau)=\frac16$, and
+
+\begin{align}
+P_n(z,\tau) = \frac{z^{n-1}}{(n+2)!}-\frac{1}{\tau}\sum_{k=1}^{n-1} \frac{(1+\tau)^{k+2}-1-\tau^{k+2}}{(k+2)!} P_{n-k}(z,\tau)
+\end{align}
+
+It remains to define the coefficients
+
+\begin{align}
+a(\tau) = \tfrac12\tau\log(2\pi\tau) +\tfrac12\log(\tau) -\tau C(\tau) \quad , \quad b(\tau) =-\tau\log(\tau) -\tau^2D(\tau)
+\end{align}
+
+where the modular forms $C(\tau),D(\tau)$ are
+
+\begin{align}\label{eq:modular_C}
+C(\tau) &= \frac{1}{2\tau}\log(2\pi) -\int_0^\infty dx\left[ \frac{e^{(1-\tau)x}}{2\sinh(x)\sinh(\tau x)}- \frac{e^{-2x}}{\tau x}\left(\frac{e^{x}}{2\sinh(x)}+1-\frac{\tau}{2}\right)\right]
+\\
+\label{eq:modular_D}
+D(\tau) &= \int_0^\infty dx\left[ \frac{x e^{(1-\tau)x}}{\sinh(x)\sinh(\tau x)} - \frac{e^{-2x}}{\tau x}\right]
+\end{align}
+
+(We rewrite denominators in terms of $\sinh$ in order to minimize numerical errors.)
+
+For numerical evaluation of these integrals, it is useful to know the expansion of their integrands as $x\to 0$:
+
+\begin{align}
+C(x, \tau) = \frac{2}{\tau} - \frac32 + \frac{\tau}{6} + \left(\frac56 - \frac{2}{\tau} + \frac{\tau}{6}\right)x  + \left( \frac4{3\tau} - \frac23 + \frac1{18}\tau - \frac{1}{90}\tau^{3}\right) x^{2}\quad , \quad D_0 = \frac{3}{\tau}-1
+\end{align}
+
+The error is of order $\left(\frac{eN}{M}\right)^{-M}$, and the computation time of order $N+ M^2$. To minimize computation time while keeping the error of order $10^{-d}$, we take values of the type
+
+\begin{align}
+N = 20M, \quad M = \frac{\log(10)}{\alpha\log(20)}d
+\end{align}
+
+where $\alpha$ is a parameter for reducing $M$, which otherwise is too high in practice.
+Up to logarithmic factors, the computation time is of order $d^2$, whereas it should be of order $d$ for the integral formula.
 
 ** Four point functions on the sphere
 
@@ -267,7 +341,7 @@ $\mathcal L V_{(r,s)}$ and $\bar{\mathcal L} V_{(r,s)}$ are non-diagonal primary
 This is the necessary condition for the OPE
 
 \begin{align}
-  V^{d}_{\langle 1,s_{0}\rangle} V_{P_{(r,0)}+\epsilon}.
+  V^{d}_{\langle 1,s_{0}\rangle} V_{P_{(r,0)}+\epsilon}
 \end{align}
 
 to be finite.
@@ -459,7 +533,8 @@ export OnePointBlockTorus, F_one_point_torus
 Special functions
 ===========================================================================================#
 include("SpecialFunctions.jl")
-export log_double_gamma, double_gamma
+using .SpecialFunctions
+export Barnes_G, log_double_Gamma, double_Gamma, Barnes
 
 
 end
@@ -522,8 +597,8 @@ end
 function Bto(parameter, value)
     @match parameter begin
         "c" => 13+6*value+6/value
-        "b" => sqrt(complex(value))
-        "β" => im*sqrt(complex(value))
+        "b" => -sqrt(complex(value))
+        "β" => -im*sqrt(complex(value))
         "B" => value
     end
 end
@@ -707,16 +782,21 @@ function Field(
     end
     if diagonal
         pright = pleft
+        r = 0
+        s = 2*β*p_to("P", pleft, Ref(charge))
     end
     values = Dict(key => p_to.(key, [pleft, pright], Ref(charge))
-                  for key in ("Δ", "δ", "P", "p")
-                      )
+                  for key in ("Δ", "δ", "P", "p"))
     Field{complex(T)}(values, Kac, r, s, degenerate, logarithmic, diagonal)
+end
+
+# Overload the == operator
+function Base.:(==)(V1::Field, V2::Field)
+    return V1["Δ"] == V2["Δ"]
 end
 
 """Compute the spin Δleft - Δright of a field."""
 function spin(field::Field)
-    #Computes the spin Δ-Δbar
     if field.isdiagonal
         return 0
     else
@@ -1121,7 +1201,7 @@ end # end module
 The module ~FourPointBlocksSphere~ exports
 
 - a struct ~FourPointBlockSphere~ that encapsulates the data needed to compute a 4pt conformal block, namely a channel, four external fields and the field propagating in the channel
-- a function ~F_four_point_sphere(block, charge, x)~ which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) as defined in this paragraph.
+- a function ~block(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)~ which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) as defined in [[*Zamolodchikov's recursion for four-point blocks][this paragraph]].
 
 *** Header
 
@@ -1296,7 +1376,7 @@ function ell(corr, r, s)
     b = corr.charge["b"]
     q_ext = [[corr.fields[i]["P"][left]/b for i in 1:4], [corr.fields[i]["P"][right]/b for i in 1:4]]
     term1(j) = ψ(-2q(B, r, j)) + ψ(2q(B, r, -j))
-    term2 = 4π/tan(π*s/B)
+    term2 = big(4)*π/tan(π*big(s)/B)
     term3(lr, pm1, pm2, a, b) = ψ(1/2 - (-1)^ϵ*q(B, r, j) + pm1*q_ext[lr][a] + pm2*q_ext[lr][b])
     return 4*sum(term1(j) for j in 1-s:s) - term2 - \
         sum(term3(lr, pm1, pm2, 1, 2) + term3(lr, pm1, pm2, 3, 4)
@@ -1321,19 +1401,19 @@ function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr,
     B = corr.charge["B"]
     sq = 16*q
     lsq = log(sq)
-    res = derivative ? lsq : 1
+    res = derivative ? log(16*q) : 1
     pow = 1
     for N in 1:Nmax
 
         if derivative
-            term = lsq*d
+            term = log(16*q)*d
         else
             term = 1
         end
 
         sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
                          for n in 1:N if m*n <= N) for m in 1:N)
-        pow *= sq
+        pow *= 16*q
         res += pow * sum_mn
     end
     return res
@@ -1424,7 +1504,7 @@ const right = 2
 
 #+begin_src julia
 
-qfromtau(τ) = exp(2im*π*τ)
+qfromtau(τ) = exp(2im*big(π)*τ)
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
 #===========================================================================================
@@ -1496,35 +1576,155 @@ SpecialFunctions.jl computes the special functions relevant for our applications
 
 module SpecialFunctions
 
-import SpecialFunctions: digamma as digamma_w_poles
+using SpecialFunctions, ArbNumerics, Memoization
+export Barnes_G, log_double_Gamma, double_Gamma
 
-export digamma
+# the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}
+
+function log_Γ(z)
+    return Complex{BigFloat}(lgamma(ArbComplex(z)))
+end
+
+function Γ(z)
+    return Complex{BigFloat}(gamma(ArbComplex(z)))
+end
+
+function ψ(z)
+    return Complex{BigFloat}(digamma(ArbComplex(z)))
+end
+
+function trigamma(z)
+    return Complex{BigFloat}(polygamma(ArbComplex(1), ArbComplex(z)))
+end
+
+function polyΓ(n, z)
+    return Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z)))
+end
+using QuadGK # numerical integration
+using Symbolics, Memoization
+
+export digamma_reg
 
 #+end_src
 
-*** Digamma Function
+*** Regularized digamma Function
 
 #+begin_src julia
 """Regularised digamma function"""
-function digamma(z)
+function digamma_reg(z)
     if real(z) > 0
-        return digamma_w_poles(z)
+        return ψ(z)
     elseif imag(z) == 0 && real(z)%1 == 0
-        return digamma_w_poles(1-z)
+        return ψ(1-z)
     else
-        return digamma_w_poles(1-z) - π/tan(π*z)
+        return ψ(1-z) - big(π)/tan(π*z)
     end
 end
 #+end_src
 
 *** Double gamma function
 
+The function ~log_Barnes_GN~ is the logarithm of the function [[eqref:eq:Barnes_{GN}][G_N]].
+
 #+begin_src julia
-function log_double_gamma(beta, w)
+function integrand_C(x, τ)
+    x = big(x)
+    return exp((1-τ)*x)/(2*sinh(x)*sinh(τ*x)) - exp(-2*x)/(τ*x)*(exp(x)/(2*sinh(x))+1-τ/2)
 end
 
-function double_gamma(beta, w)
-    return exp(log_double_gamma(beta, w))
+function modular_C(τ)
+    P = precision(BigFloat, base=10)
+    #temporarily increase precision to avoid artificial divergence around zero
+    setprecision(BigFloat, base=10, Int(floor(1.3*P)))
+    cutoff = big(10^(-P/5)) # to prevent artificial divergence around zero
+    tol = big(10)^P
+    value, error = quadgk(x -> integrand_C(x, τ), cutoff, big(Inf), rtol = tol, order=21)
+    C0 = (2/τ - 3//2 + τ/6)*cutoff + (5//12 - 1/τ + τ/12)*cutoff^2 + (4/(9*τ) - 2//9 + 1//54*τ - 1//270*τ^3)*cutoff^3
+    setprecision(BigFloat, base=10, P)
+    return 1/(2*τ)*log(2*big(π)) - value - C0
+end
+
+function integrand_D(x, τ)
+    x = big(x)
+    return x*exp((1-τ)*x)/(sinh(x)*sinh(τ*x)) - exp(-2*x)/(τ*x)
+end
+
+function modular_D(τ)
+    P = precision(BigFloat, base=10)
+    #temporarily increase precision to avoid artificial divergence around zero
+    setprecision(BigFloat, base=10, Int(floor(1.3*P)))
+    cutoff = big(10^(-P/5)) # to prevent artificial divergence around zero
+    tol = big(10)^P
+    value, error = quadgk( x -> integrand_D(x, τ), big(0), big(Inf), rtol = tol, order=21)
+    setprecision(BigFloat, base=10, P)
+    return value
+end
+
+@memoize function modular_coeff_a(τ)
+    return 1/2*τ*log(big(2)*π*τ) + 1/2*log(τ) - τ*modular_C(τ)
+end
+
+@memoize function modular_coeff_b(τ)
+    return -τ*log(τ) - τ^2*modular_D(τ)
+end
+
+function log_Barnes_GN(N, z, τ)
+    term1 = - log(τ) - log_Γ(z)
+    term2 = modular_coeff_a(τ)*z/τ + modular_coeff_b(τ)*z^2/(2*τ^2)
+    term3 = sum(log_Γ(m*τ) - log_Γ(z+m*τ) + z*ψ(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
+    return term1 + term2 + term3
+end
+
+function polynomial_Pn(n, z, τ)
+    if n == 1
+        return 1//6
+    else
+        term1 = z^(n-1)/factorial(big(n+2))
+        summand(k) = ((1+τ)^(k+2) - 1 - τ^(k+2))/(factorial(big(k+2))*τ) * polynomial_Pn(n-k, z, τ)
+        return term1 - sum(summand(k) for k in 1:n-1)
+    end
+end
+
+function rest_RMN(M, N, z, τ)
+    return sum(factorial(big(k-1))*(-τ)^(-k-1)*polynomial_Pn(k, z, -τ)/N^k for k in 1:M)
+end
+
+"""Numerical approximation of the logarithm of Barne's G-function, up to a given tolerance"""
+function log_Barnes_G(z, τ, tol)
+    z = complex(z)
+    d = -log(tol)/log(10)
+    M = BigInt(floor(0.7*log(10)/log(20)*d))
+    N = 20*M
+    return log_Barnes_GN(N, z, τ) + z^3*rest_RMN(M, N, z, τ)
+end
+
+function Barnes_G(z, τ, tol)
+    return exp(log_Barnes_G(z, τ, tol))
+end
+
+function log_Gamma_2(w, β, tol)
+    β = real(β-1/β) < 0 ? 1/β : β # change β -> 1/β if needed
+    return w/(2*β)*log(big(2)*π) + (w/2*(w-β-1/β)+1)*log(β) - log_Barnes_G(w/β, 1/β^2, tol)
+end
+
+"""
+        log_double_Gamma(w, β, tol)
+
+Compute the logarithm of the double gamma function Γ_β(w, β) with precision tol
+
+"""
+function log_double_Gamma(w, β, tol)
+    return log_Gamma_2(w, β, tol) - log_Gamma_2((β+1/β)/2, β, tol)
+end
+
+"""
+        double_Gamma(w, β, tol)
+
+Compute the double gamma function Γ_β(w, β) with precision tol
+
+"""
+function double_Gamma(w, β, tol)
+    exp(log_double_Gamma(w, β, tol))
 end
 #+end_src
 
@@ -1567,7 +1767,10 @@ end
 #+begin_src julia
 using JuliVirBootstrap
 using Test
+#+end_src
 
+*** CFTData
+#+begin_src julia
 @testset "CFTData.jl" begin
 
     #ensure the relation between b and β does not change
@@ -1595,7 +1798,10 @@ using Test
     @test V1["Δ"][left] == V1["Δ"][right]
 
 end
+#+end_src
 
+*** Four-point correlation functions
+#+begin_src julia
 @testset "FourPointCorrelationFunctions" begin
 
     left=1
@@ -1622,8 +1828,9 @@ end
 
 end
 #+end_src
+*** Four-point blocks
 
-** Development tests
+** Development tests :noeval:
 :PROPERTIES:
 :header-args:julia: :tangle ./test/devtests.jl :session test
 :END:
@@ -1654,9 +1861,13 @@ function test()
 end;
 #+end_src
 
-#+begin_src julia :results output :exports both
+#+begin_src julia :results output :exports both :eval never-export
 @btime test()
 #+end_src
+
+#+RESULTS:
+:   90.034 ms (1095792 allocations: 59.37 MiB)
+: 2337.403811916126625122326580582469276291308611169647345129357174845040805086673 + 4771.391284704253687680894658772605764303477461447331028240571631385564211692817im
 
 
 *** Relation between four-point blocks on the sphere and one-point blocks on the torus
@@ -1739,3 +1950,26 @@ println(digamma(0.5))
 #+RESULTS:
 :
 : -1.9635100260214235
+*** G function
+
+#+begin_src julia :results output
+using Pkg; Pkg.activate(".")
+using QuadGK
+using JuliVirBootstrap
+using BenchmarkTools
+
+τ = big(1.2 + 0.1im)
+@btime JuliVirBootstrap.SpecialFunctions.modular_C(τ)
+#+end_src
+
+#+RESULTS:
+:   Activating project at `~/Documents/Recherche/projet_these/JuliVirBootstrap`
+:
+:
+:
+:
+: 1.1999999999999999555910790149937383830547332763671875 + 0.1000000000000000055511151231257827021181583404541015625im
+: 8.699 ms (38637 allocations: 1.70 MiB)
+: 0.576998374313633089571375438148716811942621876203568437190063815178462349997139 + 0.02094411216149745008571390358953525242732910861243929348213842645479243904376966im
+
+

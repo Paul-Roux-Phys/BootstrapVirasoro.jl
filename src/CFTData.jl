@@ -36,8 +36,8 @@ end
 function Bto(parameter, value)
     @match parameter begin
         "c" => 13+6*value+6/value
-        "b" => sqrt(complex(value))
-        "β" => im*sqrt(complex(value))
+        "b" => -sqrt(complex(value))
+        "β" => -im*sqrt(complex(value))
         "B" => value
     end
 end
@@ -211,16 +211,21 @@ function Field(
     end
     if diagonal
         pright = pleft
+        r = 0
+        s = 2*β*p_to("P", pleft, Ref(charge))
     end
     values = Dict(key => p_to.(key, [pleft, pright], Ref(charge))
-                  for key in ("Δ", "δ", "P", "p")
-                      )
+                  for key in ("Δ", "δ", "P", "p"))
     Field{complex(T)}(values, Kac, r, s, degenerate, logarithmic, diagonal)
+end
+
+# Overload the == operator
+function Base.:(==)(V1::Field, V2::Field)
+    return V1["Δ"] == V2["Δ"]
 end
 
 """Compute the spin Δleft - Δright of a field."""
 function spin(field::Field)
-    #Computes the spin Δ-Δbar
     if field.isdiagonal
         return 0
     else

@@ -124,7 +124,7 @@ function ell(corr, r, s)
     b = corr.charge["b"]
     q_ext = [[corr.fields[i]["P"][left]/b for i in 1:4], [corr.fields[i]["P"][right]/b for i in 1:4]]
     term1(j) = ψ(-2q(B, r, j)) + ψ(2q(B, r, -j))
-    term2 = 4π/tan(π*s/B)
+    term2 = big(4)*π/tan(π*big(s)/B)
     term3(lr, pm1, pm2, a, b) = ψ(1/2 - (-1)^ϵ*q(B, r, j) + pm1*q_ext[lr][a] + pm2*q_ext[lr][b])
     return 4*sum(term1(j) for j in 1-s:s) - term2 - \
         sum(term3(lr, pm1, pm2, 1, 2) + term3(lr, pm1, pm2, 3, 4)
@@ -145,19 +145,19 @@ function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr,
     B = corr.charge["B"]
     sq = 16*q
     lsq = log(sq)
-    res = derivative ? lsq : 1
+    res = derivative ? log(16*q) : 1
     pow = 1
     for N in 1:Nmax
 
         if derivative
-            term = lsq*d
+            term = log(16*q)*d
         else
             term = 1
         end
 
         sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
                          for n in 1:N if m*n <= N) for m in 1:N)
-        pow *= sq
+        pow *= 16*q
         res += pow * sum_mn
     end
     return res
@@ -225,7 +225,7 @@ end
 const left = 1
 const right = 2
 
-qfromtau(τ) = exp(2im*π*τ)
+qfromtau(τ) = exp(2im*big(π)*τ)
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
 #===========================================================================================
