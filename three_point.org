@@ -23,8 +23,12 @@ K &=\prod_{\pm} \Gamma_{\beta}^{-2}(\beta^{\pm 1})
 using Pkg; Pkg.activate(".");
 using JuliVirBootstrap
 
-cs = [CentralCharge("β", i) for i in 0:0.1:1]
-V1s = [Field(ci, Kac=true, r=1, s=0) for ci in cs]
+setprecision(BigFloat, base=10, 16)
+
+βs = [b for b in 1/sqrt(2)+0.01:0.01:sqrt(3/2)-0.01]
+cs = [CentralCharge("β", β) for β in βs]
+V10s = [Field(ci, Kac=true, r=1, s=0) for ci in cs]
+V11s = [Field(ci, Kac=true, r=1, s=1) for ci in cs]
 
 β = sqrt(2/3)
 tol = 1e-6
@@ -35,33 +39,44 @@ function factor_K(c, tol)
     return 1/prod(double_Gamma(β^pm, β, tol) for pm in -1:2:1)^2
 end
 
-function Cref(c, V1, V2, V3, tol)
+function Cref(c, V1::Field{T}, V2, V3, tol) where {T}
     β = c["β"]
-    if (V1.isKac && V1.isdiagonal && V1.r == 1 && V1.s == 1 && V2 == V1 && V1.isdegenerate)
-        r = V2.r
-        s = V2.s
-        println("Hello")
-        return Complex{BigFloat}(factor_K(c, tol)*prod(prod(1/double_Gamma(β^pm1 + r*β + pm2*s/β, β, tol) for pm1 in -1:2:1) for pm2 in -1:2:1))
-    else
-        g(pms, rs, ss) = double_Gamma((β+1/β)/2 + abs(pms'rs)*β/2 + (pms'ss)/2/β, β, tol) # ' denotes the scalar product
-        rs = [V1.r, V2.r, V3.r]
-        ss = [V1.s, V2.s, V3.s]
-        res=1
-        pm = [-1, +1]
-        for pm1 in pm
-            for pm2 in pm
-                for pm3 in pm
-                    pms = [pm1, pm2, pm3]
-                    res /= g(pms, rs, ss)
-                end
+    V = [V1, V2, V3]
+    r=zeros(T, 3)
+    s=zeros(T, 3)
+    # check if some of the fields are diagonal
+    for (i, v) in enumerate(V)
+        if v.isdiagonal
+            r[i] = 0
+            s[i] = 2*β*v["p"][1]
+        else
+            r[i] = v.r
+            s[i] = v.s
+        end
+    end
+    g(pms, rs, ss) = double_Gamma((β+1/β)/2 + abs(pms'rs)*β/2 + (pms'ss)/2/β, β, tol) # ' denotes the scalar product
+    res=1
+    pm = [-1, +1]
+    for pm1 in pm
+        for pm2 in pm
+            for pm3 in pm
+                pms = [pm1, pm2, pm3]
+                res /= g(pms, r, s)
             end
         end
-        return Complex{BigFloat}(res)
     end
+    return res
 end
 
 function omega(c, V1, V2, V3, tol)
     id = Field(c, Kac=true, r=1, s=1, degenerate=true, diagonal=true)
     return Cref(c, V1, V2, V3, tol) * sqrt(Cref(c, id, id, id, tol)/Cref(c, id, V1, V1, tol)/Cref(c, id, V2, V2, tol)/Cref(c, id, V3, V3, tol))
 end
+#+end_src
+
+#+begin_src julia
+using Plots
+
+ns = [real(-2*cos(π*c["β"]^2)) for c in cs];
+ωs = [real(omega(c, V10s[i], V10s[i], V10s[i], tol)) for (i, c) in enumerate(cs)];
 #+end_src

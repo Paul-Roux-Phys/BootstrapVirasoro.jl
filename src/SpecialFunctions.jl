@@ -4,12 +4,14 @@ SpecialFunctions.jl computes the special functions relevant for our applications
 
 ==================#
 
-module SpecialFunctions
+module _SpecialFunctions
 
-using SpecialFunctions, ArbNumerics, Memoization
-export Barnes_G, log_double_Gamma, double_Gamma
+using SpecialFunctions # external Julia package (the module name is the same but there is no domain conflict)
+using Memoization
+using ArbNumerics # the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}
+using QuadGK # numerical integration
 
-# the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}
+export digamma_reg, Barnes_G, log_double_Gamma, double_Gamma
 
 function log_Γ(z)
     return Complex{BigFloat}(lgamma(ArbComplex(z)))
@@ -30,10 +32,6 @@ end
 function polyΓ(n, z)
     return Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z)))
 end
-using QuadGK # numerical integration
-using Symbolics, Memoization
-
-export digamma_reg
 
 """Regularised digamma function"""
 function digamma_reg(z)
@@ -88,24 +86,29 @@ end
 end
 
 function log_Barnes_GN(N, z, τ)
-    term1 = - log(τ) - log_Γ(z)
-    term2 = modular_coeff_a(τ)*z/τ + modular_coeff_b(τ)*z^2/(2*τ^2)
-    term3 = sum(log_Γ(m*τ) - log_Γ(z+m*τ) + z*ψ(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
-    return term1 + term2 + term3
+    res = 0
+    res += - log(τ) - log_Γ(z)
+    res += modular_coeff_a(τ)*z/τ + modular_coeff_b(τ)*z^2/(2*τ^2)
+    res += sum(log_Γ(m*τ) - log_Γ(z+m*τ) + z*ψ(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
+    return res
 end
 
-function polynomial_Pn(n, z, τ)
+@memoize function factorial_big(n)::BigInt
+    return factorial(big(n))
+end
+
+@memoize function polynomial_Pn(n, z, τ)
     if n == 1
         return 1//6
     else
-        term1 = z^(n-1)/factorial(big(n+2))
-        summand(k) = ((1+τ)^(k+2) - 1 - τ^(k+2))/(factorial(big(k+2))*τ) * polynomial_Pn(n-k, z, τ)
+        term1 = z^(n-1)/factorial_big(n+2)
+        summand(k) = ((1+τ)^(k+2) - 1 - τ^(k+2))/(factorial_big(k+2)*τ) * polynomial_Pn(n-k, z, τ)
         return term1 - sum(summand(k) for k in 1:n-1)
     end
 end
 
 function rest_RMN(M, N, z, τ)
-    return sum(factorial(big(k-1))*(-τ)^(-k-1)*polynomial_Pn(k, z, -τ)/N^k for k in 1:M)
+    return sum(factorial_big(k-1)*(-τ)^(-k-1)*polynomial_Pn(k, z, -τ)/N^k for k in 1:M)
 end
 
 """Numerical approximation of the logarithm of Barne's G-function, up to a given tolerance"""

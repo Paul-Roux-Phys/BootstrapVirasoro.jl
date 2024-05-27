@@ -121,9 +121,9 @@ end
 function Rmn_term_reg(r, s, corr::FourPointCorrelation, channel, lr)
     V = permute_ext_fields(corr, channel).fields
     if r == 0 && s == 0
-        return 2*V[2]["p"][lr]
+        return 2*V[2]["P"][lr]
     else
-        return 8*V[1]["p"][lr]*V[2]["p"][lr]*Field(corr.charge, Kac=true, r=r, s=s)
+        return 8*V[1]["P"][lr]*V[2]["P"][lr]*Field(corr.charge, Kac=true, r=r, s=s)
     end
 end
 

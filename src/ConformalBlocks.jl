@@ -1,8 +1,7 @@
 #===========================================================================================
 
-ConformalBlocks.jl contains modules that compute series expansions for
-Virasoro four-point conformal blocks on the sphere and Virasoro one-point conformal blocks
-on the torus.
+ConformalBlocks.jl contains modules that compute Virasoro four-point conformal blocks on the
+sphere and Virasoro one-point conformal blocks on the torus.
 
 Written by Paul Roux, adapting a Python code written by Sylvain Ribault & Rongvoram
 Nivesvivat
@@ -11,16 +10,15 @@ Nivesvivat
 
 
 """
-Series expansion of four-point blocks on the sphere.
+Computation of four-point blocks on the sphere.
 """
 module FourPointBlocksSphere
 
 export FourPointBlockSphere, block
 
-using ..CFTData, ..FourPointCorrelationFunctions
+using ..CFTData, ..FourPointCorrelationFunctions#, ..SpecialFunctions
 using Match, EllipticFunctions, Memoization
-import ..FourPointCorrelationFunctions: permute_ext_fields
-import SpecialFunctions: digamma as ψ
+import ..FourPointCorrelationFunctions: permute_ext_fields, Rmn
 
 #===========================================================================================
 Struct FourPointBlockSphere
@@ -75,11 +73,20 @@ const right = 2
 Get t- and u- channel blocks from s-channel block
 ===========================================================================================#
 """Prefactor to get t- or u-channel blocks from the s-channel block"""
-function channelprefactor(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
+function channelprefactor_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
     @match block.channel begin
         "s" => 1
-        "t" => (-1)^(sum(spin(corr.fields)))
-        "u" => (-1)^(sum(spin.(corr.fields)))*abs2(x)^(-2*corr.fields[1]["Δ"])
+        "t" => 1
+        "u" => 1/x^(2*corr.fields[1]["Δ"][left])
+    end
+end
+
+"""Sign (-1)^{S_1+S_2+S_3+S_4} when changing from s to t or u channels"""
+function channel_sign(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
+    @match block.channel begin
+        "s" => 1
+        "t" => (-1)^(sum(spin.(corr.fields)))
+        "u" => (-1)^(sum(spin.(corr.fields)))
     end
 end
 
@@ -96,7 +103,8 @@ end
 Set prefactors, relate the cross-ratio x and the elliptic nome q
 ===========================================================================================#
 """Nome `q` from the cross-ratio `x`"""
-@memoize qfromx(x) = exp(-π*ellipticK(1-x) / ellipticK(x))
+qfromx(x) = exp(-π*ellipticK(1-x) / ellipticK(x))
+
 """Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
 
@@ -116,18 +124,22 @@ end
 """Degenerate dimensions"""
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
-q(B, r, s) = r/2 + s/(2*B)
+βm1P(B, r, s) = 1/2*(r+s/B) # \beta^{-1}P_{(r,s)}
 
 """Factor \ell_{(r,s)} that appears in logarithmic blocks"""
 function ell(corr, r, s)
-    B = corr.charge["B"]
-    b = corr.charge["b"]
-    q_ext = [[corr.fields[i]["P"][left]/b for i in 1:4], [corr.fields[i]["P"][right]/b for i in 1:4]]
-    term1(j) = ψ(-2q(B, r, j)) + ψ(2q(B, r, -j))
-    term2 = big(4)*π/tan(π*big(s)/B)
-    term3(lr, pm1, pm2, a, b) = ψ(1/2 - (-1)^ϵ*q(B, r, j) + pm1*q_ext[lr][a] + pm2*q_ext[lr][b])
-    return 4*sum(term1(j) for j in 1-s:s) - term2 - \
-        sum(term3(lr, pm1, pm2, 1, 2) + term3(lr, pm1, pm2, 3, 4)
+    c = corr.charge
+    B, β = c["B"], c["β"]
+    βm1P_ext = [[corr.fields[i]["P"][left]/β for i in 1:4], [corr.fields[i]["P"][right]/β for i in 1:4]]
+
+    term1(j) = digamma_reg(-2*βm1P(B, r, j)) + digamma_reg(2*βm1P(B, r, -j))
+
+    term2 = big(4)*π/tan(π*big(s)/B) # I put big(n)*\pi otherwise n*\pi where n is an integer has double precision instead of bigfloat
+
+    term3(j, lr, pm1, pm2, a, b) = digamma_reg(1/2 - (-1)^lr*βm1P(B, r, j) + pm1*βm1P_ext[lr][a] + pm2*βm1P_ext[lr][b])
+
+    return -4*sum(term1(j) for j in 1-s:s) - term2 # -
+        sum(term3(j, lr, pm1, pm2, 1, 2) + term3(j, lr, pm1, pm2, 3, 4)
                         for lr in (left, right) for pm1 in (-1,1) for pm2 in (-1,1)
                         for j in 1-s:2:s-1)
 end
@@ -135,58 +147,94 @@ end
 #===========================================================================================
 Compute the conformal block
 ===========================================================================================#
-"""
-    H(q, Nmax, block, corr, lr, derivative = false)
-
-Compute the function ``H(q,δ)``. If derivative=true, compute instead the function H^{\text{der}}
-"""
-function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr, derivative=false)
-    δ = block.channelField["δ"][lr]
-    B = corr.charge["B"]
-    sq = 16*q
-    lsq = log(sq)
-    res = derivative ? log(16*q) : 1
-    pow = 1
-    for N in 1:Nmax
-
-        if derivative
-            term = log(16*q)*d
+function P_squared_ratio_reg(q, c::CentralCharge, V::Field, m, n, lr)
+    # check V has integer Kac indices
+    if V.isKac && V.r%1 == 0 && V.s%1 == 0 && V.r > 0 && (lr == left && V.s > 0 || lr == right && V.s < 0)
+        # if s < 0 and we're computing a right-handed block (\bar F) then the right dimension is P_(r,-s>0)
+        P = V["P"][left]
+        β = c["β"]
+        Pmn = 1/2*(β*m - 1/β*n)
+        if V.r == m && V.s == n
+            return log(16*q) - 1/(4*P^2)
         else
-            term = 1
+            return 1/(P^2-Pmn^2)
         end
+    else
+        error("Trying to compute a regularised block for a field with r=$(V.r) and s=$(V.s) . Both should be positive integers")
+    end
+end
 
-        sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
+function block_recursion_coeff(q, c, V, m, n, der, reg, lr)
+    β = c["β"]
+    P = V["P"][lr]
+    Pmn = 1/2*(β*m - 1/β*n)
+    if der
+        return 2*P*(log(16*q)/(P^2-Pmn^2) - 2*P/(P^2-Pmn^2)^2) # 2P (log(16q)/(δ-\delta_{m,n}) - 1/(δ-\delta_{m,n})^2)
+    elseif reg
+        return P_squared_ratio_reg(q, c, V, m, n, lr) # log(16q) - 1/4δ or 1/(δ-δ_{m,n})
+    else
+        return 1/(P^2 - Pmn^2) # 1/(δ-δ_{m,n})
+    end
+end
+
+"""
+    H(q, Nmax, block, corr, lr;
+      der = false, reg = false)
+
+Compute the function ``H(q,δ)``. If der=true, compute instead the function ``H^{\\text{der}}``. If reg=true, compute instead ``H^{\\text{reg}}``.
+"""
+function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr;
+           der = false, reg = false)
+    @assert !(der && reg) "you should not compute the derivative of a regularised block"
+    V = block.channelField
+    P = V["P"][lr]
+    c = corr.charge
+    β = c["β"]
+    pow = 1
+
+    res = der ? 2*P*log(16*q) : 1 # H_P = 1 + sum(...), H_P^der = 2P log(16q) + sum(...)
+
+    for N in 1:Nmax
+        sum_mn = sum(sum(computeCNmn(N, m, n, corr, "s", lr)*block_recursion_coeff(q, c, V, m, n, der, reg, lr)
                          for n in 1:N if m*n <= N) for m in 1:N)
+
         pow *= 16*q
         res += pow * sum_mn
     end
+
     return res
 end
 
 """
-    block_chiral_schan(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
+    block_chiral_schan_value(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
 
 Compute the chiral conformal block
 
 ``\\mathcal F^{(s)}_{\\delta}(x)``
 
 """
-function block_chiral_schan(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
-    blockprefactor(block, corr, x, lr) * H(qfromx(x), Nmax, block, corr, lr)
+function block_chiral_schan(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr;
+                            der=false, reg=false)
+    return blockprefactor(block, corr, x, lr) * H(qfromx(x), Nmax, block, corr, lr, der=der, reg=reg)
 end
 
-"""Compute the chiral conformal block
+"""
+    block_chiral(x, Nmax, block, corr, lr)
+
+Compute the chiral conformal block
 
 ``\\mathcal F^{(\\text{chan})}_{\\delta}(x)``
 
 where `chan` is `s`, `t`, or `u`."""
-function block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
+function block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr;
+                      der = false, reg = false)
     chan = block.channel
-    block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr)
+    x_lr = (lr == left ? x : conj(x))
+    return channelprefactor_chiral(block, corr, x_lr)*block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr, der=der, reg=reg)
 end
 
 """
-    G(x, Nmax, block, corr)
+    block_non_chiral(x, Nmax, block, corr)
 
 Compute the non-chiral conformal block
 
@@ -194,12 +242,40 @@ Compute the non-chiral conformal block
 
 where `chan` is `s`,`t` or `u`.
 
-TODO: logarithmic blocks
+TODO: regularise R_(r,s) / \bar{R}_(r,s)
 """
-function block(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
-    channelprefactor(block, corr, x) * \
-        block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, left) * \
-        conj(block_chiral(conj(x), Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, right))
+function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
+
+    chan = block.channel
+    Vchan = block.channelField
+
+    if V.r != 0 || V.s != 0 || spin(Vchan) == 0
+
+        return channelprefactor(block, corr, x) * block_chiral(x, Nmax, block, corr, left) * block_chiral(conj(x), Nmax, block, corr, right)
+
+    else # logarithmic block
+
+        r, s = Vchan.r, Vchan.s
+        c = corr.charge
+        block1 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=s)) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
+        block2 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
+
+        F_Prms = block_chiral(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
+        F_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
+        F_der_Prms = block_chiral(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
+        F_der_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
+        F_reg_Prs = block_chiral(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
+        F_reg_Prs_bar = block_chiral(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
+
+        R = Rmn(r, s, corr, chan, left)
+        R_bar = Rmn(r, s, corr, chan, right)
+
+        term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
+        term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
+        term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
+
+        return channel_sign(block, corr, x)*(term1+term2+term3)
+    end
 end
 
 end # end module

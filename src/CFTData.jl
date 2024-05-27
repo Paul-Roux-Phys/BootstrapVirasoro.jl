@@ -103,23 +103,23 @@ end
 """Overload of [] to access values in charge"""
 Base.getindex(charge::CentralCharge, key) = charge.values[key];
 
-"""Get p from any given parameter"""
-function p_from(parameter, value, charge::CentralCharge)
+"""Get P from any given parameter"""
+function P_from(parameter, value, c::CentralCharge)
     @match parameter begin
-        "Δ" => sqrt(complex(value - (charge["c"]-1)/24))
+        "Δ" => sqrt(complex(value - (c["c"]-1)/24))
         "δ" => sqrt(complex(value))
-        "P" => -im*value
-        "p" => value
+        "P" => value
+        "p" => im*value
     end
 end
 
-"""Get all parameters from p"""
-function p_to(parameter, value, charge::CentralCharge)
+"""Get all parameters from P"""
+function P_to(parameter, value, c::CentralCharge)
     @match parameter begin
-        "Δ" => value^2 + (charge["c"]-1)/24
+        "Δ" => value^2 + (c["c"]-1)/24
         "δ" => value^2
-        "P" => im*value
-        "p" => value
+        "P" => value
+        "p" => -im*value
     end
 end
 
@@ -127,7 +127,7 @@ end
     Field{T}
 Object representing a conformal field.
 Contains the values of the 4 parameters `"Δ"`,`"δ"`,`"P"`,`"p"` for its conformal dimension,
-and flags saying whether the field is in the Kac table, degenerate, logarithmic or diagonal.
+and flags saying whether the field has declared and rational Kac indices, is degenerate, or diagonal.
 """
 struct Field{T}
 
@@ -136,12 +136,12 @@ struct Field{T}
     r::Rational
     s::Rational
     isdegenerate::Bool
-    islogarithmic::Bool
     isdiagonal::Bool
 
 end
 
 """
+   TODO: update the examples
     Field(charge, parameter, leftvalue, rightvalue; kwargs...)
 
 Constructor function for the Field type.
@@ -154,10 +154,9 @@ parametrisation.
 # keyword arguments:
 
 - `Kac::Bool`: if set to true, the field can be constructed from the values of its r and s
-indices,
+indices. By convention V_(r,s) has left and right momenta (P_(r,s), P_(r,-s))
 - `r::Rational`,`s::Rational`: used in conjunction to `Kac=true`, must be given rational
 values,
-- `logarithmic::Bool`: set to True if the field is logarithmic,
 - `degenerate::Bool`: set to True if the field is degenerate,
 - `diagonal::Bool`: set to True to get a diagonal field ; only the leftvalue needs to be
 given.
@@ -196,27 +195,26 @@ function Field(
     parameter = "Δ",
     leftvalue = 0, rightvalue = 0;
     Kac = false, r = 0, s = 0,
-    logarithmic = false, degenerate = false, diagonal = false
+    degenerate = false, diagonal = false
     )
 
-    T=typeof(charge.values["c"])   #dimensions have the same type as central charges
+    T=typeof(charge.values["c"]) # values of dimensions have the same precision as central charges
     if degenerate
         Kac = true
     end
     if Kac
-        pleft = -1/2*(charge["β"]*r - 1/charge["β"]*s)
-        pright = -1/2*(charge["β"]*r - 1/charge["β"]*s)
+        Pleft = 1/2*(charge["β"]*r - 1/charge["β"]*s)
+        Pright = 1/2*(charge["β"]*r + 1/charge["β"]*s)
     else
-        pleft, pright = p_from.(parameter, [leftvalue, rightvalue], Ref(charge))
+        Pleft, Pright = P_from.(parameter, [leftvalue, rightvalue], Ref(charge))
     end
     if diagonal
-        pright = pleft
-        r = 0
-        s = 2*β*p_to("P", pleft, Ref(charge))
+        Pright = Pleft
     end
-    values = Dict(key => p_to.(key, [pleft, pright], Ref(charge))
+    values = Dict(key => P_to.(key, [Pleft, Pright], Ref(charge))
                   for key in ("Δ", "δ", "P", "p"))
-    Field{complex(T)}(values, Kac, r, s, degenerate, logarithmic, diagonal)
+
+    Field{complex(T)}(values, Kac, r, s, degenerate, diagonal)
 end
 
 # Overload the == operator
@@ -244,7 +242,7 @@ function Base.show(io::IO,field::Field)
     else
         print("Non-diagonal field ")
         if field.isKac
-            print("with Kac indices r = $(field.r), s = $(field.s) and ")
+            print("with Kac indices\n  r = $(field.r)\n  s = $(field.s)\nand ")
         else
             print("with ")
         end

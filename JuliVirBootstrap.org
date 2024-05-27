@@ -8,7 +8,7 @@
 
 * Table of contents :toc:noexport:
 - [[#overview][Overview]]
-- [[#conformal-bootstrap-equations-in-2d][Conformal bootstrap equations in 2D]]
+- [[#conformal-bootstrap-in-2d][Conformal bootstrap in 2D]]
   - [[#notations-parametrisations][Notations, parametrisations]]
   - [[#special-functions][Special functions]]
   - [[#four-point-functions-on-the-sphere][Four point functions on the sphere]]
@@ -37,7 +37,7 @@ The program relies on the assumption that the spectrum of the model contains deg
 
 **** TODO: remember to cite [[https://arxiv.org/abs/2105.03949][arXiv:2105.03949]] for Julia Symbolics
 
-* Conformal bootstrap equations in 2D
+* Conformal bootstrap in 2D
 
 ** Notations, parametrisations
 
@@ -52,19 +52,15 @@ We parametrise the central charge of our theories in terms of variables \(B\), \
 We parametrise the conformal dimensions $(\Delta, \bar\Delta)$ of fields in terms of variables $P, p, \delta$, related by
 
 \[
-\Delta = \frac{c-1}{24} + \delta  \quad , \quad \delta = -P^2 = p^2
+\Delta = \frac{c-1}{24} + \delta  \quad , \quad \delta = P^2 = -p^2
 \]
 
-The variable $P$ is called the momentum. Moreover, we introduce the following parametrisation of dimensions in terms of Kac indices $r, s$:
+The variable $P$ is called the momentum. By convention, we always keep $P=ip$.Moreover, we introduce the following parametrisation of dimensions in terms of Kac indices $r, s$:
 
-\[P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)\]
-
-Or equivalently
-
-\[p_{(r,s)} = -\frac{1}{2} (\beta r - \beta^{-1}s)\]
+\[P_{(r,s)}=\frac{1}{2}(\beta r - \beta^{-1}s)\]
 
 where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in \mathbb Z\) and $rs > 0$.
-This convention is consistent with the one in [[https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git][Sylvain's code]].
+This convention is different from the one in [[https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git][Sylvain's code]], but similar to our more recent conventions, such as in [[https://github.com/ribault/CFT-Review][Sylvain's review on solvable CFTs]].
 
 In loop models, we denote \(V_{(r,s)}\) a non-diagonal field of left and right momenta \((P_{(r,s)},P_{(r,-s)})\).
 
@@ -100,7 +96,15 @@ We need to compute the double Gamma function defined by the relations
  \Gamma_{\beta}= \Gamma_{\beta^{-1}}, \quad, \Gamma_{\beta}\left( \frac{\beta + \beta^{-1}}{2} \right) = 1, \quad \Gamma_{\beta}(w + \beta) = \sqrt{2\pi} \frac{\beta^{\beta w-\frac{1}{2}}}{\Gamma(\beta w)} \Gamma_{\beta}(w)
 \end{align}
 
-For computing $\Gamma_\beta$ it is convenient to use its relation to the Barne's $G$ -function, which is related to $\Gamma_\beta$ as
+(see [[https://en.wikipedia.org/wiki/Multiple_gamma_function][wikipedia article]]).
+
+It also obeys
+
+\begin{align}
+  \Gamma_{\beta}(w+\beta^{-1}) = \sqrt{2\pi} \frac{\beta^{-\beta^{-1}w+\frac12}}{\Gamma(\beta^{-1}w)} \Gamma_{\beta}(w).
+\end{align}
+
+For computing $\Gamma_\beta$ it is convenient to use its relation to the Barne's $G$ -function (see [[https://en.wikipedia.org/wiki/Barnes_G-function][wikipedia article]]), which is related to $\Gamma_\beta$ as
 
 \begin{align}
 \Gamma_\beta(w) = \frac{\Gamma_2(w|\beta,\beta^{-1})}{\Gamma_2\left(\frac{\beta+\beta^{-1}}{2}\middle|\beta,\beta^{-1}\right)} \quad , \quad
@@ -326,6 +330,8 @@ where we do not actually take square roots, because each factor appears twice. T
 
 See [[https://arxiv.org/abs/2007.04190][this paper]] for more detail ([[file:~/Downloads/log_CFT_ribault_nivesvivat.pdf][here]] on my laptop).
 
+*** Logarithmic modules
+
 In loop models the action of $L_0$ is not diagonalisable, said otherwise some of the modules are logarithmic.
 The structure of a logarithmic module $\mathcal W^\kappa_{(r,s)}$ is the following:
 
@@ -346,71 +352,84 @@ This is the necessary condition for the OPE
 
 to be finite.
 
-Logarithmic conformal blocks in general depend on the parameter $\kappa$. In this code, we only compute their value at the value of $\kappa$ fixed by the presence of $V^d_{\langle1,2\rangle}$.
+*** Logarithmic blocks on the sphere
 
-*** Four-point logarithmic blocks on the sphere
+The expression of logarithmic four-point blocks on the sphere can be found by assuming the holomorphicity of the 4-point function
 
-For $(r,s) \in \mathbb{Z}^{*}$, the block ref:eq:chiral_block has a pole at $\delta_{(r,s)}$. This pole is cancelled by the appearance in the channel of another primary field, due to the logarithmic nature of the representation propagating in the channel.
-In this case, we compute the non-chiral logarithmic block
+\begin{align}
+ Z(P) = \sum_{k\in\mathbb{Z}} D_{P+k\beta^{-1}} \left|\mathcal{F}_{P+k\beta^{-1}}\right|^2 +\sum_{r=1}^\infty \sum_{s\in\frac{1}{r}\mathbb{Z}} D_{(r,s)}(P) \mathcal{G}_{(r,s)}\ .
+\end{align}
 
-$$
-\mathcal{G}_{(r,s)} = \mathcal{F}^\text{log}_{(r,s)} \bar{\mathcal{F}}_{\delta_{(r,-s)}} +\mathcal{F}_{\delta_{( r,-s)}} \bar{\mathcal{F}}^\text{log}_{(r,s)} - B^{-1}\ell_{(r,s)}\left| \mathcal{F}_{\delta_{(r,-s)}}\right|^2
-$$
+(see the [[file:~/Documents/Cours suivis/Sylvain CFT review/CFT-Review/solvable.pdf][solvable.pdf]] file on [[https://github.com/ribault/CFT-Review][GitHub]]).
 
-where the chiral logarithmic blocks are
+The coefficient $D_P$ has a double pole at $P_{(r,-s)}$. The blocks $\mathcal F_{P}$ have a simple pole at $P_{(r,s)}$, and we write
 
-\begin{align}\label{eq:log_block_chiral}
-\mathcal{F}_{( r,s)}^\text{log}
-= \frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{\delta_{(r,s)}}^\text{reg} -2q_{(r,-s)}\mathcal{F}'_{\delta_{(r,-s)}}
-= \lim_{\epsilon\to 0} \left(\frac{2q_{( r,s)}}{R_{r,s}} \mathcal{F}_{q_{(r,s)}+\epsilon} +\frac{B^{-1}}{\epsilon} \mathcal{F}_{q_{(r,-s)}+\epsilon}\right)
+\begin{align}
+  \mathcal{F}_{P} = \frac{R_{r,s}}{P-P_{(r,s)}} \mathcal{F}_{P_{(r,-s)}} + \mathcal{F}^{\text{reg}}_{P_{(r,s)}} + O(P-P_{(r,s)}).
+\end{align}
+
+Explicitly, using Zamolodchikov's recursion, $\mathcal F^{\text{reg}}$ is written as
+
+\begin{align}
+  \mathcal{F}^{\text{reg}}_{P_{(r,s)}} = (\text{prefactor}) H^{\text{reg}}_{P_{(r,s)}},
+\end{align}
+
+where the prefactor is the prefactor in Zamolodchikov's recursion, and
+
+\begin{align}
+  H^{\text{reg}}_{P_{(r,s)}} = 1 + \sum_{m,n} \left( \frac{1}{P^{2}_{(r,s)} - P^{2}_{(m,n)}} \right)^{\text{reg}} (16q)^{mn} R_{m,n} H_{P_{(m,-n)}}
 \end{align}
 
 and
 
 \begin{align}
- \ell_{(r,s)} &= 4\sum_{j=1-s}^s \Big\{ \psi(-2q_{( r,j)}) +\psi(2q_{( r,-j)}) \Big\}
- - 4\pi \cot(\pi s B^{-1})
+\left( \frac{1}{P^{2}_{(r,s)} - P^{2}_{(m,n)}} \right)^{\text{reg}} =
+\begin{cases}
+\log 16q - \frac{1}{4P_{(r,s)}^{2}} \text{  if  } (m,n)=(r,s) \\
+\frac{1}{P^{2}_{(r,s)} - P^{2}_{(m,n)}}  \text{  otherwise}
+\end{cases}.
+\end{align}
+
+
+Analysing the poles of this expression (there are double poles and simple ones), one arrives at the following expression for the logarithmic blocks: for $(r, s) \in \mathbb{N}^{*}$,
+
+\begin{align}
+\mathcal{G}_{(r,s)} = (\mathcal{F}_{P_{(r,s)}}^{\text{reg}} - R_{r,s}& \mathcal{F}^{'}_{P_{(r,-s)}}) \bar{\mathcal{F}}_{P_{(r,-s)}} + \frac{R_{r,s}}{\bar R_{r,s}} \mathcal{F}_{P_{(r,-s)}} (\bar{\mathcal{F}}_{P_{(r,s)}}^{\text{reg}} - \bar{R}_{r,s} \bar{\mathcal{F}}^{'}_{P_{(r,-s)}}) \\
+& +R_{r,s} \underbrace{\left( \frac{D^{'}_{P_{(r,s)}}}{D_{P_{(r,s)}}} - \lim_{P \to P_{(r,-s)}} \left[ \frac{2}{P-P_{(r,-s)}} + \frac{D_{P}^{'}}{D_{P}} \right] \right)}_{-\ell^{(1)-}_{(r,s)}}\left|\mathcal{F}_{P_{(r,-s)}}\right|^{2},
+\end{align}
+
+in which the primes denote derivatives with respect to the momentum $P$. The derivative of the block is
+
+\begin{align}
+  \mathcal{F}_{P_{(r,-s)}}^{'} = (\text{prefactor}) H^{\text{der}}_{P_{(r,-s)}}, \quad \text{where} \quad H^{\text{der}}_{P} = 2P\log(16q) H_{P} + H_{P}^{'}.
+\end{align}
+
+The term $\ell^{(1)-}_{(r,s)}$ can be computed as the order 1 term in the Taylor expansion of
+
+\begin{align}
+  \log \left( \epsilon^{2} \frac{D_{P_{(r,-s)}+\epsilon}}{D_{P_{(r,s)+\epsilon}}} \right) = \sum_{n\geq 0} \ell^{(n)-}_{(r,s)} \epsilon^{n}.
+\end{align}
+
+Explicitly,
+
+\begin{align}
+ \beta\ell^{(1)-}_{(r,s)} = -4\sum_{j=1-s}^s &\Big\{ \psi(-2\beta^{-1}P_{(r,j)}) +\psi(2\beta^{-1}P_{( r,-j)}) \Big\}
+ -4\pi \cot(\pi s \beta^{-2})
  \\
- &\quad -\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm} \sum_{\varepsilon\in\{0,1\}}  \Big\{
- \psi\left(\tfrac12 -(-)^\varepsilon q_{(r,j)}\pm q^\varepsilon_1\pm q^\varepsilon_2\right)
-  +
- \psi\left(\tfrac12 - (-)^\varepsilon q_{(r,j)}\pm q^\varepsilon_3\pm q^\varepsilon_4\right) \Big\}
- \end{align}
-
-where $\psi(x) = \frac{\Gamma'(x)}{\Gamma(x)}$ is the digamma function, regularized such that $\psi(-r)=\psi(r+1)$ for $r\in\mathbb{N}$, we define $q^0 = q$ and $q^1 = \bar{q}$, and we define $q = b^{-1}P=\beta^{-1}p$, in particular
-
-$$
-q_{(r,s)} = \frac{r}{2}+\frac{s}{2B}.
-$$
-
-The regularised chiral block $\mathcal F^{\text{reg}}_{\delta_{(r,s)}}$ is a regularisation of $\mathcal F_{\delta}$ near $\delta_{(r,s)}$:
-
-\begin{align}
-  \mathcal{F}_{\delta_{(r,s)}+\epsilon} = \frac{R_{r,s}}{\epsilon} \mathcal{F}_{\delta_{(r,-s)}} + \mathcal{F}_{\delta_{(r,s)}}^{\text{reg}} + O(\epsilon).
+ &+\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
+ \psi\left(\tfrac12-\beta^{-1}(P_{( r,j)}\pm P_1\pm P_2)\right)
+ + \psi\left(\tfrac12+\beta^{-1}(P_{( r,j)}\pm \bar P_1\pm \bar P_2)\right)
+ \Big\}
+ \\
+ &+\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
+ \psi\left(\tfrac12-\beta^{-1}(P_{( r,j)}\pm P_3\pm P_4)\right)
+ + \psi\left(\tfrac12+\beta^{-1}(P_{( r,j)}\pm \bar P_3\pm \bar P_4)\right)
+ \Big\}
 \end{align}
 
-We use the following regularisation of the divergent term in $\mathcal F_{\delta}$, which has the advantage of *obeying shift equations* (to clarify)
+For $(r, s) \in \mathbb{N}^{*}$, $\mathcal G_{(r,s)}$ can actually be non-logarithmic, due to residues $R_{(r,s)}$ and $\bar R_{(r,s)}$ vanishing.
 
-\begin{align}
-  \frac{(16q)^{p^{2}}}{p^{2} - p^{2}_{(r,s)}} &\underset{p \to p_{(r,s)}}{=} (16q)^{\delta_{(r,s)}} (1 + 2\epsilon p_{(r,s)}\log(16q))\frac{1}{2p} \left( \frac{-1}{\epsilon} + \frac{1}{p+p_{(r,s)}} \right) \\
-        & = (16q)^{\delta} \left( -\frac{1}{2p_{(r,s)}\epsilon} - \log(16q) + \frac{1}{4\delta_{(r,s)}}\right) + O(\epsilon)
-\end{align}
-
-where $\epsilon = P - P_{(r,s)}$.
-
-The $R_{r,s}$ factor in the denominator of ref:eq:log_block_chiral vanishes if and only if $\mathcal F_{\delta_{(r,s)}}$ is regular. In this case, the block $\mathcal G_{(r,s)}$ is actually not logarithmic. The structure constants of $V_{(r,s)}$ and $V_{(r,-s)}$ are still related by shift equations though, so we compute the block
-
-\begin{align}
-\mathcal G^{{\text{normalized}}}_{(r,s)}  = \mathcal{F}_{(r,s)} \bar{\mathcal{F}}_{\delta_{(r,-s)}} + (-1)^{\# \text{zeros}} \frac{R^{\text{reg}}_{r,s}}{\bar R^{\text{reg}}_{r,s}}\mathcal{F}_{\delta_{( r,-s)}} \bar{\mathcal{F}}_{(r,s)}
-\end{align}
-
-We may want to normalize the blocks such that the term that corresponds to the primary field $V^N_{(r,s)}$ comes with the coefficient $1$. This is useful in particular when using shift equations for structure constants. To do this, we define
-
-\begin{align}
-\mathcal{G}_{(r,s)}^\text{normalized} = \frac{R_{r, s}}{2q_{(r,s)}} \mathcal{G}_{(r,s)}
-\end{align}
-
-In general, we have $\mathcal{G}_{( r,s)} = \mathcal{G}_{(r,-s)}$ but $\mathcal{G}^\text{normalized}_{(r,s)} \neq \mathcal{G}^\text{normalized}_{( r,-s)}$ since $R_{r,s}\neq \bar R_{r,s}$.
+*** Logarithmic blocks on the torus
 
 ** Relation between sphere four-point blocks and torus one-point blocks
 :properties:
@@ -478,7 +497,7 @@ sphere block = 1.000005991527301 - 1.1912765042311957e-5im
 
 ** Modular invariance for one-point functions on the torus
 
-* Code of the package
+* Code of the package :noeval:
 
 ** Main module
 :PROPERTIES:
@@ -523,18 +542,17 @@ Conformal blocks
 ===========================================================================================#
 include("ConformalBlocks.jl")
 using .FourPointBlocksSphere
-export FourPointBlockSphere, F_four_point_sphere
+export FourPointBlockSphere, block
 
 using .OnePointBlocksTorus
-export OnePointBlockTorus, F_one_point_torus
-
+export OnePointBlockTorus
 
 #===========================================================================================
 Special functions
 ===========================================================================================#
 include("SpecialFunctions.jl")
-using .SpecialFunctions
-export Barnes_G, log_double_Gamma, double_Gamma, Barnes
+using ._SpecialFunctions
+export Barnes_G, log_double_Gamma, double_Gamma
 
 
 end
@@ -674,23 +692,23 @@ Base.getindex(charge::CentralCharge, key) = charge.values[key];
 Fields can be given from any of the four parameters $\Delta, \delta, P, p$. Optional keyword arguments lets us choose whether the field is diagonal, degenerate, logarithmic. The field can also be defined from its r and s indices using the keyword argument Kac = true.
 
 #+begin_src julia
-"""Get p from any given parameter"""
-function p_from(parameter, value, charge::CentralCharge)
+"""Get P from any given parameter"""
+function P_from(parameter, value, c::CentralCharge)
     @match parameter begin
-        "Δ" => sqrt(complex(value - (charge["c"]-1)/24))
+        "Δ" => sqrt(complex(value - (c["c"]-1)/24))
         "δ" => sqrt(complex(value))
-        "P" => -im*value
-        "p" => value
+        "P" => value
+        "p" => im*value
     end
 end
 
-"""Get all parameters from p"""
-function p_to(parameter, value, charge::CentralCharge)
+"""Get all parameters from P"""
+function P_to(parameter, value, c::CentralCharge)
     @match parameter begin
-        "Δ" => value^2 + (charge["c"]-1)/24
+        "Δ" => value^2 + (c["c"]-1)/24
         "δ" => value^2
-        "P" => im*value
-        "p" => value
+        "P" => value
+        "p" => -im*value
     end
 end
 
@@ -698,7 +716,7 @@ end
     Field{T}
 Object representing a conformal field.
 Contains the values of the 4 parameters `"Δ"`,`"δ"`,`"P"`,`"p"` for its conformal dimension,
-and flags saying whether the field is in the Kac table, degenerate, logarithmic or diagonal.
+and flags saying whether the field has declared and rational Kac indices, is degenerate, or diagonal.
 """
 struct Field{T}
 
@@ -707,12 +725,12 @@ struct Field{T}
     r::Rational
     s::Rational
     isdegenerate::Bool
-    islogarithmic::Bool
     isdiagonal::Bool
 
 end
 
 """
+   TODO: update the examples
     Field(charge, parameter, leftvalue, rightvalue; kwargs...)
 
 Constructor function for the Field type.
@@ -725,10 +743,9 @@ parametrisation.
 # keyword arguments:
 
 - `Kac::Bool`: if set to true, the field can be constructed from the values of its r and s
-indices,
+indices. By convention V_(r,s) has left and right momenta (P_(r,s), P_(r,-s))
 - `r::Rational`,`s::Rational`: used in conjunction to `Kac=true`, must be given rational
 values,
-- `logarithmic::Bool`: set to True if the field is logarithmic,
 - `degenerate::Bool`: set to True if the field is degenerate,
 - `diagonal::Bool`: set to True to get a diagonal field ; only the leftvalue needs to be
 given.
@@ -767,27 +784,26 @@ function Field(
     parameter = "Δ",
     leftvalue = 0, rightvalue = 0;
     Kac = false, r = 0, s = 0,
-    logarithmic = false, degenerate = false, diagonal = false
+    degenerate = false, diagonal = false
     )
 
-    T=typeof(charge.values["c"])   #dimensions have the same type as central charges
+    T=typeof(charge.values["c"]) # values of dimensions have the same precision as central charges
     if degenerate
         Kac = true
     end
     if Kac
-        pleft = -1/2*(charge["β"]*r - 1/charge["β"]*s)
-        pright = -1/2*(charge["β"]*r - 1/charge["β"]*s)
+        Pleft = 1/2*(charge["β"]*r - 1/charge["β"]*s)
+        Pright = 1/2*(charge["β"]*r + 1/charge["β"]*s)
     else
-        pleft, pright = p_from.(parameter, [leftvalue, rightvalue], Ref(charge))
+        Pleft, Pright = P_from.(parameter, [leftvalue, rightvalue], Ref(charge))
     end
     if diagonal
-        pright = pleft
-        r = 0
-        s = 2*β*p_to("P", pleft, Ref(charge))
+        Pright = Pleft
     end
-    values = Dict(key => p_to.(key, [pleft, pright], Ref(charge))
+    values = Dict(key => P_to.(key, [Pleft, Pright], Ref(charge))
                   for key in ("Δ", "δ", "P", "p"))
-    Field{complex(T)}(values, Kac, r, s, degenerate, logarithmic, diagonal)
+
+    Field{complex(T)}(values, Kac, r, s, degenerate, diagonal)
 end
 
 # Overload the == operator
@@ -819,7 +835,7 @@ function Base.show(io::IO,field::Field)
     else
         print("Non-diagonal field ")
         if field.isKac
-            print("with Kac indices r = $(field.r), s = $(field.s) and ")
+            print("with Kac indices\n  r = $(field.r)\n  s = $(field.s)\nand ")
         else
             print("with ")
         end
@@ -907,7 +923,7 @@ using Match
 import Memoization: @memoize
 #+end_src
 
-**** Four-point function type
+**** Four-point correlation type
 
 We create a struct ~FourPointCorrelation~ for representing a four-point function on the sphere, that is, a central charge and four external fields.
 
@@ -1037,9 +1053,9 @@ end
 function Rmn_term_reg(r, s, corr::FourPointCorrelation, channel, lr)
     V = permute_ext_fields(corr, channel).fields
     if r == 0 && s == 0
-        return 2*V[2]["p"][lr]
+        return 2*V[2]["P"][lr]
     else
-        return 8*V[1]["p"][lr]*V[2]["p"][lr]*Field(corr.charge, Kac=true, r=r, s=s)
+        return 8*V[1]["P"][lr]*V[2]["P"][lr]*Field(corr.charge, Kac=true, r=r, s=s)
     end
 end
 
@@ -1208,9 +1224,8 @@ The module ~FourPointBlocksSphere~ exports
 #+begin_src julia
 #===========================================================================================
 
-ConformalBlocks.jl contains modules that compute series expansions for
-Virasoro four-point conformal blocks on the sphere and Virasoro one-point conformal blocks
-on the torus.
+ConformalBlocks.jl contains modules that compute Virasoro four-point conformal blocks on the
+sphere and Virasoro one-point conformal blocks on the torus.
 
 Written by Paul Roux, adapting a Python code written by Sylvain Ribault & Rongvoram
 Nivesvivat
@@ -1219,16 +1234,15 @@ Nivesvivat
 
 
 """
-Series expansion of four-point blocks on the sphere.
+Computation of four-point blocks on the sphere.
 """
 module FourPointBlocksSphere
 
 export FourPointBlockSphere, block
 
-using ..CFTData, ..FourPointCorrelationFunctions
+using ..CFTData, ..FourPointCorrelationFunctions#, ..SpecialFunctions
 using Match, EllipticFunctions, Memoization
-import ..FourPointCorrelationFunctions: permute_ext_fields
-import SpecialFunctions: digamma as ψ
+import ..FourPointCorrelationFunctions: permute_ext_fields, Rmn
 #+end_src
 
 *** Four-point block sphere type
@@ -1286,18 +1300,27 @@ const right = 2
 
 *** Change of channel
 
-The $t$- and $u$-channel blocks are computed from the $s$-channel one, using [[tu-from-s][the relation]] described above.
+The $t$ and $u$ channel blocks are computed from the $s$ channel one, using [[tu-from-s][the relation]] described above.
 
 #+begin_src julia
 #===========================================================================================
 Get t- and u- channel blocks from s-channel block
 ===========================================================================================#
 """Prefactor to get t- or u-channel blocks from the s-channel block"""
-function channelprefactor(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
+function channelprefactor_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
     @match block.channel begin
         "s" => 1
-        "t" => (-1)^(sum(spin(corr.fields)))
-        "u" => (-1)^(sum(spin.(corr.fields)))*abs2(x)^(-2*corr.fields[1]["Δ"])
+        "t" => 1
+        "u" => 1/x^(2*corr.fields[1]["Δ"][left])
+    end
+end
+
+"""Sign (-1)^{S_1+S_2+S_3+S_4} when changing from s to t or u channels"""
+function channel_sign(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
+    @match block.channel begin
+        "s" => 1
+        "t" => (-1)^(sum(spin.(corr.fields)))
+        "u" => (-1)^(sum(spin.(corr.fields)))
     end
 end
 
@@ -1331,7 +1354,8 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 Set prefactors, relate the cross-ratio x and the elliptic nome q
 ===========================================================================================#
 """Nome `q` from the cross-ratio `x`"""
-@memoize qfromx(x) = exp(-π*ellipticK(1-x) / ellipticK(x))
+qfromx(x) = exp(-π*ellipticK(1-x) / ellipticK(x))
+
 """Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
 
@@ -1352,34 +1376,25 @@ end
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 #+end_src
 
-*** Logarithmic blocks
-
-We compute the derivative of a block with respect to $\delta$ as
-
-\begin{align}
-  \frac{\partial \mathcal{F}}{\partial \delta} = x^{E_{0}} (1-x)^{E_{1}} \theta_{3}(q)^{-4E_{2}} (16q)^{\delta} H_{\delta}^{\text{der}}
-\end{align}
-
-where
-
-\begin{align}
-H_{\delta}^{\text{der}} &= \log(16q) H_{\delta} + \frac{\partial }{\partial \delta} H_{\delta} \\
-                     &= \log(16q) + \sum_{N=1}^{N_{\text{max}}} \sum_{mn \leq N} (16q)^{N} \left(\frac{\log 16q}{\delta - \delta_{(m,n)}} - \frac{1}{(\delta - \delta_{(m,n)})^{2}} \right)
-\end{align}
+*** Logarithmic structure constant $\ell$
 
 #+begin_src julia
-q(B, r, s) = r/2 + s/(2*B)
+βm1P(B, r, s) = 1/2*(r+s/B) # \beta^{-1}P_{(r,s)}
 
 """Factor \ell_{(r,s)} that appears in logarithmic blocks"""
 function ell(corr, r, s)
-    B = corr.charge["B"]
-    b = corr.charge["b"]
-    q_ext = [[corr.fields[i]["P"][left]/b for i in 1:4], [corr.fields[i]["P"][right]/b for i in 1:4]]
-    term1(j) = ψ(-2q(B, r, j)) + ψ(2q(B, r, -j))
-    term2 = big(4)*π/tan(π*big(s)/B)
-    term3(lr, pm1, pm2, a, b) = ψ(1/2 - (-1)^ϵ*q(B, r, j) + pm1*q_ext[lr][a] + pm2*q_ext[lr][b])
-    return 4*sum(term1(j) for j in 1-s:s) - term2 - \
-        sum(term3(lr, pm1, pm2, 1, 2) + term3(lr, pm1, pm2, 3, 4)
+    c = corr.charge
+    B, β = c["B"], c["β"]
+    βm1P_ext = [[corr.fields[i]["P"][left]/β for i in 1:4], [corr.fields[i]["P"][right]/β for i in 1:4]]
+
+    term1(j) = digamma_reg(-2*βm1P(B, r, j)) + digamma_reg(2*βm1P(B, r, -j))
+
+    term2 = big(4)*π/tan(π*big(s)/B) # I put big(n)*\pi otherwise n*\pi where n is an integer has double precision instead of bigfloat
+
+    term3(j, lr, pm1, pm2, a, b) = digamma_reg(1/2 - (-1)^lr*βm1P(B, r, j) + pm1*βm1P_ext[lr][a] + pm2*βm1P_ext[lr][b])
+
+    return -4*sum(term1(j) for j in 1-s:s) - term2 # -
+        sum(term3(j, lr, pm1, pm2, 1, 2) + term3(j, lr, pm1, pm2, 3, 4)
                         for lr in (left, right) for pm1 in (-1,1) for pm2 in (-1,1)
                         for j in 1-s:2:s-1)
 end
@@ -1387,62 +1402,106 @@ end
 
 *** Computation of the block
 
+We compute $H^{\text{der}}_{P}$ as
+
+\begin{align}
+H_{P}^{\text{der}} &= 2P(\log(16q) H_{P} + H_{P}') \\
+                     &= 2P \left(   \log(16q) + \sum_{N=1}^{N_{\text{max}}} \sum_{mn \leq N} (16q)^{N} \left(\frac{\log 16q}{\delta - \delta_{(m,n)}} - \frac{1}{(\delta - \delta_{(m,n)})^{2}} \right)\right)
+\end{align}
+
+
 #+begin_src julia
 #===========================================================================================
 Compute the conformal block
 ===========================================================================================#
-"""
-    H(q, Nmax, block, corr, lr, derivative = false)
-
-Compute the function ``H(q,δ)``. If derivative=true, compute instead the function H^{\text{der}}
-"""
-function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr, derivative=false)
-    δ = block.channelField["δ"][lr]
-    B = corr.charge["B"]
-    sq = 16*q
-    lsq = log(sq)
-    res = derivative ? log(16*q) : 1
-    pow = 1
-    for N in 1:Nmax
-
-        if derivative
-            term = log(16*q)*d
+function P_squared_ratio_reg(q, c::CentralCharge, V::Field, m, n, lr)
+    # check V has integer Kac indices
+    if V.isKac && V.r%1 == 0 && V.s%1 == 0 && V.r > 0 && (lr == left && V.s > 0 || lr == right && V.s < 0)
+        # if s < 0 and we're computing a right-handed block (\bar F) then the right dimension is P_(r,-s>0)
+        P = V["P"][left]
+        β = c["β"]
+        Pmn = 1/2*(β*m - 1/β*n)
+        if V.r == m && V.s == n
+            return log(16*q) - 1/(4*P^2)
         else
-            term = 1
+            return 1/(P^2-Pmn^2)
         end
+    else
+        error("Trying to compute a regularised block for a field with r=$(V.r) and s=$(V.s) . Both should be positive integers")
+    end
+end
 
-        sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)/(δ-δrs(m, n, B))
+function block_recursion_coeff(q, c, V, m, n, der, reg, lr)
+    β = c["β"]
+    P = V["P"][lr]
+    Pmn = 1/2*(β*m - 1/β*n)
+    if der
+        return 2*P*(log(16*q)/(P^2-Pmn^2) - 2*P/(P^2-Pmn^2)^2) # 2P (log(16q)/(δ-\delta_{m,n}) - 1/(δ-\delta_{m,n})^2)
+    elseif reg
+        return P_squared_ratio_reg(q, c, V, m, n, lr) # log(16q) - 1/4δ or 1/(δ-δ_{m,n})
+    else
+        return 1/(P^2 - Pmn^2) # 1/(δ-δ_{m,n})
+    end
+end
+
+"""
+    H(q, Nmax, block, corr, lr;
+      der = false, reg = false)
+
+Compute the function ``H(q,δ)``. If der=true, compute instead the function ``H^{\\text{der}}``. If reg=true, compute instead ``H^{\\text{reg}}``.
+"""
+function H(q, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr;
+           der = false, reg = false)
+    @assert !(der && reg) "you should not compute the derivative of a regularised block"
+    V = block.channelField
+    P = V["P"][lr]
+    c = corr.charge
+    β = c["β"]
+    pow = 1
+
+    res = der ? 2*P*log(16*q) : 1 # H_P = 1 + sum(...), H_P^der = 2P log(16q) + sum(...)
+
+    for N in 1:Nmax
+        sum_mn = sum(sum(computeCNmn(N, m, n, corr, "s", lr)*block_recursion_coeff(q, c, V, m, n, der, reg, lr)
                          for n in 1:N if m*n <= N) for m in 1:N)
+
         pow *= 16*q
         res += pow * sum_mn
     end
+
     return res
 end
 
 """
-    block_chiral_schan(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
+    block_chiral_schan_value(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)
 
 Compute the chiral conformal block
 
 ``\\mathcal F^{(s)}_{\\delta}(x)``
 
 """
-function block_chiral_schan(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
-    blockprefactor(block, corr, x, lr) * H(qfromx(x), Nmax, block, corr, lr)
+function block_chiral_schan(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr;
+                            der=false, reg=false)
+    return blockprefactor(block, corr, x, lr) * H(qfromx(x), Nmax, block, corr, lr, der=der, reg=reg)
 end
 
-"""Compute the chiral conformal block
+"""
+    block_chiral(x, Nmax, block, corr, lr)
+
+Compute the chiral conformal block
 
 ``\\mathcal F^{(\\text{chan})}_{\\delta}(x)``
 
 where `chan` is `s`, `t`, or `u`."""
-function block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr)
+function block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, lr;
+                      der = false, reg = false)
     chan = block.channel
-    block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr)
+    x_lr = (lr == left ? x : conj(x))
+    return channelprefactor_chiral(block, corr, x_lr)*block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr, der=der, reg=reg)
 end
 
 """
-    G(x, Nmax, block, corr)
+    block_non_chiral(x, Nmax, block, corr)
 
 Compute the non-chiral conformal block
 
@@ -1450,12 +1509,40 @@ Compute the non-chiral conformal block
 
 where `chan` is `s`,`t` or `u`.
 
-TODO: logarithmic blocks
+TODO: regularise R_(r,s) / \bar{R}_(r,s)
 """
-function block(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
-    channelprefactor(block, corr, x) * \
-        block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, left) * \
-        conj(block_chiral(conj(x), Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation, right))
+function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
+
+    chan = block.channel
+    Vchan = block.channelField
+
+    if V.r != 0 || V.s != 0 || spin(Vchan) == 0
+
+        return channelprefactor(block, corr, x) * block_chiral(x, Nmax, block, corr, left) * block_chiral(conj(x), Nmax, block, corr, right)
+
+    else # logarithmic block
+
+        r, s = Vchan.r, Vchan.s
+        c = corr.charge
+        block1 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=s)) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
+        block2 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
+
+        F_Prms = block_chiral(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
+        F_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
+        F_der_Prms = block_chiral(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
+        F_der_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
+        F_reg_Prs = block_chiral(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
+        F_reg_Prs_bar = block_chiral(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
+
+        R = Rmn(r, s, corr, chan, left)
+        R_bar = Rmn(r, s, corr, chan, right)
+
+        term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
+        term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
+        term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
+
+        return channel_sign(block, corr, x)*(term1+term2+term3)
+    end
 end
 #+end_src
 
@@ -1574,12 +1661,14 @@ SpecialFunctions.jl computes the special functions relevant for our applications
 
 ==================#
 
-module SpecialFunctions
+module _SpecialFunctions
 
-using SpecialFunctions, ArbNumerics, Memoization
-export Barnes_G, log_double_Gamma, double_Gamma
+using SpecialFunctions # external Julia package (the module name is the same but there is no domain conflict)
+using Memoization
+using ArbNumerics # the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}
+using QuadGK # numerical integration
 
-# the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}
+export digamma_reg, Barnes_G, log_double_Gamma, double_Gamma
 
 function log_Γ(z)
     return Complex{BigFloat}(lgamma(ArbComplex(z)))
@@ -1600,11 +1689,6 @@ end
 function polyΓ(n, z)
     return Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z)))
 end
-using QuadGK # numerical integration
-using Symbolics, Memoization
-
-export digamma_reg
-
 #+end_src
 
 *** Regularized digamma Function
@@ -1669,24 +1753,29 @@ end
 end
 
 function log_Barnes_GN(N, z, τ)
-    term1 = - log(τ) - log_Γ(z)
-    term2 = modular_coeff_a(τ)*z/τ + modular_coeff_b(τ)*z^2/(2*τ^2)
-    term3 = sum(log_Γ(m*τ) - log_Γ(z+m*τ) + z*ψ(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
-    return term1 + term2 + term3
+    res = 0
+    res += - log(τ) - log_Γ(z)
+    res += modular_coeff_a(τ)*z/τ + modular_coeff_b(τ)*z^2/(2*τ^2)
+    res += sum(log_Γ(m*τ) - log_Γ(z+m*τ) + z*ψ(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
+    return res
 end
 
-function polynomial_Pn(n, z, τ)
+@memoize function factorial_big(n)::BigInt
+    return factorial(big(n))
+end
+
+@memoize function polynomial_Pn(n, z, τ)
     if n == 1
         return 1//6
     else
-        term1 = z^(n-1)/factorial(big(n+2))
-        summand(k) = ((1+τ)^(k+2) - 1 - τ^(k+2))/(factorial(big(k+2))*τ) * polynomial_Pn(n-k, z, τ)
+        term1 = z^(n-1)/factorial_big(n+2)
+        summand(k) = ((1+τ)^(k+2) - 1 - τ^(k+2))/(factorial_big(k+2)*τ) * polynomial_Pn(n-k, z, τ)
         return term1 - sum(summand(k) for k in 1:n-1)
     end
 end
 
 function rest_RMN(M, N, z, τ)
-    return sum(factorial(big(k-1))*(-τ)^(-k-1)*polynomial_Pn(k, z, -τ)/N^k for k in 1:M)
+    return sum(factorial_big(k-1)*(-τ)^(-k-1)*polynomial_Pn(k, z, -τ)/N^k for k in 1:M)
 end
 
 """Numerical approximation of the logarithm of Barne's G-function, up to a given tolerance"""
@@ -1759,7 +1848,7 @@ function evaluate_block(positions, Nmax, corr, block)
 end
 #+end_src
 
-** Unit testing
+** Unit testing :noeval:
 :PROPERTIES:
 :header-args:julia: :tangle ./test/runtests.jl
 :END:
@@ -1770,6 +1859,7 @@ using Test
 #+end_src
 
 *** CFTData
+
 #+begin_src julia
 @testset "CFTData.jl" begin
 
@@ -1801,6 +1891,7 @@ end
 #+end_src
 
 *** Four-point correlation functions
+
 #+begin_src julia
 @testset "FourPointCorrelationFunctions" begin
 
@@ -1828,7 +1919,101 @@ end
 
 end
 #+end_src
+
 *** Four-point blocks
+
+#+begin_src julia
+
+@testset "FourPointBlocks" begin
+
+    left=1;
+    right=2;
+
+    import JuliVirBootstrap.FourPointBlocksSphere.qfromx
+
+    c_sphere = CentralCharge("b", (1.2+.1*1im)/sqrt(2))
+
+    q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
+
+    P = 0.23+.11im
+    P1 = 0.41+1.03im
+
+    V_sphere_chan = Field(c_sphere, "P", sqrt(2)*P, diagonal=true)
+    V_sphere_ext = Field(c_sphere, "P", P1/sqrt(2), diagonal=true)
+    VKac_sphere = Field(c_sphere, Kac=true, r=0, s=1//2, diagonal=true)
+
+    corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
+    block_sphere = FourPointBlockSphere("s", V_sphere_chan)
+
+    h = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+
+    @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol=1e-8) # value from Sylvain's code
+
+
+    setprecision(BigFloat, 64)
+
+    c = CentralCharge("β", big(1.2+.1*1im));
+    V1 = Field(c, "Δ", 0.23+.11im, diagonal=true);
+    V2 = Field(c, "Δ", 3.43, diagonal=true);
+    V3 = Field(c, "Δ", 0.13, diagonal=true);
+    V4 = Field(c, "Δ", 1.3, diagonal=true);
+    V = Field(c, "Δ", 0.1, diagonal = true);
+
+    corr = FourPointCorrelation(c, [V1, V2, V3, V4])
+
+    bl_s = FourPointBlockSphere("s", V)
+    bl_t = FourPointBlockSphere("t", V)
+    bl_u = FourPointBlockSphere("u", V)
+
+    x=0.05
+
+    # comparing to values from Sylvain's code
+    @test isapprox(JuliVirBootstrap.FourPointBlocksSphere.block_chiral(x, 6, bl_s, corr, left), 2337.4038141240320199350204984981259378760811288542 + 4771.3912725970751669197262259253749217475400016186im, rtol = 1e-10)
+    @test isapprox(JuliVirBootstrap.FourPointBlocksSphere.block_chiral(x, 6, bl_t, corr, left), 52191.790807047848992452669811987274395806031692488 - 140430.98553278617162374003412214159828722759436549im,rtol = 1e-10)
+    @test isapprox(JuliVirBootstrap.FourPointBlocksSphere.block_chiral(x, 6, bl_u, corr, left), 852.92814340196565010929995606986011067184449511918 + 359.96303529282323934093142050535102602840290239155im, rtol = 1e-10)
+
+end
+#+end_src
+
+*** One-point blocks
+
+#+begin_src julia
+@testset "OnePointBlocks" begin
+    left=1;
+    right=2;
+
+    import JuliVirBootstrap.FourPointBlocksSphere.qfromx
+    c_torus = CentralCharge("b", 1.2+.1*1im);
+    c_sphere = CentralCharge("b", (1.2+.1*1im)/sqrt(2))
+
+    q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
+
+    P = 0.23+.11im
+    P1 = 0.41+1.03im
+    V_torus_chan = Field(c_torus, "P", P, diagonal=true)
+    δ_torus = V_torus_chan["δ"][left]
+    δ11_torus = Field(c_torus, Kac=true, r=1, s=1, diagonal=true)["δ"][left]
+    V_torus_ext = Field(c_torus, "P", P1, diagonal=true)
+
+    V_sphere_chan = Field(c_sphere, "P", sqrt(2)*P, diagonal=true)
+    δ_sphere = V_sphere_chan["δ"][left]
+    δ21_sphere = Field(c_sphere, Kac=true, r=2, s=1, diagonal=true)["δ"][left]
+    δ12_sphere = Field(c_sphere, Kac=true, r=1, s=2, diagonal=true)["δ"][left]
+    V_sphere_ext = Field(c_sphere, "P", P1/sqrt(2), diagonal=true)
+    VKac_sphere = Field(c_sphere, Kac=true, r=0, s=1//2, diagonal=true)
+
+    corr_torus = OnePointCorrelation(c_torus, V_torus_ext)
+    block_torus = OnePointBlockTorus(V_torus_chan)
+
+    corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
+    block_sphere = FourPointBlockSphere("s", V_sphere_chan)
+
+    h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
+    h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+
+    @test isapprox(h1, h2, atol=1e-12)
+end
+#+end_src
 
 ** Development tests :noeval:
 :PROPERTIES:
@@ -1901,7 +2086,6 @@ V_torus_chan = Field(c_torus, "P", P, diagonal=true)
 δ_torus = V_torus_chan["δ"][left]
 δ11_torus = Field(c_torus, Kac=true, r=1, s=1, diagonal=true)["δ"][left]
 V_torus_ext = Field(c_torus, "P", P1, diagonal=true)
-corr_torus = OnePointCorrelation
 
 V_sphere_chan = Field(c_sphere, "P", sqrt(2)*P, diagonal=true)
 δ_sphere = V_sphere_chan["δ"][left]
@@ -1916,15 +2100,6 @@ block_torus = OnePointBlockTorus(V_torus_chan)
 corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
 block_sphere = FourPointBlockSphere("s", V_sphere_chan)
 
-
-C111_torus = JuliVirBootstrap.OnePointCorrelationFunctions.computeCNmn(1, 1, 1, corr_torus, left)
-
-C212_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(2, 1, 2, corr_sphere, "s", left)
-C221_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(2, 2, 1, corr_sphere, "s", left)
-
-16^2 * (C212_sphere/(δ_sphere-δ12_sphere) + C221_sphere/(δ_sphere-δ21_sphere))
-C111_torus/(δ_torus-δ11_torus)
-
 h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
 h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
 #+end_src
@@ -1936,40 +2111,3 @@ println("torus block = $h1 \nsphere block = $h2")
 #+RESULTS:
 : torus block = 1.0000059915273005 - 1.1912765043504052e-5im
 : sphere block = 1.000005991527301 - 1.1912765042311957e-5im
-
-#+begin_src julia
- o
-#+end_src
-
-
-#+begin_src julia :results output
-using SpecialFunctions
-println(digamma(0.5))
-#+end_src
-
-#+RESULTS:
-:
-: -1.9635100260214235
-*** G function
-
-#+begin_src julia :results output
-using Pkg; Pkg.activate(".")
-using QuadGK
-using JuliVirBootstrap
-using BenchmarkTools
-
-τ = big(1.2 + 0.1im)
-@btime JuliVirBootstrap.SpecialFunctions.modular_C(τ)
-#+end_src
-
-#+RESULTS:
-:   Activating project at `~/Documents/Recherche/projet_these/JuliVirBootstrap`
-:
-:
-:
-:
-: 1.1999999999999999555910790149937383830547332763671875 + 0.1000000000000000055511151231257827021181583404541015625im
-: 8.699 ms (38637 allocations: 1.70 MiB)
-: 0.576998374313633089571375438148716811942621876203568437190063815178462349997139 + 0.02094411216149745008571390358953525242732910861243929348213842645479243904376966im
-
-

@@ -29,18 +29,17 @@ Conformal blocks
 ===========================================================================================#
 include("ConformalBlocks.jl")
 using .FourPointBlocksSphere
-export FourPointBlockSphere, F_four_point_sphere
+export FourPointBlockSphere, block
 
 using .OnePointBlocksTorus
-export OnePointBlockTorus, F_one_point_torus
-
+export OnePointBlockTorus
 
 #===========================================================================================
 Special functions
 ===========================================================================================#
 include("SpecialFunctions.jl")
-using .SpecialFunctions
-export Barnes_G, log_double_Gamma, double_Gamma, Barnes
+using ._SpecialFunctions
+export Barnes_G, log_double_Gamma, double_Gamma
 
 
 end
