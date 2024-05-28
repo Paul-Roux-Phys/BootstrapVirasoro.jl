@@ -19,12 +19,12 @@
   - [[#modular-invariance-for-one-point-functions-on-the-torus][Modular invariance for one-point functions on the torus]]
 - [[#code-of-the-package][Code of the package]]
   - [[#main-module][Main module]]
+  - [[#the-specialfunctions-module][The ~SpecialFunctions~ module]]
   - [[#the-cftdata-module][The ~CFTData~ module]]
   - [[#the-fourpointcorrelationfunctions-module][The ~FourPointCorrelationFunctions~ module]]
   - [[#the-onepointcorrelationfunctions-module][The ~OnePointCorrelationFunctions~ module]]
   - [[#the-fourpointblockssphere-module][The ~FourPointBlocksSphere~ module]]
   - [[#the-onepointblockstorus-module][The ~OnePointBlocksTorus~ module]]
-  - [[#the-specialfunctions-module][The ~SpecialFunctions~ module]]
   - [[#setting-up-bootstrap-equations][Setting-up bootstrap equations]]
   - [[#unit-testing][Unit testing]]
   - [[#development-tests][Development tests]]
@@ -46,6 +46,8 @@ The program relies on the assumption that the spectrum of the model contains deg
 We parametrise the central charge of our theories in terms of variables \(B\), \(b\) or \(\beta\) related by
 
 \[c = 13 + 6B + 6 B^{-1} \quad , \quad B = b^2 = -\beta^2, \quad B = \frac{c-13 \pm \sqrt{(c-1)(c-25)}}{12}\]
+
+By convention we keep
 
 *** Fields
 
@@ -413,15 +415,15 @@ The term $\ell^{(1)-}_{(r,s)}$ can be computed as the order 1 term in the Taylor
 Explicitly,
 
 \begin{align}
- \beta\ell^{(1)-}_{(r,s)} = -4\sum_{j=1-s}^s &\Big\{ \psi(-2\beta^{-1}P_{(r,j)}) +\psi(2\beta^{-1}P_{( r,-j)}) \Big\}
+ \beta\ell^{(1)-}_{(r,s)} = 4\sum_{j=1-s}^s &\Big\{ \psi(-2\beta^{-1}P_{(r,j)}) +\psi(2\beta^{-1}P_{( r,-j)}) \Big\}
  -4\pi \cot(\pi s \beta^{-2})
  \\
- &+\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
+ &-\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
  \psi\left(\tfrac12-\beta^{-1}(P_{( r,j)}\pm P_1\pm P_2)\right)
  + \psi\left(\tfrac12+\beta^{-1}(P_{( r,j)}\pm \bar P_1\pm \bar P_2)\right)
  \Big\}
  \\
- &+\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
+ &-\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
  \psi\left(\tfrac12-\beta^{-1}(P_{( r,j)}\pm P_3\pm P_4)\right)
  + \psi\left(\tfrac12+\beta^{-1}(P_{( r,j)}\pm \bar P_3\pm \bar P_4)\right)
  \Big\}
@@ -521,11 +523,20 @@ Nivesvivat
 module JuliVirBootstrap
 
 #===========================================================================================
+Special functions
+===========================================================================================#
+include("SpecialFunctions.jl")
+using .SpecialFunctions
+export Barnes_G
+export log_double_Gamma, double_Gamma
+
+#===========================================================================================
 Central charges and fields
 ===========================================================================================#
 include("CFTData.jl")
 using .CFTData
-export CentralCharge, Field
+export CentralCharge
+export Field
 
 #===========================================================================================
 Correlation functions
@@ -542,20 +553,189 @@ Conformal blocks
 ===========================================================================================#
 include("ConformalBlocks.jl")
 using .FourPointBlocksSphere
-export FourPointBlockSphere, block
+export FourPointBlockSphere
+export block_chiral, block_non_chiral
 
 using .OnePointBlocksTorus
 export OnePointBlockTorus
 
-#===========================================================================================
-Special functions
-===========================================================================================#
-include("SpecialFunctions.jl")
-using ._SpecialFunctions
-export Barnes_G, log_double_Gamma, double_Gamma
-
-
 end
+#+end_src
+
+** The ~SpecialFunctions~ module
+:PROPERTIES:
+:header-args:julia: :tangle ./src/SpecialFunctions.jl
+:END:
+
+*** Header
+
+#+begin_src julia
+#==================
+
+SpecialFunctions.jl computes the special functions relevant for our applications in 2D CFT.
+
+==================#
+
+module SpecialFunctions
+
+using SpecialFunctions # external Julia package (the module name is the same but there is no domain conflict)
+using Memoization
+using ArbNumerics # the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}
+using QuadGK # numerical integration
+
+export digamma_reg, Barnes_G, log_double_Gamma, double_Gamma
+
+function log_Γ(z)
+    return Complex{BigFloat}(lgamma(ArbComplex(z)))
+end
+
+function Γ(z)
+    return Complex{BigFloat}(gamma(ArbComplex(z)))
+end
+
+function ψ(z)
+    return Complex{BigFloat}(digamma(ArbComplex(z)))
+end
+
+function trigamma(z)
+    return Complex{BigFloat}(polygamma(ArbComplex(1), ArbComplex(z)))
+end
+
+function polyΓ(n, z)
+    return Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z)))
+end
+#+end_src
+
+*** Regularized digamma Function
+
+#+begin_src julia
+"""Regularised digamma function"""
+function digamma_reg(z)
+    if real(z) > 0
+        return ψ(z)
+    elseif imag(z) == 0 && real(z)%1 == 0
+        return ψ(1-z)
+    else
+        return ψ(1-z) - big(π)/tan(π*z)
+    end
+end
+#+end_src
+
+*** Double gamma function
+
+The function ~log_Barnes_GN~ is the logarithm of the function [[eqref:eq:Barnes_{GN}][G_N]].
+
+#+begin_src julia
+function integrand_C(x, τ)
+    x = big(x)
+    return exp((1-τ)*x)/(2*sinh(x)*sinh(τ*x)) - exp(-2*x)/(τ*x)*(exp(x)/(2*sinh(x))+1-τ/2)
+end
+
+function modular_C(τ)
+    P = precision(BigFloat, base=10)
+    #temporarily increase precision to avoid artificial divergence around zero
+    setprecision(BigFloat, base=10, Int(floor(1.3*P)))
+    cutoff = big(10^(-P/5)) # to prevent artificial divergence around zero
+    tol = big(10)^P
+    value, error = quadgk(x -> integrand_C(x, τ), cutoff, big(Inf), rtol = tol, order=21)
+    C0 = (2/τ - 3//2 + τ/6)*cutoff + (5//12 - 1/τ + τ/12)*cutoff^2 + (4/(9*τ) - 2//9 + 1//54*τ - 1//270*τ^3)*cutoff^3
+    setprecision(BigFloat, base=10, P)
+    return 1/(2*τ)*log(2*big(π)) - value - C0
+end
+
+function integrand_D(x, τ)
+    x = big(x)
+    return x*exp((1-τ)*x)/(sinh(x)*sinh(τ*x)) - exp(-2*x)/(τ*x)
+end
+
+function modular_D(τ)
+    P = precision(BigFloat, base=10)
+    #temporarily increase precision to avoid artificial divergence around zero
+    setprecision(BigFloat, base=10, Int(floor(1.3*P)))
+    cutoff = big(10^(-P/5)) # to prevent artificial divergence around zero
+    tol = big(10)^P
+    value, error = quadgk( x -> integrand_D(x, τ), big(0), big(Inf), rtol = tol, order=21)
+    setprecision(BigFloat, base=10, P)
+    return value
+end
+
+@memoize function modular_coeff_a(τ)
+    return 1/2*τ*log(big(2)*π*τ) + 1/2*log(τ) - τ*modular_C(τ)
+end
+
+@memoize function modular_coeff_b(τ)
+    return -τ*log(τ) - τ^2*modular_D(τ)
+end
+
+function log_Barnes_GN(N, z, τ)
+    res = 0
+    res += - log(τ) - log_Γ(z)
+    res += modular_coeff_a(τ)*z/τ + modular_coeff_b(τ)*z^2/(2*τ^2)
+    res += sum(log_Γ(m*τ) - log_Γ(z+m*τ) + z*ψ(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
+    return res
+end
+
+@memoize function factorial_big(n)::BigInt
+    return factorial(big(n))
+end
+
+@memoize function polynomial_Pn(n, z, τ)
+    if n == 1
+        return 1//6
+    else
+        term1 = z^(n-1)/factorial_big(n+2)
+        summand(k) = ((1+τ)^(k+2) - 1 - τ^(k+2))/(factorial_big(k+2)*τ) * polynomial_Pn(n-k, z, τ)
+        return term1 - sum(summand(k) for k in 1:n-1)
+    end
+end
+
+function rest_RMN(M, N, z, τ)
+    return sum(factorial_big(k-1)*(-τ)^(-k-1)*polynomial_Pn(k, z, -τ)/N^k for k in 1:M)
+end
+
+"""Numerical approximation of the logarithm of Barne's G-function, up to a given tolerance"""
+function log_Barnes_G(z, τ, tol)
+    z = complex(z)
+    d = -log(tol)/log(10)
+    M = BigInt(floor(0.7*log(10)/log(20)*d))
+    N = 20*M
+    return log_Barnes_GN(N, z, τ) + z^3*rest_RMN(M, N, z, τ)
+end
+
+function Barnes_G(z, τ, tol)
+    return exp(log_Barnes_G(z, τ, tol))
+end
+
+function log_Gamma_2(w, β, tol)
+    β = real(β-1/β) < 0 ? 1/β : β # change β -> 1/β if needed
+    return w/(2*β)*log(big(2)*π) + (w/2*(w-β-1/β)+1)*log(β) - log_Barnes_G(w/β, 1/β^2, tol)
+end
+
+"""
+        log_double_Gamma(w, β, tol)
+
+Compute the logarithm of the double gamma function Γ_β(w, β) with precision tol
+
+"""
+function log_double_Gamma(w, β, tol)
+    return log_Gamma_2(w, β, tol) - log_Gamma_2((β+1/β)/2, β, tol)
+end
+
+"""
+        double_Gamma(w, β, tol)
+
+Compute the double gamma function Γ_β(w, β) with precision tol
+
+"""
+function double_Gamma(w, β, tol)
+    exp(log_double_Gamma(w, β, tol))
+end
+#+end_src
+
+*** End module
+
+#+begin_src julia
+end # end module
 #+end_src
 
 ** The ~CFTData~ module
@@ -1217,7 +1397,7 @@ end # end module
 The module ~FourPointBlocksSphere~ exports
 
 - a struct ~FourPointBlockSphere~ that encapsulates the data needed to compute a 4pt conformal block, namely a channel, four external fields and the field propagating in the channel
-- a function ~block(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)~ which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) as defined in [[*Zamolodchikov's recursion for four-point blocks][this paragraph]].
+- a function ~block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)~ which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) as defined in [[*Zamolodchikov's recursion for four-point blocks][this paragraph]].
 
 *** Header
 
@@ -1238,11 +1418,12 @@ Computation of four-point blocks on the sphere.
 """
 module FourPointBlocksSphere
 
-export FourPointBlockSphere, block
+export FourPointBlockSphere, block_chiral, block_non_chiral
 
-using ..CFTData, ..FourPointCorrelationFunctions#, ..SpecialFunctions
+using ..CFTData, ..FourPointCorrelationFunctions
 using Match, EllipticFunctions, Memoization
 import ..FourPointCorrelationFunctions: permute_ext_fields, Rmn
+import ..JuliVirBootstrap.SpecialFunctions: digamma_reg
 #+end_src
 
 *** Four-point block sphere type
@@ -1319,8 +1500,8 @@ end
 function channel_sign(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
     @match block.channel begin
         "s" => 1
-        "t" => (-1)^(sum(spin.(corr.fields)))
-        "u" => (-1)^(sum(spin.(corr.fields)))
+        "t" => 1 # (-1)^(sum(spin.(corr.fields)))
+        "u" => 1 # (-1)^(sum(spin.(corr.fields)))
     end
 end
 
@@ -1389,18 +1570,22 @@ function ell(corr, r, s)
 
     term1(j) = digamma_reg(-2*βm1P(B, r, j)) + digamma_reg(2*βm1P(B, r, -j))
 
-    term2 = big(4)*π/tan(π*big(s)/B) # I put big(n)*\pi otherwise n*\pi where n is an integer has double precision instead of bigfloat
+    res = -big(4)*π/tan(π*big(s)/B) # I put big(n)*\pi otherwise n*\pi where n is an integer has double precision instead of bigfloat
 
-    term3(j, lr, pm1, pm2, a, b) = digamma_reg(1/2 - (-1)^lr*βm1P(B, r, j) + pm1*βm1P_ext[lr][a] + pm2*βm1P_ext[lr][b])
+    term3(j, lr, pm1, pm2, a, b) = digamma_reg(1/2 + (lr == left ? -1 : 1)*βm1P(B, r, j) + pm1*βm1P_ext[lr][a] + pm2*βm1P_ext[lr][b])
 
-    return -4*sum(term1(j) for j in 1-s:s) - term2 # -
-        sum(term3(j, lr, pm1, pm2, 1, 2) + term3(j, lr, pm1, pm2, 3, 4)
-                        for lr in (left, right) for pm1 in (-1,1) for pm2 in (-1,1)
-                        for j in 1-s:2:s-1)
+    return res + 4*sum(term1(j) for j in 1-s:s) -
+        sum(term3(j, lr, pm1, pm2, a, b)
+                        for pm1 in (-1,1)
+                        for pm2 in (-1,1)
+                        for j in 1-s:2:s-1
+                        for (a,b) in ((1,2), (3, 4))
+                        for lr in (left, right)
+        )
 end
 #+end_src
 
-*** Computation of the block
+*** Computation of the block and its derivative
 
 We compute $H^{\text{der}}_{P}$ as
 
@@ -1516,32 +1701,41 @@ function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointC
     chan = block.channel
     Vchan = block.channelField
 
-    if V.r != 0 || V.s != 0 || spin(Vchan) == 0
+    if Vchan.isKac && (Vchan.r%1 != 0 || Vchan.s%1 != 0 || spin(Vchan) == 0) # non-logarithmic block
 
-        return channelprefactor(block, corr, x) * block_chiral(x, Nmax, block, corr, left) * block_chiral(conj(x), Nmax, block, corr, right)
+        return channel_sign(block, corr, x) * block_chiral(x, Nmax, block, corr, left) * block_chiral(conj(x), Nmax, block, corr, right)
 
-    else # logarithmic block
+    elseif 0 == 1 # accidentally non-logarithmic block
+        return
+    else
+        # logarithmic block
 
         r, s = Vchan.r, Vchan.s
-        c = corr.charge
-        block1 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=s)) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
-        block2 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
 
-        F_Prms = block_chiral(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
-        F_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
-        F_der_Prms = block_chiral(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
-        F_der_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
-        F_reg_Prs = block_chiral(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
-        F_reg_Prs_bar = block_chiral(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
+        if Vchan.r < 0 || Vchan.s < 0
+            error("Trying to compute a logarithmic block with a negative index: r=$(Vchan.r), s=$(Vchan.s) . This goes against the chosen convention")
+        else
+            c = corr.charge
+            block1 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=s)) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
+            block2 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
 
-        R = Rmn(r, s, corr, chan, left)
-        R_bar = Rmn(r, s, corr, chan, right)
+            F_Prms = block_chiral(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
+            F_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
+            F_der_Prms = block_chiral(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
+            F_der_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
+            F_reg_Prs = block_chiral(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
+            F_reg_Prs_bar = block_chiral(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
 
-        term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
-        term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
-        term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
+            R = Rmn(r, s, corr, chan, left) # Vchan["P"][left] = P_(r,s)
+            R_bar = Rmn(r, s, corr, chan, right)
 
-        return channel_sign(block, corr, x)*(term1+term2+term3)
+            term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
+            term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
+            term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
+
+            return F_Prms, F_Prms_bar, F_der_Prms, F_der_Prms_bar, F_reg_Prs, F_reg_Prs_bar
+            # return channel_sign(block, corr, x)*(term1+term2+term3)
+        end
     end
 end
 #+end_src
@@ -1647,182 +1841,6 @@ end
 end # end module
 #+end_src
 
-** The ~SpecialFunctions~ module
-:PROPERTIES:
-:header-args:julia: :tangle ./src/SpecialFunctions.jl
-:END:
-
-*** Header
-
-#+begin_src julia
-#==================
-
-SpecialFunctions.jl computes the special functions relevant for our applications in 2D CFT.
-
-==================#
-
-module _SpecialFunctions
-
-using SpecialFunctions # external Julia package (the module name is the same but there is no domain conflict)
-using Memoization
-using ArbNumerics # the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}
-using QuadGK # numerical integration
-
-export digamma_reg, Barnes_G, log_double_Gamma, double_Gamma
-
-function log_Γ(z)
-    return Complex{BigFloat}(lgamma(ArbComplex(z)))
-end
-
-function Γ(z)
-    return Complex{BigFloat}(gamma(ArbComplex(z)))
-end
-
-function ψ(z)
-    return Complex{BigFloat}(digamma(ArbComplex(z)))
-end
-
-function trigamma(z)
-    return Complex{BigFloat}(polygamma(ArbComplex(1), ArbComplex(z)))
-end
-
-function polyΓ(n, z)
-    return Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z)))
-end
-#+end_src
-
-*** Regularized digamma Function
-
-#+begin_src julia
-"""Regularised digamma function"""
-function digamma_reg(z)
-    if real(z) > 0
-        return ψ(z)
-    elseif imag(z) == 0 && real(z)%1 == 0
-        return ψ(1-z)
-    else
-        return ψ(1-z) - big(π)/tan(π*z)
-    end
-end
-#+end_src
-
-*** Double gamma function
-
-The function ~log_Barnes_GN~ is the logarithm of the function [[eqref:eq:Barnes_{GN}][G_N]].
-
-#+begin_src julia
-function integrand_C(x, τ)
-    x = big(x)
-    return exp((1-τ)*x)/(2*sinh(x)*sinh(τ*x)) - exp(-2*x)/(τ*x)*(exp(x)/(2*sinh(x))+1-τ/2)
-end
-
-function modular_C(τ)
-    P = precision(BigFloat, base=10)
-    #temporarily increase precision to avoid artificial divergence around zero
-    setprecision(BigFloat, base=10, Int(floor(1.3*P)))
-    cutoff = big(10^(-P/5)) # to prevent artificial divergence around zero
-    tol = big(10)^P
-    value, error = quadgk(x -> integrand_C(x, τ), cutoff, big(Inf), rtol = tol, order=21)
-    C0 = (2/τ - 3//2 + τ/6)*cutoff + (5//12 - 1/τ + τ/12)*cutoff^2 + (4/(9*τ) - 2//9 + 1//54*τ - 1//270*τ^3)*cutoff^3
-    setprecision(BigFloat, base=10, P)
-    return 1/(2*τ)*log(2*big(π)) - value - C0
-end
-
-function integrand_D(x, τ)
-    x = big(x)
-    return x*exp((1-τ)*x)/(sinh(x)*sinh(τ*x)) - exp(-2*x)/(τ*x)
-end
-
-function modular_D(τ)
-    P = precision(BigFloat, base=10)
-    #temporarily increase precision to avoid artificial divergence around zero
-    setprecision(BigFloat, base=10, Int(floor(1.3*P)))
-    cutoff = big(10^(-P/5)) # to prevent artificial divergence around zero
-    tol = big(10)^P
-    value, error = quadgk( x -> integrand_D(x, τ), big(0), big(Inf), rtol = tol, order=21)
-    setprecision(BigFloat, base=10, P)
-    return value
-end
-
-@memoize function modular_coeff_a(τ)
-    return 1/2*τ*log(big(2)*π*τ) + 1/2*log(τ) - τ*modular_C(τ)
-end
-
-@memoize function modular_coeff_b(τ)
-    return -τ*log(τ) - τ^2*modular_D(τ)
-end
-
-function log_Barnes_GN(N, z, τ)
-    res = 0
-    res += - log(τ) - log_Γ(z)
-    res += modular_coeff_a(τ)*z/τ + modular_coeff_b(τ)*z^2/(2*τ^2)
-    res += sum(log_Γ(m*τ) - log_Γ(z+m*τ) + z*ψ(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
-    return res
-end
-
-@memoize function factorial_big(n)::BigInt
-    return factorial(big(n))
-end
-
-@memoize function polynomial_Pn(n, z, τ)
-    if n == 1
-        return 1//6
-    else
-        term1 = z^(n-1)/factorial_big(n+2)
-        summand(k) = ((1+τ)^(k+2) - 1 - τ^(k+2))/(factorial_big(k+2)*τ) * polynomial_Pn(n-k, z, τ)
-        return term1 - sum(summand(k) for k in 1:n-1)
-    end
-end
-
-function rest_RMN(M, N, z, τ)
-    return sum(factorial_big(k-1)*(-τ)^(-k-1)*polynomial_Pn(k, z, -τ)/N^k for k in 1:M)
-end
-
-"""Numerical approximation of the logarithm of Barne's G-function, up to a given tolerance"""
-function log_Barnes_G(z, τ, tol)
-    z = complex(z)
-    d = -log(tol)/log(10)
-    M = BigInt(floor(0.7*log(10)/log(20)*d))
-    N = 20*M
-    return log_Barnes_GN(N, z, τ) + z^3*rest_RMN(M, N, z, τ)
-end
-
-function Barnes_G(z, τ, tol)
-    return exp(log_Barnes_G(z, τ, tol))
-end
-
-function log_Gamma_2(w, β, tol)
-    β = real(β-1/β) < 0 ? 1/β : β # change β -> 1/β if needed
-    return w/(2*β)*log(big(2)*π) + (w/2*(w-β-1/β)+1)*log(β) - log_Barnes_G(w/β, 1/β^2, tol)
-end
-
-"""
-        log_double_Gamma(w, β, tol)
-
-Compute the logarithm of the double gamma function Γ_β(w, β) with precision tol
-
-"""
-function log_double_Gamma(w, β, tol)
-    return log_Gamma_2(w, β, tol) - log_Gamma_2((β+1/β)/2, β, tol)
-end
-
-"""
-        double_Gamma(w, β, tol)
-
-Compute the double gamma function Γ_β(w, β) with precision tol
-
-"""
-function double_Gamma(w, β, tol)
-    exp(log_double_Gamma(w, β, tol))
-end
-#+end_src
-
-*** End module
-
-#+begin_src julia
-end # end module
-#+end_src
-
 ** Setting-up bootstrap equations
 :PROPERTIES:
 :header-args:julia: :tangle ./src/BootstrapEquations.jl
@@ -1848,7 +1866,7 @@ function evaluate_block(positions, Nmax, corr, block)
 end
 #+end_src
 
-** Unit testing :noeval:
+** Unit testing
 :PROPERTIES:
 :header-args:julia: :tangle ./test/runtests.jl
 :END:
@@ -1922,6 +1940,8 @@ end
 
 *** Four-point blocks
 
+**** Boilerplate
+
 #+begin_src julia
 
 @testset "FourPointBlocks" begin
@@ -1931,6 +1951,11 @@ end
 
     import JuliVirBootstrap.FourPointBlocksSphere.qfromx
 
+#+end_src
+
+**** Series $H$
+
+#+begin_src julia
     c_sphere = CentralCharge("b", (1.2+.1*1im)/sqrt(2))
 
     q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
@@ -1950,6 +1975,11 @@ end
     @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol=1e-8) # value from Sylvain's code
 
 
+#+end_src
+
+**** Prefactors, change of channel
+
+#+begin_src julia
     setprecision(BigFloat, 64)
 
     c = CentralCharge("β", big(1.2+.1*1im));
@@ -1968,14 +1998,85 @@ end
     x=0.05
 
     # comparing to values from Sylvain's code
-    @test isapprox(JuliVirBootstrap.FourPointBlocksSphere.block_chiral(x, 6, bl_s, corr, left), 2337.4038141240320199350204984981259378760811288542 + 4771.3912725970751669197262259253749217475400016186im, rtol = 1e-10)
-    @test isapprox(JuliVirBootstrap.FourPointBlocksSphere.block_chiral(x, 6, bl_t, corr, left), 52191.790807047848992452669811987274395806031692488 - 140430.98553278617162374003412214159828722759436549im,rtol = 1e-10)
-    @test isapprox(JuliVirBootstrap.FourPointBlocksSphere.block_chiral(x, 6, bl_u, corr, left), 852.92814340196565010929995606986011067184449511918 + 359.96303529282323934093142050535102602840290239155im, rtol = 1e-10)
+    @test isapprox(block_chiral(x, 6, bl_s, corr, left), 2337.4038141240320199350204984981259378760811288542 + 4771.3912725970751669197262259253749217475400016186im, rtol = 1e-10)
+    @test isapprox(block_chiral(x, 6, bl_t, corr, left), 52191.790807047848992452669811987274395806031692488 - 140430.98553278617162374003412214159828722759436549im,rtol = 1e-10)
+    @test isapprox(block_chiral(x, 6, bl_u, corr, left), 852.92814340196565010929995606986011067184449511918 + 359.96303529282323934093142050535102602840290239155im, rtol = 1e-10)
+#+end_src
+
+**** Asymptotics
+
+#+begin_src julia
+    setprecision(BigFloat, 64)
+    left = 1
+    right = 2
+
+    c = CentralCharge("β", 1.2 + .1im)
+    V1 = Field(c, Kac=true, r=1//2, s=0)
+    V2 = Field(c, Kac=true, r=3//2, s=2//3)
+
+    corr = FourPointCorrelation(c, [V1, V1, V2, V1])
+    block_s = FourPointBlockSphere("s", V1)
+    block_t = FourPointBlockSphere("t", V1)
+
+    z = 1e-8 + 1e-10im
+    Δ = V1["Δ"][left]
+
+    @test abs(1-block_non_chiral(z, 12, block_s, corr)*z^Δ*conj(z)^Δ) < 1e-5
+    @test abs(1-block_non_chiral(1-z, 12, block_t, corr)*z^Δ*conj(z)^Δ) < 1e-5 # both blocks are close to one
+
+#+end_src
+
+**** Derivative
+
+#+begin_src julia
+    setprecision(BigFloat, 128)
+
+    c = CentralCharge("β", big(1.2 + .1im))
+    V1 = Field(c, Kac=true, r=1//2, s=0)
+    V2 = Field(c, Kac=true, r=3//2, s=2//3)
+
+    ϵ = 1e-8
+    V = Field(c, "P", 0.5, diagonal=true)
+    Vshifted = Field(c, "P", 0.5+ϵ, diagonal=true)
+
+    corr = FourPointCorrelation(c, [V1, V1, V2, V1])
+    block = FourPointBlockSphere("s", V)
+    block_shifted = FourPointBlockSphere("s", Vshifted)
+
+    block_der = block_chiral(z, 12, block, corr, left, der=true)
+    block_der_manual = (block_chiral(z, 12, block_shifted, corr, left) - block_chiral(z, 12, block, corr, left))/ϵ
+
+    @test abs(block_der - block_der_manual) < 1e-6
+#+end_src
+
+**** Logarithmic blocks
+
+#+begin_src julia
+    c = CentralCharge("β", big(.8 + .1im))
+    V1 = Field(c, Kac=true, r=1, s=1)
+    V2 = Field(c, Kac=true, r=1, s=1)
+    V3 = Field(c, Kac=true, r=0, s=1//2)
+    V4 = Field(c, Kac=true, r=0, s=3//2)
+    VΔ = Field(c, "Δ", 0.5)
+
+    corr = FourPointCorrelation(c, [V1, V2, V3, V4])
+    corrΔ = FourPointCorrelation(c, [V1, V2, V3, VΔ])
+
+    ell = JuliVirBootstrap.FourPointBlocksSphere.ell(corr, 2, 1)
+    ellΔ = JuliVirBootstrap.FourPointBlocksSphere.ell(corrΔ, 2, 1)
+
+    # When all fields are degenerate
+    @test  isapprox(ell, 8.2808044631395529307 - 9.7096599503345083802im, rtol = 1e-8) # comparing with Sylvain's code
+    # When not all fields are degenerate
+    @test isapprox(ellΔ, 7.1885139869993229128 - 2.7060116937125697101im, rtol = 1e-8) # comparing with Sylvain's code
+
 
 end
 #+end_src
 
 *** One-point blocks
+
+**** Comparing against sphere four-point blocks
 
 #+begin_src julia
 @testset "OnePointBlocks" begin
@@ -2015,7 +2116,7 @@ end
 end
 #+end_src
 
-** Development tests :noeval:
+** Development tests
 :PROPERTIES:
 :header-args:julia: :tangle ./test/devtests.jl :session test
 :END:

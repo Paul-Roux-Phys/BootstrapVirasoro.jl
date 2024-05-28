@@ -8,11 +8,20 @@ Nivesvivat
 module JuliVirBootstrap
 
 #===========================================================================================
+Special functions
+===========================================================================================#
+include("SpecialFunctions.jl")
+using .SpecialFunctions
+export Barnes_G
+export log_double_Gamma, double_Gamma
+
+#===========================================================================================
 Central charges and fields
 ===========================================================================================#
 include("CFTData.jl")
 using .CFTData
-export CentralCharge, Field
+export CentralCharge
+export Field
 
 #===========================================================================================
 Correlation functions
@@ -29,17 +38,10 @@ Conformal blocks
 ===========================================================================================#
 include("ConformalBlocks.jl")
 using .FourPointBlocksSphere
-export FourPointBlockSphere, block
+export FourPointBlockSphere
+export block_chiral, block_non_chiral
 
 using .OnePointBlocksTorus
 export OnePointBlockTorus
-
-#===========================================================================================
-Special functions
-===========================================================================================#
-include("SpecialFunctions.jl")
-using ._SpecialFunctions
-export Barnes_G, log_double_Gamma, double_Gamma
-
 
 end

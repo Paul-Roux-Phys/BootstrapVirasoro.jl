@@ -4,7 +4,7 @@ SpecialFunctions.jl computes the special functions relevant for our applications
 
 ==================#
 
-module _SpecialFunctions
+module SpecialFunctions
 
 using SpecialFunctions # external Julia package (the module name is the same but there is no domain conflict)
 using Memoization

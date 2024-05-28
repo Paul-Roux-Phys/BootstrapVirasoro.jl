@@ -14,11 +14,12 @@ Computation of four-point blocks on the sphere.
 """
 module FourPointBlocksSphere
 
-export FourPointBlockSphere, block
+export FourPointBlockSphere, block_chiral, block_non_chiral
 
-using ..CFTData, ..FourPointCorrelationFunctions#, ..SpecialFunctions
+using ..CFTData, ..FourPointCorrelationFunctions
 using Match, EllipticFunctions, Memoization
 import ..FourPointCorrelationFunctions: permute_ext_fields, Rmn
+import ..JuliVirBootstrap.SpecialFunctions: digamma_reg
 
 #===========================================================================================
 Struct FourPointBlockSphere
@@ -85,8 +86,8 @@ end
 function channel_sign(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
     @match block.channel begin
         "s" => 1
-        "t" => (-1)^(sum(spin.(corr.fields)))
-        "u" => (-1)^(sum(spin.(corr.fields)))
+        "t" => 1 # (-1)^(sum(spin.(corr.fields)))
+        "u" => 1 # (-1)^(sum(spin.(corr.fields)))
     end
 end
 
@@ -134,14 +135,18 @@ function ell(corr, r, s)
 
     term1(j) = digamma_reg(-2*βm1P(B, r, j)) + digamma_reg(2*βm1P(B, r, -j))
 
-    term2 = big(4)*π/tan(π*big(s)/B) # I put big(n)*\pi otherwise n*\pi where n is an integer has double precision instead of bigfloat
+    res = -big(4)*π/tan(π*big(s)/B) # I put big(n)*\pi otherwise n*\pi where n is an integer has double precision instead of bigfloat
 
-    term3(j, lr, pm1, pm2, a, b) = digamma_reg(1/2 - (-1)^lr*βm1P(B, r, j) + pm1*βm1P_ext[lr][a] + pm2*βm1P_ext[lr][b])
+    term3(j, lr, pm1, pm2, a, b) = digamma_reg(1/2 + (lr == left ? -1 : 1)*βm1P(B, r, j) + pm1*βm1P_ext[lr][a] + pm2*βm1P_ext[lr][b])
 
-    return -4*sum(term1(j) for j in 1-s:s) - term2 # -
-        sum(term3(j, lr, pm1, pm2, 1, 2) + term3(j, lr, pm1, pm2, 3, 4)
-                        for lr in (left, right) for pm1 in (-1,1) for pm2 in (-1,1)
-                        for j in 1-s:2:s-1)
+    return res + 4*sum(term1(j) for j in 1-s:s) -
+        sum(term3(j, lr, pm1, pm2, a, b)
+                        for pm1 in (-1,1)
+                        for pm2 in (-1,1)
+                        for j in 1-s:2:s-1
+                        for (a,b) in ((1,2), (3, 4))
+                        for lr in (left, right)
+        )
 end
 
 #===========================================================================================
@@ -249,32 +254,41 @@ function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointC
     chan = block.channel
     Vchan = block.channelField
 
-    if V.r != 0 || V.s != 0 || spin(Vchan) == 0
+    if Vchan.isKac && (Vchan.r%1 != 0 || Vchan.s%1 != 0 || spin(Vchan) == 0) # non-logarithmic block
 
-        return channelprefactor(block, corr, x) * block_chiral(x, Nmax, block, corr, left) * block_chiral(conj(x), Nmax, block, corr, right)
+        return channel_sign(block, corr, x) * block_chiral(x, Nmax, block, corr, left) * block_chiral(conj(x), Nmax, block, corr, right)
 
-    else # logarithmic block
+    elseif 0 == 1 # accidentally non-logarithmic block
+        return
+    else
+        # logarithmic block
 
         r, s = Vchan.r, Vchan.s
-        c = corr.charge
-        block1 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=s)) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
-        block2 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
 
-        F_Prms = block_chiral(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
-        F_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
-        F_der_Prms = block_chiral(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
-        F_der_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
-        F_reg_Prs = block_chiral(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
-        F_reg_Prs_bar = block_chiral(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
+        if Vchan.r < 0 || Vchan.s < 0
+            error("Trying to compute a logarithmic block with a negative index: r=$(Vchan.r), s=$(Vchan.s) . This goes against the chosen convention")
+        else
+            c = corr.charge
+            block1 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=s)) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
+            block2 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
 
-        R = Rmn(r, s, corr, chan, left)
-        R_bar = Rmn(r, s, corr, chan, right)
+            F_Prms = block_chiral(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
+            F_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
+            F_der_Prms = block_chiral(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
+            F_der_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
+            F_reg_Prs = block_chiral(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
+            F_reg_Prs_bar = block_chiral(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
 
-        term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
-        term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
-        term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
+            R = Rmn(r, s, corr, chan, left) # Vchan["P"][left] = P_(r,s)
+            R_bar = Rmn(r, s, corr, chan, right)
 
-        return channel_sign(block, corr, x)*(term1+term2+term3)
+            term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
+            term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
+            term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
+
+            return F_Prms, F_Prms_bar, F_der_Prms, F_der_Prms_bar, F_reg_Prs, F_reg_Prs_bar
+            # return channel_sign(block, corr, x)*(term1+term2+term3)
+        end
     end
 end
 
