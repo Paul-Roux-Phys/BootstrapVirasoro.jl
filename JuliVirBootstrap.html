@@ -3,7 +3,7 @@
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
-<!-- 2024-05-23 Thu 10:58 -->
+<!-- 2024-05-29 Wed 17:57 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>JuliVirBootstrap Documentation</title>
@@ -55,92 +55,94 @@
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
 <ul>
-<li><a href="#org2786aaf">1. Overview</a></li>
-<li><a href="#orgb684f5f">2. Conformal bootstrap equations in 2D</a>
+<li><a href="#org81f843e">1. Overview</a></li>
+<li><a href="#orgdc53dff">2. Conformal bootstrap in 2D</a>
 <ul>
-<li><a href="#org758ced4">2.1. Notations, parametrisations</a>
+<li><a href="#orge37bfdb">2.1. Notations, parametrisations</a>
 <ul>
-<li><a href="#org6296e63">Central charge</a></li>
-<li><a href="#org962c02c">Fields</a></li>
+<li><a href="#org5a2ec5d">Central charge</a></li>
+<li><a href="#org9ae9291">Fields</a></li>
 </ul>
 </li>
-<li><a href="#org18de324">2.2. Special functions</a>
+<li><a href="#org03d8ad3">2.2. Special functions</a>
 <ul>
-<li><a href="#org52ac2e1">Digamma function</a></li>
-<li><a href="#org70debaf">Barne&rsquo;s G-function and the double Gamma function</a></li>
+<li><a href="#orgfd96cae">Digamma function</a></li>
+<li><a href="#orge716475">Barne&rsquo;s G-function and the double Gamma function</a></li>
 </ul>
 </li>
-<li><a href="#org3774f4b">2.3. Four point functions on the sphere</a>
+<li><a href="#org00a51a6">2.3. Four point functions on the sphere</a>
 <ul>
-<li><a href="#org8bc65d5">Zamolodchikov&rsquo;s recursion for four-point blocks</a></li>
+<li><a href="#org6915322">Chiral and non chiral blocks</a></li>
+<li><a href="#org56406a3">Zamolodchikov&rsquo;s recursion for four-point blocks</a></li>
 </ul>
 </li>
-<li><a href="#orgaa20d4a">2.4. One point functions on the torus</a>
+<li><a href="#orgabc2488">2.4. One point functions on the torus</a>
 <ul>
-<li><a href="#orgc0d07db">Zamolodchikov&rsquo;s recursion for torus one-point blocks</a></li>
+<li><a href="#org1ef6e83">Chiral and non-chiral blocks</a></li>
+<li><a href="#org03d7823">Zamolodchikov&rsquo;s recursion for torus one-point blocks</a></li>
 </ul>
 </li>
-<li><a href="#orgc306b26">2.5. Logarithmic blocks</a>
+<li><a href="#orgf4cd3ac">2.5. Logarithmic blocks</a>
 <ul>
-<li><a href="#org859f487">Logarithmic modules</a></li>
-<li><a href="#org8e61bae">Logarithmic blocks on the sphere</a></li>
-<li><a href="#org6a44d9f">Logarithmic blocks on the torus</a></li>
+<li><a href="#org0de5533">Logarithmic modules</a></li>
+<li><a href="#orgb7d43e1">Logarithmic blocks on the sphere</a></li>
+<li><a href="#org67f9e41">Logarithmic blocks on the torus</a></li>
 </ul>
 </li>
-<li><a href="#org9b26eff">2.6. Relation between sphere four-point blocks and torus one-point blocks</a></li>
-<li><a href="#org5df7ec8">2.7. Crossing symmetry for four-point functions on the sphere</a></li>
-<li><a href="#org242b659">2.8. Modular invariance for one-point functions on the torus</a></li>
+<li><a href="#org9c6b3dc">2.6. Relation between sphere four-point blocks and torus one-point blocks</a></li>
+<li><a href="#org5d5c06a">2.7. Crossing symmetry for four-point functions on the sphere</a></li>
+<li><a href="#orgbc0f5f5">2.8. Modular invariance for one-point functions on the torus</a></li>
 </ul>
 </li>
-<li><a href="#orgee2ca5f">3. Code of the package</a>
+<li><a href="#orgf82046b">3. Code of the package&#xa0;&#xa0;&#xa0;<span class="tag"><span class="noeval">noeval</span></span></a>
 <ul>
-<li><a href="#org889500f">3.1. Main module</a></li>
-<li><a href="#org4c5c07a">3.2. The <code>CFTData</code> module</a>
+<li><a href="#orgac21e35">3.1. Main module</a></li>
+<li><a href="#org512f025">3.2. The <code>SpecialFunctions</code> module</a>
 <ul>
-<li><a href="#orgdecdee6">Header</a></li>
-<li><a href="#org93f302e">Central charge</a></li>
-<li><a href="#org874220f">Fields</a></li>
-<li><a href="#org16a888d">End of module</a></li>
+<li><a href="#org4b4865f">Header</a></li>
+<li><a href="#org3d6b443">Regularized digamma Function</a></li>
+<li><a href="#orgba64e7e">Double gamma function</a></li>
+<li><a href="#org70952d2">End module</a></li>
 </ul>
 </li>
-<li><a href="#org426d95d">3.3. The <code>FourPointCorrelationFunctions</code> module</a></li>
-<li><a href="#org37cb8be">3.4. The <code>OnePointCorrelationFunctions</code> module</a></li>
-<li><a href="#org79944b5">3.5. The <code>FourPointBlocksSphere</code> module</a>
+<li><a href="#orgca34a3b">3.3. The <code>CFTData</code> module</a>
 <ul>
-<li><a href="#org3c1abca">Header</a></li>
-<li><a href="#orgf0f8336">Four-point block sphere type</a></li>
-<li><a href="#orgfb8fed6">Change of channel</a></li>
-<li><a href="#org9a3bda5">Prefactors, elliptic nome</a></li>
-<li><a href="#org13275e2">Logarithmic blocks</a></li>
-<li><a href="#org54f7ae3">Computation of the block</a></li>
-<li><a href="#org5dd3d03">End of module</a></li>
+<li><a href="#org2ecb042">Header</a></li>
+<li><a href="#orga97708a">Central charge</a></li>
+<li><a href="#org25ee030">Fields</a></li>
+<li><a href="#org4b80e3a">End of module</a></li>
 </ul>
 </li>
-<li><a href="#org4bbb7ab">3.6. The <code>OnePointBlocksTorus</code> module</a></li>
-<li><a href="#orged8c34a">3.7. The <code>SpecialFunctions</code> module</a>
+<li><a href="#org12fb3fd">3.4. The <code>FourPointCorrelationFunctions</code> module</a></li>
+<li><a href="#orgb051295">3.5. The <code>OnePointCorrelationFunctions</code> module</a></li>
+<li><a href="#orge04777d">3.6. The <code>FourPointBlocksSphere</code> module</a>
 <ul>
-<li><a href="#orge2e1cf4">Header</a></li>
-<li><a href="#orgfab412f">Regularized digamma Function</a></li>
-<li><a href="#org42b328b">Double gamma function</a></li>
-<li><a href="#org2a712e8">End module</a></li>
+<li><a href="#org0b7ed2c">Header</a></li>
+<li><a href="#orgdc66d51">Four-point block sphere type</a></li>
+<li><a href="#orgaabfbc0">Change of channel</a></li>
+<li><a href="#org003f346">Prefactors, elliptic nome</a></li>
+<li><a href="#orgf8e4054">Logarithmic structure constant \(\ell\)</a></li>
+<li><a href="#orgfbdcf3a">Computation of the block</a></li>
+<li><a href="#orgae47a8e">End of module</a></li>
 </ul>
 </li>
-<li><a href="#org8bab7f6">3.8. Setting-up bootstrap equations</a>
+<li><a href="#org877bf72">3.7. The <code>OnePointBlocksTorus</code> module</a></li>
+<li><a href="#org05665c5">3.8. Setting-up bootstrap equations</a>
 <ul>
-<li><a href="#orgd6484ab">Multithreading</a></li>
+<li><a href="#org4c9c8ba">Multithreading</a></li>
 </ul>
 </li>
-<li><a href="#org01654b5">3.9. Unit testing</a>
+<li><a href="#orgbda0087">3.9. Unit testing</a>
 <ul>
-<li><a href="#org6d37b2b">CFTData</a></li>
-<li><a href="#org6d0799a">Four-point correlation functions</a></li>
-<li><a href="#orgc1928bc">Four-point blocks</a></li>
+<li><a href="#org55e1352">CFTData</a></li>
+<li><a href="#org43885f9">Four-point correlation functions</a></li>
+<li><a href="#orga180261">Four-point blocks</a></li>
+<li><a href="#org77466ce">One-point blocks</a></li>
 </ul>
 </li>
-<li><a href="#org9bbd4ad">3.10. Development tests&#xa0;&#xa0;&#xa0;<span class="tag"><span class="noeval">noeval</span></span></a>
+<li><a href="#org008c9d3">3.10. Development tests</a>
 <ul>
-<li><a href="#org951ffc4">Relation between four-point blocks on the sphere and one-point blocks on the torus</a></li>
-<li><a href="#org215da83">G function</a></li>
+<li><a href="#org807b53d">Relation between four-point blocks on the sphere and one-point blocks on the torus</a></li>
 </ul>
 </li>
 </ul>
@@ -148,8 +150,8 @@
 </ul>
 </div>
 </div>
-<div id="outline-container-org2786aaf" class="outline-2">
-<h2 id="org2786aaf"><span class="section-number-2">1.</span> Overview</h2>
+<div id="outline-container-org81f843e" class="outline-2">
+<h2 id="org81f843e"><span class="section-number-2">1.</span> Overview</h2>
 <div class="outline-text-2" id="text-1">
 <p>
 This document contains a program for performing conformal bootstrap computations in 2D loop models.
@@ -160,20 +162,20 @@ The program relies on the assumption that the spectrum of the model contains deg
 </p>
 </div>
 <ul class="org-ul">
-<li><a id="org872ce0a"></a>TODO: remember to cite <a href="https://arxiv.org/abs/2105.03949">arXiv:2105.03949</a> for Julia Symbolics<br /></li>
+<li><a id="org35a61c5"></a>TODO: remember to cite <a href="https://arxiv.org/abs/2105.03949">arXiv:2105.03949</a> for Julia Symbolics<br /></li>
 </ul>
 </div>
-<div id="outline-container-orgb684f5f" class="outline-2">
-<h2 id="orgb684f5f"><span class="section-number-2">2.</span> Conformal bootstrap equations in 2D</h2>
+<div id="outline-container-orgdc53dff" class="outline-2">
+<h2 id="orgdc53dff"><span class="section-number-2">2.</span> Conformal bootstrap in 2D</h2>
 <div class="outline-text-2" id="text-2">
 </div>
-<div id="outline-container-org758ced4" class="outline-3">
-<h3 id="org758ced4"><span class="section-number-3">2.1.</span> Notations, parametrisations</h3>
+<div id="outline-container-orge37bfdb" class="outline-3">
+<h3 id="orge37bfdb"><span class="section-number-3">2.1.</span> Notations, parametrisations</h3>
 <div class="outline-text-3" id="text-2-1">
 </div>
-<div id="outline-container-org6296e63" class="outline-4">
-<h4 id="org6296e63">Central charge</h4>
-<div class="outline-text-4" id="text-org6296e63">
+<div id="outline-container-org5a2ec5d" class="outline-4">
+<h4 id="org5a2ec5d">Central charge</h4>
+<div class="outline-text-4" id="text-org5a2ec5d">
 <p>
 We parametrise the central charge of our theories in terms of variables \(B\), \(b\) or \(\beta\) related by
 </p>
@@ -181,40 +183,36 @@ We parametrise the central charge of our theories in terms of variables \(B\), \
 <p>
 \[c = 13 + 6B + 6 B^{-1} \quad , \quad B = b^2 = -\beta^2, \quad B = \frac{c-13 \pm \sqrt{(c-1)(c-25)}}{12}\]
 </p>
+
+<p>
+By convention we keep
+</p>
 </div>
 </div>
-<div id="outline-container-org962c02c" class="outline-4">
-<h4 id="org962c02c">Fields</h4>
-<div class="outline-text-4" id="text-org962c02c">
+<div id="outline-container-org9ae9291" class="outline-4">
+<h4 id="org9ae9291">Fields</h4>
+<div class="outline-text-4" id="text-org9ae9291">
 <p>
 We parametrise the conformal dimensions \((\Delta, \bar\Delta)\) of fields in terms of variables \(P, p, \delta\), related by
 </p>
 
 <p>
 \[
-\Delta = \frac{c-1}{24} + \delta  \quad , \quad \delta = -P^2 = p^2
+\Delta = \frac{c-1}{24} + \delta  \quad , \quad \delta = P^2 = -p^2
 \]
 </p>
 
 <p>
-The variable \(P\) is called the momentum. Moreover, we introduce the following parametrisation of dimensions in terms of Kac indices \(r, s\):
+The variable \(P\) is called the momentum. By convention, we always keep \(P=ip\).Moreover, we introduce the following parametrisation of dimensions in terms of Kac indices \(r, s\):
 </p>
 
 <p>
-\[P_{(r,s)}=\frac{1}{2}(b r + b^{-1}s)\]
-</p>
-
-<p>
-Or equivalently
-</p>
-
-<p>
-\[p_{(r,s)} = -\frac{1}{2} (\beta r - \beta^{-1}s)\]
+\[P_{(r,s)}=\frac{1}{2}(\beta r - \beta^{-1}s)\]
 </p>
 
 <p>
 where \(r,s\) are arbitrary numbers. We say the field is degenerate if \(r,s\in \mathbb Z\) and \(rs > 0\).
-This convention is consistent with the one in <a href="https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git">Sylvain&rsquo;s code</a>.
+This convention is different from the one in <a href="https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git">Sylvain&rsquo;s code</a>, but similar to our more recent conventions, such as in <a href="https://github.com/ribault/CFT-Review">Sylvain&rsquo;s review on solvable CFTs</a>.
 </p>
 
 <p>
@@ -223,16 +221,16 @@ In loop models, we denote \(V_{(r,s)}\) a non-diagonal field of left and right m
 </div>
 </div>
 </div>
-<div id="outline-container-org18de324" class="outline-3">
-<h3 id="org18de324"><span class="section-number-3">2.2.</span> Special functions</h3>
+<div id="outline-container-org03d8ad3" class="outline-3">
+<h3 id="org03d8ad3"><span class="section-number-3">2.2.</span> Special functions</h3>
 <div class="outline-text-3" id="text-2-2">
 <p>
 Expressions of correlation functions in CFT involve special functions. In this paragraph we introduce some representations and regularisations of special functions.
 </p>
 </div>
-<div id="outline-container-org52ac2e1" class="outline-4">
-<h4 id="org52ac2e1">Digamma function</h4>
-<div class="outline-text-4" id="text-org52ac2e1">
+<div id="outline-container-orgfd96cae" class="outline-4">
+<h4 id="orgfd96cae">Digamma function</h4>
+<div class="outline-text-4" id="text-orgfd96cae">
 <p>
 The digamma function is defined for as
 </p>
@@ -258,9 +256,9 @@ which means we use the regularization
 \end{align}
 </div>
 </div>
-<div id="outline-container-org70debaf" class="outline-4">
-<h4 id="org70debaf">Barne&rsquo;s G-function and the double Gamma function</h4>
-<div class="outline-text-4" id="text-org70debaf">
+<div id="outline-container-orge716475" class="outline-4">
+<h4 id="orge716475">Barne&rsquo;s G-function and the double Gamma function</h4>
+<div class="outline-text-4" id="text-orge716475">
 <p>
 We need to compute the double Gamma function defined by the relations
 </p>
@@ -369,11 +367,15 @@ Up to logarithmic factors, the computation time is of order \(d^2\), whereas it 
 </div>
 </div>
 </div>
-<div id="outline-container-org3774f4b" class="outline-3">
-<h3 id="org3774f4b"><span class="section-number-3">2.3.</span> Four point functions on the sphere</h3>
+<div id="outline-container-org00a51a6" class="outline-3">
+<h3 id="org00a51a6"><span class="section-number-3">2.3.</span> Four point functions on the sphere</h3>
 <div class="outline-text-3" id="text-2-3">
+</div>
+<div id="outline-container-org6915322" class="outline-4">
+<h4 id="org6915322">Chiral and non chiral blocks</h4>
+<div class="outline-text-4" id="text-org6915322">
 <p>
-Because of conformal invariance, computation of any four-point correlation function reduces to the computation of
+Because of conformal invariance, computation of any four-point correlation function on the sphere reduces to the computation of
 </p>
 
 <p>
@@ -388,7 +390,7 @@ Four-point correlation functions can be written in terms of Virasoro blocks as
   \mathcal G(x) = \sum_{k \in \mathcal S} \frac{C_{12k} C_{k34}}{B_{k}} \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\end{align}
 
 <p>
-We call \(\mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\) a (non-chiral) conformal block.
+We call \(\mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\) a non-chiral conformal block.
 In the case of a non-logarithmic theory, conformal blocks factorise as
 </p>
 
@@ -434,9 +436,10 @@ Together with the invariance of \(\left\langle \prod_{i=1}^4 V_{\Delta_i}(z_i) \
 where \(S=\Delta-\bar\Delta\) is the conformal spin, which we assume to be integer.
 </p>
 </div>
-<div id="outline-container-org8bc65d5" class="outline-4">
-<h4 id="org8bc65d5">Zamolodchikov&rsquo;s recursion for four-point blocks</h4>
-<div class="outline-text-4" id="text-org8bc65d5">
+</div>
+<div id="outline-container-org56406a3" class="outline-4">
+<h4 id="org56406a3">Zamolodchikov&rsquo;s recursion for four-point blocks</h4>
+<div class="outline-text-4" id="text-org56406a3">
 <p>
 Four-point blocks can be computed efficiently thanks to <a href="https://en.wikipedia.org/wiki/Virasoro_conformal_block">Zamolodchikov&rsquo;s recursion</a>.
 </p>
@@ -524,7 +527,7 @@ We do not actually take square roots, because each factor appears twice, except 
 </p>
 
 \begin{equation}
-\label{org3a56c52}
+\label{orgea43c92}
 D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
 \prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
 \prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2.
@@ -532,9 +535,13 @@ D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
 </div>
 </div>
 </div>
-<div id="outline-container-orgaa20d4a" class="outline-3">
-<h3 id="orgaa20d4a"><span class="section-number-3">2.4.</span> One point functions on the torus</h3>
+<div id="outline-container-orgabc2488" class="outline-3">
+<h3 id="orgabc2488"><span class="section-number-3">2.4.</span> One point functions on the torus</h3>
 <div class="outline-text-3" id="text-2-4">
+</div>
+<div id="outline-container-org1ef6e83" class="outline-4">
+<h4 id="org1ef6e83">Chiral and non-chiral blocks</h4>
+<div class="outline-text-4" id="text-org1ef6e83">
 <p>
 A one-point function on the torus can be written
 </p>
@@ -549,16 +556,17 @@ Because of translation invariance, one-point functions on the torus do not depen
 
 \begin{align}
   \mathcal G(x) &= \sum_{V_{\Delta} \in \mathcal S} < V_{\sigma} | V_{\Delta_{1}}(x) |V_{\sigma}> \\
-                   &= \sum_{V_{\Delta} \in \mathcal S} C_{\Delta \Delta \Delta_{1}} \mathcal G_{\Delta} (\tau, c, \Delta_{1} | x)
+                   &= \sum_{V_{\Delta} \in \mathcal S} \frac{C_{\Delta \Delta \Delta_{1}}}{B_{\Delta}} \mathcal G_{\Delta} (\tau, c, \Delta_{1} | x)
 \end{align}
 
 <p>
-The conformal block \(\mathcal G_\Delta(\tau, c, \Delta_1|x)\) again factorises for non-logarithmic theories, and we write \(\mathcal F_\Delta(\tau, c, \Delta_1 | x)\) the corresponding Virasoro block.
+The conformal block \(\mathcal G_\Delta(\tau, c, \Delta_1|x)\) factorises for non-logarithmic theories, and we write \(\mathcal F_\Delta(\tau, c, \Delta_1 | x)\) the corresponding Virasoro chiral block.
 </p>
 </div>
-<div id="outline-container-orgc0d07db" class="outline-4">
-<h4 id="orgc0d07db">Zamolodchikov&rsquo;s recursion for torus one-point blocks</h4>
-<div class="outline-text-4" id="text-orgc0d07db">
+</div>
+<div id="outline-container-org03d7823" class="outline-4">
+<h4 id="org03d7823">Zamolodchikov&rsquo;s recursion for torus one-point blocks</h4>
+<div class="outline-text-4" id="text-org03d7823">
 <p>
 Like four-point blocks, torus one-point blocks can be computed recursively. We introduce \(H\) defined by
 </p>
@@ -581,7 +589,7 @@ The coefficients \(C_{m,n}^{N,\text{torus}}\) have the recursive representation
 </p>
 
 \begin{equation}
-\label{orgf93f034}
+\label{org58f80fe}
 C^{N,\text{torus}}_{m,n} = R^{\text{torus}}_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
 \end{equation}
 
@@ -596,28 +604,28 @@ R_{m,n}^{\text{torus}} = \frac{1}{2 D_{m,n}} \prod_{r\overset2=1-2m}^{2m-1} \pro
 </p>
 
 <p>
-where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the \eqref{org3a56c52} case <a href="Dmn">Dmn</a>
+where we do not actually take square roots, because each factor appears twice. The normalization factor is the same \(D_{m,n}\) as in the \eqref{orgea43c92} case <a href="Dmn">Dmn</a>
 </p>
 </div>
 </div>
 </div>
-<div id="outline-container-orgc306b26" class="outline-3">
-<h3 id="orgc306b26"><span class="section-number-3">2.5.</span> Logarithmic blocks</h3>
+<div id="outline-container-orgf4cd3ac" class="outline-3">
+<h3 id="orgf4cd3ac"><span class="section-number-3">2.5.</span> Logarithmic blocks</h3>
 <div class="outline-text-3" id="text-2-5">
 <p>
 See <a href="https://arxiv.org/abs/2007.04190">this paper</a> for more detail (<a href="file:///Users/Paul/Downloads/log_CFT_ribault_nivesvivat.pdf">here</a> on my laptop).
 </p>
 </div>
-<div id="outline-container-org859f487" class="outline-4">
-<h4 id="org859f487">Logarithmic modules</h4>
-<div class="outline-text-4" id="text-org859f487">
+<div id="outline-container-org0de5533" class="outline-4">
+<h4 id="org0de5533">Logarithmic modules</h4>
+<div class="outline-text-4" id="text-org0de5533">
 <p>
 In loop models the action of \(L_0\) is not diagonalisable, said otherwise some of the modules are logarithmic.
 The structure of a logarithmic module \(\mathcal W^\kappa_{(r,s)}\) is the following:
 </p>
 
 
-<div id="org2186cd4" class="figure">
+<div id="orga511a63" class="figure">
 <p><img src="./imgs/logarithmic_module.png" alt="logarithmic_module.png" />
 </p>
 </div>
@@ -643,9 +651,9 @@ to be finite.
 </p>
 </div>
 </div>
-<div id="outline-container-org8e61bae" class="outline-4">
-<h4 id="org8e61bae">Logarithmic blocks on the sphere</h4>
-<div class="outline-text-4" id="text-org8e61bae">
+<div id="outline-container-orgb7d43e1" class="outline-4">
+<h4 id="orgb7d43e1">Logarithmic blocks on the sphere</h4>
+<div class="outline-text-4" id="text-orgb7d43e1">
 <p>
 The expression of logarithmic four-point blocks on the sphere can be found by assuming the holomorphicity of the 4-point function
 </p>
@@ -655,7 +663,7 @@ The expression of logarithmic four-point blocks on the sphere can be found by as
 \end{align}
 
 <p>
-(see the <a href="file:///Users/Paul/Documents/Cours suivis/Sylvain CFT review/CFT-Review/solvable.pdf">solvable.pdf</a> file on <a href="https://github.com/ribault/CFT-Review">GitHub</a>).
+(argument made by Sylvain in the <a href="file:///Users/Paul/Documents/Cours suivis/Sylvain CFT review/CFT-Review/solvable.pdf">solvable.pdf</a> file on <a href="https://github.com/ribault/CFT-Review">GitHub</a>).
 </p>
 
 <p>
@@ -679,7 +687,7 @@ where the prefactor is the prefactor in Zamolodchikov&rsquo;s recursion, and
 </p>
 
 \begin{align}
-  H^{\text{reg}}_{P_{(r,s)}} = 1 + \sum_{m,n} \left( \frac{1}{P^{2}_{(r,s)} - P^{2}_{(m,n)}} \right)^{\text{reg}} (16q)^{mn} R_{m,n} H_{P_{m,-n}}
+  H^{\text{reg}}_{P_{(r,s)}} = 1 + \sum_{m,n} \left( \frac{1}{P^{2}_{(r,s)} - P^{2}_{(m,n)}} \right)^{\text{reg}} (16q)^{mn} R_{m,n} H_{P_{(m,-n)}}
 \end{align}
 
 <p>
@@ -699,8 +707,8 @@ and
 Analysing the poles of this expression (there are double poles and simple ones), one arrives at the following expression for the logarithmic blocks: for \((r, s) \in \mathbb{N}^{*}\),
 </p>
 
-\begin{align}
-\mathcal{G}_{(r,s)} = (\mathcal{F}_{P_{(r,s)}}^{\text{reg}} - R_{r,s}& \mathcal{F}^{'}_{P_{(r,-s)}}) \bar{\mathcal{F}}_{P_{(r,-s)}} + \frac{R_{r,s}}{\bar R_{r,s}} \mathcal{F}_{P_{(r,-s)}} (\bar{\mathcal{F}}_{P_{(r,s)}}^{\text{reg}} - \bar{R}_{r,s} \bar{\mathcal{F}}^{'}_{P_{(r,-s)}}) \\
+\begin{align}\label{eq:log_block}
+\mathcal{G}_{(r,s)} = (\mathcal{F}_{P_{(r,s)}}^{\text{reg}} - R_{r,s}& \mathcal{F}^{'}_{P_{(r,-s)}}) \bar{\mathcal{F}}_{P_{(r,-s)}} + \frac{R_{r,s}}{\bar R_{r,s}} \mathcal{F}_{P_{(r,-s)}} (\bar{\mathcal{F}}_{P_{(r,s)}}^{\text{reg}} - \bar{R}_{r,s} \bar{\mathcal{F}}^{'}_{P_{(r,-s)}})\nonumber \\
 & +R_{r,s} \underbrace{\left( \frac{D^{'}_{P_{(r,s)}}}{D_{P_{(r,s)}}} - \lim_{P \to P_{(r,-s)}} \left[ \frac{2}{P-P_{(r,-s)}} + \frac{D_{P}^{'}}{D_{P}} \right] \right)}_{-\ell^{(1)-}_{(r,s)}}\left|\mathcal{F}_{P_{(r,-s)}}\right|^{2},
 \end{align}
 
@@ -709,7 +717,7 @@ in which the primes denote derivatives with respect to the momentum \(P\). The d
 </p>
 
 \begin{align}
-  \mathcal{F}_{P_{(r,-s)}}^{'} = (\text{prefactor}) H^{\text{der}}_{P_{(r,-s)}}, \quad \text{where} \quad H^{\text{der}}_{P} = 2P_{(r,-s)}\log(16q) H_{P} + H_{P}^{'}.
+  \mathcal{F}_{P_{(r,-s)}}^{'} = (\text{prefactor}) H^{\text{der}}_{P_{(r,-s)}}, \quad \text{where} \quad H^{\text{der}}_{P} = 2P\log(16q) H_{P} + H_{P}^{'}.
 \end{align}
 
 <p>
@@ -725,27 +733,44 @@ Explicitly,
 </p>
 
 \begin{align}
- \beta\ell^{(1)-}_{(r,s)} = -4\sum_{j=1-s}^s &\Big\{ \psi(-2\beta^{-1}P_{(r,j)}) +\psi(2\beta^{-1}P_{( r,-j)}) \Big\}
+ \beta\ell^{(1)-}_{(r,s)} = 4\sum_{j=1-s}^s &\Big\{ \psi(-2\beta^{-1}P_{(r,j)}) +\psi(2\beta^{-1}P_{( r,-j)}) \Big\}
  -4\pi \cot(\pi s \beta^{-2})
  \\
- &+\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
+ &-\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
  \psi\left(\tfrac12-\beta^{-1}(P_{( r,j)}\pm P_1\pm P_2)\right)
  + \psi\left(\tfrac12+\beta^{-1}(P_{( r,j)}\pm \bar P_1\pm \bar P_2)\right)
  \Big\}
  \\
- &+\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
+ &-\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
  \psi\left(\tfrac12-\beta^{-1}(P_{( r,j)}\pm P_3\pm P_4)\right)
  + \psi\left(\tfrac12+\beta^{-1}(P_{( r,j)}\pm \bar P_3\pm \bar P_4)\right)
  \Big\}
 \end{align}
+
+<p>
+For \((r, s) \in \mathbb{N}^{*}\), \(\mathcal G_{(r,s)}\) can actually be non-logarithmic, due to residues \(R_{(r,s)}\) and \(\bar R_{(r,s)}\) vanishing.
+</p>
 </div>
 </div>
-<div id="outline-container-org6a44d9f" class="outline-4">
-<h4 id="org6a44d9f">Logarithmic blocks on the torus</h4>
+<div id="outline-container-org67f9e41" class="outline-4">
+<h4 id="org67f9e41">Logarithmic blocks on the torus</h4>
+<div class="outline-text-4" id="text-org67f9e41">
+<p>
+The argument we used for computing logarithmic blocks on the sphere can be transferred verbatim to the case of one point blocks on the torus. In particular, the <a href="eq:log_block">expression</a> of the logarithmic block is also valid for the torus one-point block, if we replace \(D_P\) by the corresponding structure constant on the torus, namely
+</p>
+
+\begin{align}
+  D_{P} \to \frac{C^{\text{ref}}_{P,P, P_1}}{B_{P}}
+\end{align}
+
+<p>
+where \(P_1\) is the momentum of the external field.
+</p>
 </div>
 </div>
-<div id="outline-container-org9b26eff" class="outline-3">
-<h3 id="org9b26eff"><span class="section-number-3">2.6.</span> Relation between sphere four-point blocks and torus one-point blocks</h3>
+</div>
+<div id="outline-container-org9c6b3dc" class="outline-3">
+<h3 id="org9c6b3dc"><span class="section-number-3">2.6.</span> Relation between sphere four-point blocks and torus one-point blocks</h3>
 <div class="outline-text-3" id="text-2-6">
 <p>
 The recursion formulas for torus one-point blocks and sphere four-point blocks imply that four point blocks on the sphere are related to one-point blocks on the torus through the relation
@@ -815,20 +840,20 @@ sphere block = 1.000005991527301 - 1.1912765042311957e-5im
 </p>
 </div>
 </div>
-<div id="outline-container-org5df7ec8" class="outline-3">
-<h3 id="org5df7ec8"><span class="section-number-3">2.7.</span> Crossing symmetry for four-point functions on the sphere</h3>
+<div id="outline-container-org5d5c06a" class="outline-3">
+<h3 id="org5d5c06a"><span class="section-number-3">2.7.</span> Crossing symmetry for four-point functions on the sphere</h3>
 </div>
 
-<div id="outline-container-org242b659" class="outline-3">
-<h3 id="org242b659"><span class="section-number-3">2.8.</span> Modular invariance for one-point functions on the torus</h3>
+<div id="outline-container-orgbc0f5f5" class="outline-3">
+<h3 id="orgbc0f5f5"><span class="section-number-3">2.8.</span> Modular invariance for one-point functions on the torus</h3>
 </div>
 </div>
-<div id="outline-container-orgee2ca5f" class="outline-2">
-<h2 id="orgee2ca5f"><span class="section-number-2">3.</span> Code of the package</h2>
+<div id="outline-container-orgf82046b" class="outline-2">
+<h2 id="orgf82046b"><span class="section-number-2">3.</span> Code of the package&#xa0;&#xa0;&#xa0;<span class="tag"><span class="noeval">noeval</span></span></h2>
 <div class="outline-text-2" id="text-3">
 </div>
-<div id="outline-container-org889500f" class="outline-3">
-<h3 id="org889500f"><span class="section-number-3">3.1.</span> Main module</h3>
+<div id="outline-container-orgac21e35" class="outline-3">
+<h3 id="orgac21e35"><span class="section-number-3">3.1.</span> Main module</h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
 The module <code>JuliVirBootstrap</code> is the main module of this package, and it includes the sub-modules.
@@ -851,11 +876,20 @@ The module <code>JuliVirBootstrap</code> is the main module of this package, and
 <span style="color: #8959a8;">module</span> JuliVirBootstrap
 
 <span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
+<span style="color: #07c365;">Special functions</span>
+<span style="color: #07c365;">===========================================================================================#</span>
+include(<span style="color: #718c00;">"SpecialFunctions.jl"</span>)
+<span style="color: #8959a8;">using</span> .SpecialFunctions
+<span style="color: #8959a8;">export</span> Barnes_G
+<span style="color: #8959a8;">export</span> log_double_Gamma, double_Gamma
+
+<span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Central charges and fields</span>
 <span style="color: #07c365;">===========================================================================================#</span>
 include(<span style="color: #718c00;">"CFTData.jl"</span>)
 <span style="color: #8959a8;">using</span> .CFTData
-<span style="color: #8959a8;">export</span> CentralCharge, Field
+<span style="color: #8959a8;">export</span> CentralCharge
+<span style="color: #8959a8;">export</span> Field, spin
 
 <span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Correlation functions</span>
@@ -872,28 +906,210 @@ include(<span style="color: #718c00;">"CorrelationFunctions.jl"</span>)
 <span style="color: #07c365;">===========================================================================================#</span>
 include(<span style="color: #718c00;">"ConformalBlocks.jl"</span>)
 <span style="color: #8959a8;">using</span> .FourPointBlocksSphere
-<span style="color: #8959a8;">export</span> FourPointBlockSphere, F_four_point_sphere
+<span style="color: #8959a8;">export</span> FourPointBlockSphere
+<span style="color: #8959a8;">export</span> block_chiral, block_non_chiral
 
 <span style="color: #8959a8;">using</span> .OnePointBlocksTorus
-<span style="color: #8959a8;">export</span> OnePointBlockTorus, F_one_point_torus
-
-
-<span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
-<span style="color: #07c365;">Special functions</span>
-<span style="color: #07c365;">===========================================================================================#</span>
-include(<span style="color: #718c00;">"SpecialFunctions.jl"</span>)
-<span style="color: #8959a8;">using</span> .SpecialFunctions
-<span style="color: #8959a8;">export</span> Barnes_G, log_double_Gamma, double_Gamma, Barnes
-
+<span style="color: #8959a8;">export</span> OnePointBlockTorus
 
 <span style="color: #8959a8;">end</span>
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-org4c5c07a" class="outline-3">
-<h3 id="org4c5c07a"><span class="section-number-3">3.2.</span> The <code>CFTData</code> module</h3>
+<div id="outline-container-org512f025" class="outline-3">
+<h3 id="org512f025"><span class="section-number-3">3.2.</span> The <code>SpecialFunctions</code> module</h3>
 <div class="outline-text-3" id="text-3-2">
+</div>
+<div id="outline-container-org4b4865f" class="outline-4">
+<h4 id="org4b4865f">Header</h4>
+<div class="outline-text-4" id="text-org4b4865f">
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">==================</span>
+
+<span style="color: #07c365;">SpecialFunctions.jl computes the special functions relevant for our applications in 2D CFT.</span>
+
+<span style="color: #07c365;">==================#</span>
+
+<span style="color: #8959a8;">module</span> SpecialFunctions
+
+<span style="color: #8959a8;">using</span> SpecialFunctions <span style="color: #07c365;"># </span><span style="color: #07c365;">external Julia package (the module name is the same but there is no domain conflict)</span>
+<span style="color: #8959a8;">using</span> Memoization
+<span style="color: #8959a8;">using</span> ArbNumerics <span style="color: #07c365;"># </span><span style="color: #07c365;">the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}</span>
+<span style="color: #8959a8;">using</span> QuadGK <span style="color: #07c365;"># </span><span style="color: #07c365;">numerical integration</span>
+
+<span style="color: #8959a8;">export</span> digamma_reg, Barnes_G, log_double_Gamma, double_Gamma
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_&#915;</span>(z)
+    <span style="color: #8959a8;">return</span> Complex{BigFloat}(lgamma(ArbComplex(z)))
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">&#915;</span>(z)
+    <span style="color: #8959a8;">return</span> Complex{BigFloat}(gamma(ArbComplex(z)))
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">&#968;</span>(z)
+    <span style="color: #8959a8;">return</span> Complex{BigFloat}(digamma(ArbComplex(z)))
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">trigamma</span>(z)
+    <span style="color: #8959a8;">return</span> Complex{BigFloat}(polygamma(ArbComplex(<span style="color: #f5871f; font-weight: bold;">1</span>), ArbComplex(z)))
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">poly&#915;</span>(n, z)
+    <span style="color: #8959a8;">return</span> Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z)))
+<span style="color: #8959a8;">end</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org3d6b443" class="outline-4">
+<h4 id="org3d6b443">Regularized digamma Function</h4>
+<div class="outline-text-4" id="text-org3d6b443">
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #718c00;">"""Regularised digamma function"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">digamma_reg</span>(z)
+    <span style="color: #8959a8;">if</span> real(z) <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>
+        <span style="color: #8959a8;">return</span> &#968;(z)
+    <span style="color: #8959a8;">elseif</span> imag(z) <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">&amp;&amp;</span> real(z)<span style="color: #bb9200;">%</span><span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span>
+        <span style="color: #8959a8;">return</span> &#968;(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>z)
+    <span style="color: #8959a8;">else</span>
+        <span style="color: #8959a8;">return</span> &#968;(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>z) <span style="color: #bb9200;">-</span> big(&#960;)<span style="color: #bb9200;">/</span>tan(&#960;<span style="color: #bb9200;">*</span>z)
+    <span style="color: #8959a8;">end</span>
+<span style="color: #8959a8;">end</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-orgba64e7e" class="outline-4">
+<h4 id="orgba64e7e">Double gamma function</h4>
+<div class="outline-text-4" id="text-orgba64e7e">
+<p>
+The function <code>log_Barnes_GN</code> is the logarithm of the function <a href="eq:Barnes_{GN}">G<sub>N</sub></a>.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #8959a8;">function</span> <span style="color: #4271ae;">integrand_C</span>(x, &#964;)
+    x = big(x)
+    <span style="color: #8959a8;">return</span> exp((<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>&#964;)<span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>sinh(x)<span style="color: #bb9200;">*</span>sinh(&#964;<span style="color: #bb9200;">*</span>x)) <span style="color: #bb9200;">-</span> exp(<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">/</span>(&#964;<span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">*</span>(exp(x)<span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>sinh(x))<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>&#964;<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span>)
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">modular_C</span>(&#964;)
+    P = precision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>)
+    <span style="color: #07c365;">#</span><span style="color: #07c365;">temporarily increase precision to avoid artificial divergence around zero</span>
+    setprecision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>, Int(floor(<span style="color: #f5871f; font-weight: bold;">1.3</span><span style="color: #bb9200;">*</span>P)))
+    cutoff = big(<span style="color: #f5871f; font-weight: bold;">10</span><span style="color: #bb9200;">^</span>(<span style="color: #bb9200;">-</span>P<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">5</span>)) <span style="color: #07c365;"># </span><span style="color: #07c365;">to prevent artificial divergence around zero</span>
+    tol = big(<span style="color: #f5871f; font-weight: bold;">10</span>)<span style="color: #bb9200;">^</span>P
+    value, error = quadgk(x <span style="color: #bb9200;">-&gt;</span> integrand_C(x, &#964;), cutoff, big(<span style="color: #f5871f;">Inf</span>), rtol = tol, order=<span style="color: #f5871f; font-weight: bold;">21</span>)
+    C0 = (<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">/</span>&#964; <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">3</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">+</span> &#964;<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">6</span>)<span style="color: #bb9200;">*</span>cutoff <span style="color: #bb9200;">+</span> (<span style="color: #f5871f; font-weight: bold;">5</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">12</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#964; <span style="color: #bb9200;">+</span> &#964;<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">12</span>)<span style="color: #bb9200;">*</span>cutoff<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">+</span> (<span style="color: #f5871f; font-weight: bold;">4</span><span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">9</span><span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">9</span> <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">54</span><span style="color: #bb9200;">*</span>&#964; <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">270</span><span style="color: #bb9200;">*</span>&#964;<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">3</span>)<span style="color: #bb9200;">*</span>cutoff<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">3</span>
+    setprecision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>, P)
+    <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#964;)<span style="color: #bb9200;">*</span>log(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>big(&#960;)) <span style="color: #bb9200;">-</span> value <span style="color: #bb9200;">-</span> C0
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">integrand_D</span>(x, &#964;)
+    x = big(x)
+    <span style="color: #8959a8;">return</span> x<span style="color: #bb9200;">*</span>exp((<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>&#964;)<span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">/</span>(sinh(x)<span style="color: #bb9200;">*</span>sinh(&#964;<span style="color: #bb9200;">*</span>x)) <span style="color: #bb9200;">-</span> exp(<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">/</span>(&#964;<span style="color: #bb9200;">*</span>x)
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">modular_D</span>(&#964;)
+    P = precision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>)
+    <span style="color: #07c365;">#</span><span style="color: #07c365;">temporarily increase precision to avoid artificial divergence around zero</span>
+    setprecision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>, Int(floor(<span style="color: #f5871f; font-weight: bold;">1.3</span><span style="color: #bb9200;">*</span>P)))
+    cutoff = big(<span style="color: #f5871f; font-weight: bold;">10</span><span style="color: #bb9200;">^</span>(<span style="color: #bb9200;">-</span>P<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">5</span>)) <span style="color: #07c365;"># </span><span style="color: #07c365;">to prevent artificial divergence around zero</span>
+    tol = big(<span style="color: #f5871f; font-weight: bold;">10</span>)<span style="color: #bb9200;">^</span>P
+    value, error = quadgk( x <span style="color: #bb9200;">-&gt;</span> integrand_D(x, &#964;), big(<span style="color: #f5871f; font-weight: bold;">0</span>), big(<span style="color: #f5871f;">Inf</span>), rtol = tol, order=<span style="color: #f5871f; font-weight: bold;">21</span>)
+    setprecision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>, P)
+    <span style="color: #8959a8;">return</span> value
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #4d4d4c; font-weight: bold;">@memoize</span> <span style="color: #8959a8;">function</span> modular_coeff_a(&#964;)
+    <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#964;<span style="color: #bb9200;">*</span>log(big(<span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>&#960;<span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>log(&#964;) <span style="color: #bb9200;">-</span> &#964;<span style="color: #bb9200;">*</span>modular_C(&#964;)
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #4d4d4c; font-weight: bold;">@memoize</span> <span style="color: #8959a8;">function</span> modular_coeff_b(&#964;)
+    <span style="color: #8959a8;">return</span> <span style="color: #bb9200;">-</span>&#964;<span style="color: #bb9200;">*</span>log(&#964;) <span style="color: #bb9200;">-</span> &#964;<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>modular_D(&#964;)
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_Barnes_GN</span>(N, z, &#964;)
+    res = <span style="color: #f5871f; font-weight: bold;">0</span>
+    res <span style="color: #bb9200;">+=</span> <span style="color: #bb9200;">-</span> log(&#964;) <span style="color: #bb9200;">-</span> log_&#915;(z)
+    res <span style="color: #bb9200;">+=</span> modular_coeff_a(&#964;)<span style="color: #bb9200;">*</span>z<span style="color: #bb9200;">/</span>&#964; <span style="color: #bb9200;">+</span> modular_coeff_b(&#964;)<span style="color: #bb9200;">*</span>z<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#964;<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>)
+    res <span style="color: #bb9200;">+=</span> sum(log_&#915;(m<span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">-</span> log_&#915;(z<span style="color: #bb9200;">+</span>m<span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">+</span> z<span style="color: #bb9200;">*</span>&#968;(m<span style="color: #bb9200;">*</span>&#964;)<span style="color: #bb9200;">+</span>z<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>trigamma(m<span style="color: #bb9200;">*</span>&#964;) <span style="color: #8959a8;">for</span> m <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:N)
+    <span style="color: #8959a8;">return</span> res
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #4d4d4c; font-weight: bold;">@memoize</span> <span style="color: #8959a8;">function</span> factorial_big(n)<span style="color: #bb9200;">::BigInt</span>
+    <span style="color: #8959a8;">return</span> factorial(big(n))
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #4d4d4c; font-weight: bold;">@memoize</span> <span style="color: #8959a8;">function</span> polynomial_Pn(n, z, &#964;)
+    <span style="color: #8959a8;">if</span> n <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">1</span>
+        <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">6</span>
+    <span style="color: #8959a8;">else</span>
+        term1 = z<span style="color: #bb9200;">^</span>(n<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">/</span>factorial_big(n<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">2</span>)
+        <span style="color: #4271ae;">summand</span>(k) = ((<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">+</span>&#964;)<span style="color: #bb9200;">^</span>(k<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">2</span>) <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">-</span> &#964;<span style="color: #bb9200;">^</span>(k<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">2</span>))<span style="color: #bb9200;">/</span>(factorial_big(k<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">*</span> polynomial_Pn(n<span style="color: #bb9200;">-</span>k, z, &#964;)
+        <span style="color: #8959a8;">return</span> term1 <span style="color: #bb9200;">-</span> sum(summand(k) <span style="color: #8959a8;">for</span> k <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:n<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)
+    <span style="color: #8959a8;">end</span>
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">rest_RMN</span>(M, N, z, &#964;)
+    <span style="color: #8959a8;">return</span> sum(factorial_big(k<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">*</span>(<span style="color: #bb9200;">-</span>&#964;)<span style="color: #bb9200;">^</span>(<span style="color: #bb9200;">-</span>k<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">*</span>polynomial_Pn(k, z, <span style="color: #bb9200;">-</span>&#964;)<span style="color: #bb9200;">/</span>N<span style="color: #bb9200;">^</span>k <span style="color: #8959a8;">for</span> k <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:M)
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #718c00;">"""Numerical approximation of the logarithm of Barne's G-function, up to a given tolerance"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_Barnes_G</span>(z, &#964;, tol)
+    z = complex(z)
+    d = <span style="color: #bb9200;">-</span>log(tol)<span style="color: #bb9200;">/</span>log(<span style="color: #f5871f; font-weight: bold;">10</span>)
+    M = BigInt(floor(<span style="color: #f5871f; font-weight: bold;">0.7</span><span style="color: #bb9200;">*</span>log(<span style="color: #f5871f; font-weight: bold;">10</span>)<span style="color: #bb9200;">/</span>log(<span style="color: #f5871f; font-weight: bold;">20</span>)<span style="color: #bb9200;">*</span>d))
+    N = <span style="color: #f5871f; font-weight: bold;">20</span><span style="color: #bb9200;">*</span>M
+    <span style="color: #8959a8;">return</span> log_Barnes_GN(N, z, &#964;) <span style="color: #bb9200;">+</span> z<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">3</span><span style="color: #bb9200;">*</span>rest_RMN(M, N, z, &#964;)
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Barnes_G</span>(z, &#964;, tol)
+    <span style="color: #8959a8;">return</span> exp(log_Barnes_G(z, &#964;, tol))
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_Gamma_2</span>(w, &#946;, tol)
+    &#946; = real(&#946;<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946;) <span style="color: #bb9200;">&lt;</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #8959a8;">?</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946; <span style="color: #8959a8;">:</span> &#946; <span style="color: #07c365;"># </span><span style="color: #07c365;">change &#946; -&gt; 1/&#946; if needed</span>
+    <span style="color: #8959a8;">return</span> w<span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#946;)<span style="color: #bb9200;">*</span>log(big(<span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>&#960;) <span style="color: #bb9200;">+</span> (w<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(w<span style="color: #bb9200;">-</span>&#946;<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946;)<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">*</span>log(&#946;) <span style="color: #bb9200;">-</span> log_Barnes_G(w<span style="color: #bb9200;">/</span>&#946;, <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946;<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, tol)
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #718c00;">"""</span>
+<span style="color: #718c00;">        log_double_Gamma(w, &#946;, tol)</span>
+
+<span style="color: #718c00;">Compute the logarithm of the double gamma function &#915;_&#946;(w, &#946;) with precision tol</span>
+
+<span style="color: #718c00;">"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_double_Gamma</span>(w, &#946;, tol)
+    <span style="color: #8959a8;">return</span> log_Gamma_2(w, &#946;, tol) <span style="color: #bb9200;">-</span> log_Gamma_2((&#946;<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946;)<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span>, &#946;, tol)
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #718c00;">"""</span>
+<span style="color: #718c00;">        double_Gamma(w, &#946;, tol)</span>
+
+<span style="color: #718c00;">Compute the double gamma function &#915;_&#946;(w, &#946;) with precision tol</span>
+
+<span style="color: #718c00;">"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">double_Gamma</span>(w, &#946;, tol)
+    exp(log_double_Gamma(w, &#946;, tol))
+<span style="color: #8959a8;">end</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-org70952d2" class="outline-4">
+<h4 id="org70952d2">End module</h4>
+<div class="outline-text-4" id="text-org70952d2">
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-orgca34a3b" class="outline-3">
+<h3 id="orgca34a3b"><span class="section-number-3">3.3.</span> The <code>CFTData</code> module</h3>
+<div class="outline-text-3" id="text-3-3">
 <p>
 The file <a href="src/CFTData.jl">CFTData.jl</a> defines
 </p>
@@ -902,9 +1118,9 @@ The file <a href="src/CFTData.jl">CFTData.jl</a> defines
 <li>a struct <code>Field</code> that represents a field \(V\). The field can be defined from its Kac indices \(r, s\), be diagonal, logarithmic, or degenerate. The struct contains booleans for these three characteristics, as well as rationals for \(r\) and \(s\), and the pairs of (left, right) values \((\Delta, \bar \Delta)\), \((p, \bar p)\), \((\delta, \bar \delta)\), \((P, \bar P)\).</li>
 </ul>
 </div>
-<div id="outline-container-orgdecdee6" class="outline-4">
-<h4 id="orgdecdee6">Header</h4>
-<div class="outline-text-4" id="text-orgdecdee6">
+<div id="outline-container-org2ecb042" class="outline-4">
+<h4 id="org2ecb042">Header</h4>
+<div class="outline-text-4" id="text-org2ecb042">
 <div class="org-src-container">
 <pre class="src src-julia">
 <span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
@@ -935,9 +1151,9 @@ The file <a href="src/CFTData.jl">CFTData.jl</a> defines
 </div>
 </div>
 </div>
-<div id="outline-container-org93f302e" class="outline-4">
-<h4 id="org93f302e">Central charge</h4>
-<div class="outline-text-4" id="text-org93f302e">
+<div id="outline-container-orga97708a" class="outline-4">
+<h4 id="orga97708a">Central charge</h4>
+<div class="outline-text-4" id="text-orga97708a">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Get B from given parameter"""</span>
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Bfrom</span>(parameter, value)
@@ -1002,8 +1218,8 @@ The file <a href="src/CFTData.jl">CFTData.jl</a> defines
 </div>
 </div>
 <ul class="org-ul">
-<li><a id="orgd4727bd"></a>Pretty printing<br />
-<div class="outline-text-5" id="text-orgd4727bd">
+<li><a id="orga6f0e3a"></a>Pretty printing<br />
+<div class="outline-text-5" id="text-orga6f0e3a">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Display an object of type CentralCharge"""</span>
 <span style="color: #8959a8;">function</span> Base.<span style="color: #4271ae;">show</span>(io<span style="color: #bb9200;">::IO</span>, charge<span style="color: #bb9200;">::CentralCharge</span>)
@@ -1031,31 +1247,31 @@ Base.<span style="color: #4271ae;">getindex</span>(charge<span style="color: #bb
 </li>
 </ul>
 </div>
-<div id="outline-container-org874220f" class="outline-4">
-<h4 id="org874220f">Fields</h4>
-<div class="outline-text-4" id="text-org874220f">
+<div id="outline-container-org25ee030" class="outline-4">
+<h4 id="org25ee030">Fields</h4>
+<div class="outline-text-4" id="text-org25ee030">
 <p>
 Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Optional keyword arguments lets us choose whether the field is diagonal, degenerate, logarithmic. The field can also be defined from its r and s indices using the keyword argument Kac = true.
 </p>
 
 <div class="org-src-container">
-<pre class="src src-julia"><span style="color: #718c00;">"""Get p from any given parameter"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">p_from</span>(parameter, value, charge<span style="color: #bb9200;">::CentralCharge</span>)
+<pre class="src src-julia"><span style="color: #718c00;">"""Get P from any given parameter"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">P_from</span>(parameter, value, c<span style="color: #bb9200;">::CentralCharge</span>)
     <span style="color: #4d4d4c; font-weight: bold;">@match</span> parameter <span style="color: #8959a8;">begin</span>
-        <span style="color: #718c00;">"&#916;"</span> <span style="color: #bb9200;">=&gt;</span> sqrt(complex(value <span style="color: #bb9200;">-</span> (charge[<span style="color: #718c00;">"c"</span>]<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">24</span>))
+        <span style="color: #718c00;">"&#916;"</span> <span style="color: #bb9200;">=&gt;</span> sqrt(complex(value <span style="color: #bb9200;">-</span> (c[<span style="color: #718c00;">"c"</span>]<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">24</span>))
         <span style="color: #718c00;">"&#948;"</span> <span style="color: #bb9200;">=&gt;</span> sqrt(complex(value))
-        <span style="color: #718c00;">"P"</span> <span style="color: #bb9200;">=&gt;</span> <span style="color: #bb9200;">-</span>im<span style="color: #bb9200;">*</span>value
-        <span style="color: #718c00;">"p"</span> <span style="color: #bb9200;">=&gt;</span> value
+        <span style="color: #718c00;">"P"</span> <span style="color: #bb9200;">=&gt;</span> value
+        <span style="color: #718c00;">"p"</span> <span style="color: #bb9200;">=&gt;</span> im<span style="color: #bb9200;">*</span>value
     <span style="color: #8959a8;">end</span>
 <span style="color: #8959a8;">end</span>
 
-<span style="color: #718c00;">"""Get all parameters from p"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">p_to</span>(parameter, value, charge<span style="color: #bb9200;">::CentralCharge</span>)
+<span style="color: #718c00;">"""Get all parameters from P"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">P_to</span>(parameter, value, c<span style="color: #bb9200;">::CentralCharge</span>)
     <span style="color: #4d4d4c; font-weight: bold;">@match</span> parameter <span style="color: #8959a8;">begin</span>
-        <span style="color: #718c00;">"&#916;"</span> <span style="color: #bb9200;">=&gt;</span> value<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">+</span> (charge[<span style="color: #718c00;">"c"</span>]<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">24</span>
+        <span style="color: #718c00;">"&#916;"</span> <span style="color: #bb9200;">=&gt;</span> value<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">+</span> (c[<span style="color: #718c00;">"c"</span>]<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">24</span>
         <span style="color: #718c00;">"&#948;"</span> <span style="color: #bb9200;">=&gt;</span> value<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>
-        <span style="color: #718c00;">"P"</span> <span style="color: #bb9200;">=&gt;</span> im<span style="color: #bb9200;">*</span>value
-        <span style="color: #718c00;">"p"</span> <span style="color: #bb9200;">=&gt;</span> value
+        <span style="color: #718c00;">"P"</span> <span style="color: #bb9200;">=&gt;</span> value
+        <span style="color: #718c00;">"p"</span> <span style="color: #bb9200;">=&gt;</span> <span style="color: #bb9200;">-</span>im<span style="color: #bb9200;">*</span>value
     <span style="color: #8959a8;">end</span>
 <span style="color: #8959a8;">end</span>
 
@@ -1063,7 +1279,7 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
 <span style="color: #718c00;">    Field{T}</span>
 <span style="color: #718c00;">Object representing a conformal field.</span>
 <span style="color: #718c00;">Contains the values of the 4 parameters `"&#916;"`,`"&#948;"`,`"P"`,`"p"` for its conformal dimension,</span>
-<span style="color: #718c00;">and flags saying whether the field is in the Kac table, degenerate, logarithmic or diagonal.</span>
+<span style="color: #718c00;">and flags saying whether the field has declared and rational Kac indices, is degenerate, or diagonal.</span>
 <span style="color: #718c00;">"""</span>
 <span style="color: #8959a8;">struct</span> <span style="color: #bb9200;">Field</span>{T}
 
@@ -1072,12 +1288,12 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
     r<span style="color: #bb9200;">::Rational</span>
     s<span style="color: #bb9200;">::Rational</span>
     isdegenerate<span style="color: #bb9200;">::Bool</span>
-    islogarithmic<span style="color: #bb9200;">::Bool</span>
     isdiagonal<span style="color: #bb9200;">::Bool</span>
 
 <span style="color: #8959a8;">end</span>
 
 <span style="color: #718c00;">"""</span>
+<span style="color: #718c00;">   </span><span style="color: #eab700; font-weight: bold;">TODO:</span><span style="color: #718c00;"> update the examples</span>
 <span style="color: #718c00;">    Field(charge, parameter, leftvalue, rightvalue; kwargs...)</span>
 
 <span style="color: #718c00;">Constructor function for the Field type.</span>
@@ -1086,14 +1302,14 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
 <span style="color: #718c00;">create an object Field{T} (where T is the type of the values in `charge`) that represents a</span>
 <span style="color: #718c00;">field of left and right dimensions given by leftvalue and rightvalue in the chosen</span>
 <span style="color: #718c00;">parametrisation.</span>
+<span style="color: #718c00;">If given only one value for the parameters &#916;, &#948;, P or p, the field is diagonal by default</span>
 
 <span style="color: #718c00;"># keyword arguments:</span>
 
 <span style="color: #718c00;">- `Kac::Bool`: if set to true, the field can be constructed from the values of its r and s</span>
-<span style="color: #718c00;">indices,</span>
+<span style="color: #718c00;">indices. By convention V_(r,s) has left and right momenta (P_(r,s), P_(r,-s))</span>
 <span style="color: #718c00;">- `r::Rational`,`s::Rational`: used in conjunction to `Kac=true`, must be given rational</span>
 <span style="color: #718c00;">values,</span>
-<span style="color: #718c00;">- `logarithmic::Bool`: set to True if the field is logarithmic,</span>
 <span style="color: #718c00;">- `degenerate::Bool`: set to True if the field is degenerate,</span>
 <span style="color: #718c00;">- `diagonal::Bool`: set to True to get a diagonal field ; only the leftvalue needs to be</span>
 <span style="color: #718c00;">given.</span>
@@ -1130,27 +1346,34 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Field</span>(
     charge<span style="color: #bb9200;">::CentralCharge</span> = CentralCharge(<span style="color: #718c00;">"c"</span>, <span style="color: #f5871f; font-weight: bold;">1</span>),
     parameter = <span style="color: #718c00;">"&#916;"</span>,
-    leftvalue = <span style="color: #f5871f; font-weight: bold;">0</span>, rightvalue = <span style="color: #f5871f; font-weight: bold;">0</span>;
+    leftvalue = <span style="color: #f5871f; font-weight: bold;">0</span>;
+    rightvalue = <span style="color: #f5871f; font-weight: bold;">0</span>,
     Kac = <span style="color: #f5871f;">false</span>, r = <span style="color: #f5871f; font-weight: bold;">0</span>, s = <span style="color: #f5871f; font-weight: bold;">0</span>,
-    logarithmic = <span style="color: #f5871f;">false</span>, degenerate = <span style="color: #f5871f;">false</span>, diagonal = <span style="color: #f5871f;">false</span>
+    degenerate = <span style="color: #f5871f;">false</span>,
+    diagonal = <span style="color: #f5871f;">false</span>
     )
 
-    T=typeof(charge.values[<span style="color: #718c00;">"c"</span>])   <span style="color: #07c365;">#</span><span style="color: #07c365;">dimensions have the same type as central charges</span>
-    <span style="color: #8959a8;">if</span> degenerate
+    T=typeof(charge.values[<span style="color: #718c00;">"c"</span>]) <span style="color: #07c365;"># </span><span style="color: #07c365;">values of dimensions have the same precision as central charges</span>
+    <span style="color: #8959a8;">if</span><span style="color: #bb9200;"> !</span>Kac
+        diagonal = <span style="color: #f5871f;">true</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">by default a field not given from Kac indices is diagonal</span>
+    <span style="color: #8959a8;">end</span>
+    <span style="color: #8959a8;">if</span> degenerate <span style="color: #07c365;"># </span><span style="color: #07c365;">degenerate fields are diagonal and must be given from Kac indices</span>
         Kac = <span style="color: #f5871f;">true</span>
+        diagonal = <span style="color: #f5871f;">true</span>
     <span style="color: #8959a8;">end</span>
     <span style="color: #8959a8;">if</span> Kac
-        pleft = <span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>r <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>s)
-        pright = <span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>r <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>s)
+        Pleft = <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>r <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>s)
+        Pright = <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>r <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>charge[<span style="color: #718c00;">"&#946;"</span>]<span style="color: #bb9200;">*</span>s)
     <span style="color: #8959a8;">else</span>
-        pleft, pright = p_from.(parameter, [leftvalue, rightvalue], Ref(charge))
+        Pleft, Pright = P_from.(parameter, [leftvalue, rightvalue], Ref(charge))
     <span style="color: #8959a8;">end</span>
     <span style="color: #8959a8;">if</span> diagonal
-        pright = pleft
+        Pright = Pleft
     <span style="color: #8959a8;">end</span>
-    values = Dict(key <span style="color: #bb9200;">=&gt;</span> p_to.(key, [pleft, pright], Ref(charge))
+    values = Dict(key <span style="color: #bb9200;">=&gt;</span> P_to.(key, [Pleft, Pright], Ref(charge))
                   <span style="color: #8959a8;">for</span> key <span style="color: #8959a8;">in</span> (<span style="color: #718c00;">"&#916;"</span>, <span style="color: #718c00;">"&#948;"</span>, <span style="color: #718c00;">"P"</span>, <span style="color: #718c00;">"p"</span>))
-    Field{complex(T)}(values, Kac, r, s, degenerate, logarithmic, diagonal)
+
+    Field{complex(T)}(values, Kac, r, s, degenerate, diagonal)
 <span style="color: #8959a8;">end</span>
 
 <span style="color: #07c365;"># </span><span style="color: #07c365;">Overload the == operator</span>
@@ -1159,10 +1382,12 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
 <span style="color: #8959a8;">end</span>
 
 <span style="color: #718c00;">"""Compute the spin &#916;left - &#916;right of a field."""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">spin</span>(field<span style="color: #bb9200;">::Field</span>)
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">spin</span>(field<span style="color: #bb9200;">::Field</span>)<span style="color: #bb9200;">::Rational</span>
     <span style="color: #8959a8;">if</span> field.isdiagonal
         <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">0</span>
-    <span style="color: #8959a8;">else</span>
+    <span style="color: #8959a8;">elseif</span> field.isKac
+        <span style="color: #8959a8;">return</span> field.r<span style="color: #bb9200;">*</span>field.s
+    <span style="color: #8959a8;">else</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">this should never happen</span>
         <span style="color: #8959a8;">return</span> field[<span style="color: #718c00;">"&#916;"</span>][<span style="color: #f5871f; font-weight: bold;">1</span>] <span style="color: #bb9200;">-</span> field[<span style="color: #718c00;">"&#916;"</span>][<span style="color: #f5871f; font-weight: bold;">2</span>]
     <span style="color: #8959a8;">end</span>
 <span style="color: #8959a8;">end</span>
@@ -1170,8 +1395,8 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
 </div>
 </div>
 <ul class="org-ul">
-<li><a id="org2a55a70"></a>Pretty printing<br />
-<div class="outline-text-5" id="text-org2a55a70">
+<li><a id="orgec19692"></a>Pretty printing<br />
+<div class="outline-text-5" id="text-orgec19692">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""Display field"""</span>
 <span style="color: #8959a8;">function</span> Base.<span style="color: #4271ae;">show</span>(io<span style="color: #bb9200;">::IO</span>,field<span style="color: #bb9200;">::Field</span>)
@@ -1189,9 +1414,8 @@ Fields can be given from any of the four parameters \(\Delta, \delta, P, p\). Op
             print(<span style="color: #718c00;">"with "</span>)
         <span style="color: #8959a8;">end</span>
         println(<span style="color: #718c00;">"(left, right) dimensions:"</span>)
-        <span style="color: #8959a8;">for</span> (key, value) <span style="color: #8959a8;">in</span> field.values
-            println(io, <span style="color: #718c00;">"  $key = ($(value[1]), $(value[2]))"</span>)
-        <span style="color: #8959a8;">end</span>
+
+        println(io, <span style="color: #718c00;">"  &#916; = ($(field["</span>&#916;<span style="color: #718c00;">"][1]), $(field["</span>&#916;<span style="color: #718c00;">"][2]))"</span>)
     <span style="color: #8959a8;">end</span>
 <span style="color: #8959a8;">end</span>
 
@@ -1236,9 +1460,9 @@ Base.<span style="color: #4271ae;">getindex</span>(field<span style="color: #bb9
 </li>
 </ul>
 </div>
-<div id="outline-container-org16a888d" class="outline-4">
-<h4 id="org16a888d">End of module</h4>
-<div class="outline-text-4" id="text-org16a888d">
+<div id="outline-container-org4b80e3a" class="outline-4">
+<h4 id="org4b80e3a">End of module</h4>
+<div class="outline-text-4" id="text-org4b80e3a">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1246,9 +1470,9 @@ Base.<span style="color: #4271ae;">getindex</span>(field<span style="color: #bb9
 </div>
 </div>
 </div>
-<div id="outline-container-org426d95d" class="outline-3">
-<h3 id="org426d95d"><span class="section-number-3">3.3.</span> The <code>FourPointCorrelationFunctions</code> module</h3>
-<div class="outline-text-3" id="text-3-3">
+<div id="outline-container-org12fb3fd" class="outline-3">
+<h3 id="org12fb3fd"><span class="section-number-3">3.4.</span> The <code>FourPointCorrelationFunctions</code> module</h3>
+<div class="outline-text-3" id="text-3-4">
 <p>
 The module <code>FourPointCorrelationFunctions</code> defines
 </p>
@@ -1268,8 +1492,8 @@ a struct <code>FourPointCorrelation</code> that represents a four point function
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="org55ff0f2"></a>Header<br />
-<div class="outline-text-5" id="text-org55ff0f2">
+<li><a id="org832eb46"></a>Header<br />
+<div class="outline-text-5" id="text-org832eb46">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 
@@ -1289,8 +1513,8 @@ a struct <code>FourPointCorrelation</code> that represents a four point function
 </div>
 </div>
 </li>
-<li><a id="org0a9312c"></a>Four-point function type<br />
-<div class="outline-text-5" id="text-org0a9312c">
+<li><a id="org2f2c1f9"></a>Four-point correlation type<br />
+<div class="outline-text-5" id="text-org2f2c1f9">
 <p>
 We create a struct <code>FourPointCorrelation</code> for representing a four-point function on the sphere, that is, a central charge and four external fields.
 </p>
@@ -1325,8 +1549,8 @@ We create a struct <code>FourPointCorrelation</code> for representing a four-poi
 </div>
 </div>
 </li>
-<li><a id="org96511db"></a>Compute \(C^N_{m,n}\)<br />
-<div class="outline-text-5" id="text-org96511db">
+<li><a id="org1405f79"></a>Compute \(C^N_{m,n}\)<br />
+<div class="outline-text-5" id="text-org1405f79">
 <p>
 The function <code>permute_ext_fields</code> permutes the external fields such that the first two and last two are fused together in the channel.
 </p>
@@ -1431,9 +1655,9 @@ This is given by (some expression)
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Rmn_term_reg</span>(r, s, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, channel, lr)
     V = permute_ext_fields(corr, channel).fields
     <span style="color: #8959a8;">if</span> r <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">&amp;&amp;</span> s <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span>
-        <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>V[<span style="color: #f5871f; font-weight: bold;">2</span>][<span style="color: #718c00;">"p"</span>][lr]
+        <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>V[<span style="color: #f5871f; font-weight: bold;">2</span>][<span style="color: #718c00;">"P"</span>][lr]
     <span style="color: #8959a8;">else</span>
-        <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">8</span><span style="color: #bb9200;">*</span>V[<span style="color: #f5871f; font-weight: bold;">1</span>][<span style="color: #718c00;">"p"</span>][lr]<span style="color: #bb9200;">*</span>V[<span style="color: #f5871f; font-weight: bold;">2</span>][<span style="color: #718c00;">"p"</span>][lr]<span style="color: #bb9200;">*</span>Field(corr.charge, Kac=<span style="color: #f5871f;">true</span>, r=r, s=s)
+        <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">8</span><span style="color: #bb9200;">*</span>V[<span style="color: #f5871f; font-weight: bold;">1</span>][<span style="color: #718c00;">"P"</span>][lr]<span style="color: #bb9200;">*</span>V[<span style="color: #f5871f; font-weight: bold;">2</span>][<span style="color: #718c00;">"P"</span>][lr]<span style="color: #bb9200;">*</span>Field(corr.charge, Kac=<span style="color: #f5871f;">true</span>, r=r, s=s)
     <span style="color: #8959a8;">end</span>
 <span style="color: #8959a8;">end</span>
 
@@ -1454,7 +1678,7 @@ This is given by (some expression)
 
     <span style="color: #8959a8;">if</span> Rmn_zero_order(m, n, corr, channel) <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>
         <span style="color: #8959a8;">if</span> m <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">1</span>
-            res = a
+            res = <span style="color: #f5871f; font-weight: bold;">0</span>
         <span style="color: #8959a8;">end</span>
     <span style="color: #8959a8;">else</span>
         <span style="color: #8959a8;">if</span> m <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">1</span>
@@ -1490,8 +1714,8 @@ This is given by (some expression)
 </div>
 </div>
 </li>
-<li><a id="org691c87d"></a>End module<br />
-<div class="outline-text-5" id="text-org691c87d">
+<li><a id="org7da6a5a"></a>End module<br />
+<div class="outline-text-5" id="text-org7da6a5a">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1500,9 +1724,9 @@ This is given by (some expression)
 </li>
 </ul>
 </div>
-<div id="outline-container-org37cb8be" class="outline-3">
-<h3 id="org37cb8be"><span class="section-number-3">3.4.</span> The <code>OnePointCorrelationFunctions</code> module</h3>
-<div class="outline-text-3" id="text-3-4">
+<div id="outline-container-orgb051295" class="outline-3">
+<h3 id="orgb051295"><span class="section-number-3">3.5.</span> The <code>OnePointCorrelationFunctions</code> module</h3>
+<div class="outline-text-3" id="text-3-5">
 <p>
 The module <code>OnePointCorrelationFunctions</code> defines
 </p>
@@ -1515,8 +1739,8 @@ The module <code>OnePointCorrelationFunctions</code> defines
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="org2a8d313"></a>Header<br />
-<div class="outline-text-5" id="text-org2a8d313">
+<li><a id="org0b4d64c"></a>Header<br />
+<div class="outline-text-5" id="text-org0b4d64c">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">module</span> OnePointCorrelationFunctions
 
@@ -1528,8 +1752,8 @@ The module <code>OnePointCorrelationFunctions</code> defines
 </div>
 </div>
 </li>
-<li><a id="org06b016c"></a>One-point function type<br />
-<div class="outline-text-5" id="text-org06b016c">
+<li><a id="org7e50e4d"></a>One-point function type<br />
+<div class="outline-text-5" id="text-org7e50e4d">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">struct</span> <span style="color: #bb9200;">OnePointCorrelation</span>{T}
     charge<span style="color: #bb9200;">::CentralCharge</span>{T}
@@ -1545,10 +1769,10 @@ The module <code>OnePointCorrelationFunctions</code> defines
 </div>
 </div>
 </li>
-<li><a id="org19674f1"></a>Compute \(C^{N,\text{torus}}_{m,n}\)<br />
-<div class="outline-text-5" id="text-org19674f1">
+<li><a id="orgd9139e6"></a>Compute \(C^{N,\text{torus}}_{m,n}\)<br />
+<div class="outline-text-5" id="text-orgd9139e6">
 <p>
-The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of the <a href="#org96511db">coefficients \(C^{N}_{m,n}\)</a>. We re-use much of the code.
+The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of the <a href="#org1405f79">coefficients \(C^{N}_{m,n}\)</a>. We re-use much of the code.
 </p>
 
 <div class="org-src-container">
@@ -1598,8 +1822,8 @@ The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of t
 </div>
 </div>
 </li>
-<li><a id="orga1a7685"></a>End module<br />
-<div class="outline-text-5" id="text-orga1a7685">
+<li><a id="org63ff55b"></a>End module<br />
+<div class="outline-text-5" id="text-org63ff55b">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1608,27 +1832,26 @@ The computation of the \(C^{N,\text{torus}}_{m,n}\) is very similar to that of t
 </li>
 </ul>
 </div>
-<div id="outline-container-org79944b5" class="outline-3">
-<h3 id="org79944b5"><span class="section-number-3">3.5.</span> The <code>FourPointBlocksSphere</code> module</h3>
-<div class="outline-text-3" id="text-3-5">
+<div id="outline-container-orge04777d" class="outline-3">
+<h3 id="orge04777d"><span class="section-number-3">3.6.</span> The <code>FourPointBlocksSphere</code> module</h3>
+<div class="outline-text-3" id="text-3-6">
 <p>
 The module <code>FourPointBlocksSphere</code> exports
 </p>
 
 <ul class="org-ul">
 <li>a struct <code>FourPointBlockSphere</code> that encapsulates the data needed to compute a 4pt conformal block, namely a channel, four external fields and the field propagating in the channel</li>
-<li>a function <code>block(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)</code> which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) as defined in <a href="#org8bc65d5">this paragraph</a>.</li>
+<li>a function <code>block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)</code> which computes the value of the non-chiral block \(\mathcal F_{\Delta}^{(s)}(\Delta_i | x)\) as defined in <a href="#org56406a3">this paragraph</a>.</li>
 </ul>
 </div>
-<div id="outline-container-org3c1abca" class="outline-4">
-<h4 id="org3c1abca">Header</h4>
-<div class="outline-text-4" id="text-org3c1abca">
+<div id="outline-container-org0b7ed2c" class="outline-4">
+<h4 id="org0b7ed2c">Header</h4>
+<div class="outline-text-4" id="text-org0b7ed2c">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 
-<span style="color: #07c365;">ConformalBlocks.jl contains modules that compute series expansions for</span>
-<span style="color: #07c365;">Virasoro four-point conformal blocks on the sphere and Virasoro one-point conformal blocks</span>
-<span style="color: #07c365;">on the torus.</span>
+<span style="color: #07c365;">ConformalBlocks.jl contains modules that compute Virasoro four-point conformal blocks on the</span>
+<span style="color: #07c365;">sphere and Virasoro one-point conformal blocks on the torus.</span>
 
 <span style="color: #07c365;">Written by Paul Roux, adapting a Python code written by Sylvain Ribault &amp; Rongvoram</span>
 <span style="color: #07c365;">Nivesvivat</span>
@@ -1637,23 +1860,23 @@ The module <code>FourPointBlocksSphere</code> exports
 
 
 <span style="color: #718c00;">"""</span>
-<span style="color: #718c00;">Series expansion of four-point blocks on the sphere.</span>
+<span style="color: #718c00;">Computation of four-point blocks on the sphere.</span>
 <span style="color: #718c00;">"""</span>
 <span style="color: #8959a8;">module</span> FourPointBlocksSphere
 
-<span style="color: #8959a8;">export</span> FourPointBlockSphere, block
+<span style="color: #8959a8;">export</span> FourPointBlockSphere, block_chiral, block_non_chiral
 
 <span style="color: #8959a8;">using</span> ..CFTData, ..FourPointCorrelationFunctions
 <span style="color: #8959a8;">using</span> Match, EllipticFunctions, Memoization
-<span style="color: #8959a8;">import</span> ..FourPointCorrelationFunctions: permute_ext_fields
-<span style="color: #8959a8;">import</span> SpecialFunctions: digamma as &#968;
+<span style="color: #8959a8;">import</span> ..FourPointCorrelationFunctions: permute_ext_fields, Rmn
+<span style="color: #8959a8;">import</span> ..JuliVirBootstrap.SpecialFunctions: digamma_reg
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-orgf0f8336" class="outline-4">
-<h4 id="orgf0f8336">Four-point block sphere type</h4>
-<div class="outline-text-4" id="text-orgf0f8336">
+<div id="outline-container-orgdc66d51" class="outline-4">
+<h4 id="orgdc66d51">Four-point block sphere type</h4>
+<div class="outline-text-4" id="text-orgdc66d51">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Struct FourPointBlockSphere</span>
@@ -1707,11 +1930,11 @@ The module <code>FourPointBlocksSphere</code> exports
 </div>
 </div>
 </div>
-<div id="outline-container-orgfb8fed6" class="outline-4">
-<h4 id="orgfb8fed6">Change of channel</h4>
-<div class="outline-text-4" id="text-orgfb8fed6">
+<div id="outline-container-orgaabfbc0" class="outline-4">
+<h4 id="orgaabfbc0">Change of channel</h4>
+<div class="outline-text-4" id="text-orgaabfbc0">
 <p>
-The $t$- and $u$-channel blocks are computed from the $s$-channel one, using described above.
+The \(t\) and \(u\) channel blocks are computed from the \(s\) channel one, using described above.
 </p>
 
 <div class="org-src-container">
@@ -1719,11 +1942,24 @@ The $t$- and $u$-channel blocks are computed from the $s$-channel one, using des
 <span style="color: #07c365;">Get t- and u- channel blocks from s-channel block</span>
 <span style="color: #07c365;">===========================================================================================#</span>
 <span style="color: #718c00;">"""Prefactor to get t- or u-channel blocks from the s-channel block"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">channelprefactor</span>(block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, x)
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">channelprefactor_chiral</span>(block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, x)
     <span style="color: #4d4d4c; font-weight: bold;">@match</span> block.channel <span style="color: #8959a8;">begin</span>
         <span style="color: #718c00;">"s"</span> <span style="color: #bb9200;">=&gt;</span> <span style="color: #f5871f; font-weight: bold;">1</span>
-        <span style="color: #718c00;">"t"</span> <span style="color: #bb9200;">=&gt;</span> (<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">^</span>(sum(spin(corr.fields)))
-        <span style="color: #718c00;">"u"</span> <span style="color: #bb9200;">=&gt;</span> (<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">^</span>(sum(spin.(corr.fields)))<span style="color: #bb9200;">*</span>abs2(x)<span style="color: #bb9200;">^</span>(<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>corr.fields[<span style="color: #f5871f; font-weight: bold;">1</span>][<span style="color: #718c00;">"&#916;"</span>])
+        <span style="color: #718c00;">"t"</span> <span style="color: #bb9200;">=&gt;</span> <span style="color: #f5871f; font-weight: bold;">1</span>
+        <span style="color: #718c00;">"u"</span> <span style="color: #bb9200;">=&gt;</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>x<span style="color: #bb9200;">^</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>corr.fields[<span style="color: #f5871f; font-weight: bold;">1</span>][<span style="color: #718c00;">"&#916;"</span>][left])
+    <span style="color: #8959a8;">end</span>
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">channelprefactor_non_chiral</span>(block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, x)
+    <span style="color: #8959a8;">return</span> channelprefactor_chiral(block, corr, x)<span style="color: #bb9200;">*</span>channelprefactor_chiral(block, corr, conj(x))
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #718c00;">"""Sign (-1)^{S_1+S_2+S_3+S_4} when changing from s to t or u channels"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">channel_sign</span>(block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, x)
+    <span style="color: #4d4d4c; font-weight: bold;">@match</span> block.channel <span style="color: #8959a8;">begin</span>
+        <span style="color: #718c00;">"s"</span> <span style="color: #bb9200;">=&gt;</span> <span style="color: #f5871f; font-weight: bold;">1</span>
+        <span style="color: #718c00;">"t"</span> <span style="color: #bb9200;">=&gt;</span> <span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">(-1)^(sum(spin.(corr.fields)))</span>
+        <span style="color: #718c00;">"u"</span> <span style="color: #bb9200;">=&gt;</span> <span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">(-1)^(sum(spin.(corr.fields)))</span>
     <span style="color: #8959a8;">end</span>
 <span style="color: #8959a8;">end</span>
 
@@ -1739,9 +1975,9 @@ The $t$- and $u$-channel blocks are computed from the $s$-channel one, using des
 </div>
 </div>
 </div>
-<div id="outline-container-org9a3bda5" class="outline-4">
-<h4 id="org9a3bda5">Prefactors, elliptic nome</h4>
-<div class="outline-text-4" id="text-org9a3bda5">
+<div id="outline-container-org003f346" class="outline-4">
+<h4 id="org003f346">Prefactors, elliptic nome</h4>
+<div class="outline-text-4" id="text-org003f346">
 <p>
 The nome \(q\) is related to \(x\) via
 </p>
@@ -1764,7 +2000,8 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 <span style="color: #07c365;">Set prefactors, relate the cross-ratio x and the elliptic nome q</span>
 <span style="color: #07c365;">===========================================================================================#</span>
 <span style="color: #718c00;">"""Nome `q` from the cross-ratio `x`"""</span>
-<span style="color: #4d4d4c; font-weight: bold;">@memoize</span> qfromx(x) = exp(<span style="color: #bb9200;">-</span>&#960;<span style="color: #bb9200;">*</span>ellipticK(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>x) <span style="color: #bb9200;">/</span> ellipticK(x))
+<span style="color: #4271ae;">qfromx</span>(x) = exp(<span style="color: #bb9200;">-</span>&#960;<span style="color: #bb9200;">*</span>ellipticK(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>x) <span style="color: #bb9200;">/</span> ellipticK(x))
+
 <span style="color: #718c00;">"""Cross ratio `x` from the nome `q`"""</span>
 <span style="color: #4271ae;">xfromq</span>(q) = jtheta2(<span style="color: #f5871f; font-weight: bold;">0</span>,q)<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">4</span> <span style="color: #bb9200;">/</span> jtheta3(<span style="color: #f5871f; font-weight: bold;">0</span>,q)<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">4</span>
 
@@ -1778,7 +2015,7 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
     e2 = sum(corr.fields[i][<span style="color: #718c00;">"&#948;"</span>][lr] <span style="color: #8959a8;">for</span> i <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:<span style="color: #f5871f; font-weight: bold;">4</span>) <span style="color: #bb9200;">+</span> (c<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">24</span>
     q=qfromx(x)
 
-    <span style="color: #8959a8;">return</span> x<span style="color: #bb9200;">^</span>e0 <span style="color: #bb9200;">*</span> (<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>x)<span style="color: #bb9200;">^</span>e1 <span style="color: #bb9200;">*</span> jtheta3(<span style="color: #f5871f; font-weight: bold;">0</span>,q)<span style="color: #bb9200;">^</span>(<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">4</span><span style="color: #bb9200;">*</span>e2) <span style="color: #bb9200;">*</span> (<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q)<span style="color: #bb9200;">^</span>block.channelField[<span style="color: #718c00;">"&#948;"</span>][<span style="color: #f5871f; font-weight: bold;">1</span>]
+    <span style="color: #8959a8;">return</span> x<span style="color: #bb9200;">^</span>e0 <span style="color: #bb9200;">*</span> (<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>x)<span style="color: #bb9200;">^</span>e1 <span style="color: #bb9200;">*</span> jtheta3(<span style="color: #f5871f; font-weight: bold;">0</span>,q)<span style="color: #bb9200;">^</span>(<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">4</span><span style="color: #bb9200;">*</span>e2) <span style="color: #bb9200;">*</span> (<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q)<span style="color: #bb9200;">^</span>block.channelField[<span style="color: #718c00;">"&#948;"</span>][lr]
 <span style="color: #8959a8;">end</span>
 
 <span style="color: #718c00;">"""Degenerate dimensions"""</span>
@@ -1787,126 +2024,206 @@ x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
 </div>
 </div>
 </div>
-<div id="outline-container-org13275e2" class="outline-4">
-<h4 id="org13275e2">Logarithmic blocks</h4>
-<div class="outline-text-4" id="text-org13275e2">
-<p>
-We compute the derivative of a block with respect to \(\delta\) as
-</p>
-
-\begin{align}
-  \frac{\partial \mathcal{F}}{\partial \delta} = x^{E_{0}} (1-x)^{E_{1}} \theta_{3}(q)^{-4E_{2}} (16q)^{\delta} H_{\delta}^{\text{der}}
-\end{align}
-
-<p>
-where
-</p>
-
-\begin{align}
-H_{\delta}^{\text{der}} &= \log(16q) H_{\delta} + \frac{\partial }{\partial \delta} H_{\delta} \\
-                     &= \log(16q) + \sum_{N=1}^{N_{\text{max}}} \sum_{mn \leq N} (16q)^{N} \left(\frac{\log 16q}{\delta - \delta_{(m,n)}} - \frac{1}{(\delta - \delta_{(m,n)})^{2}} \right)
-\end{align}
-
+<div id="outline-container-orgf8e4054" class="outline-4">
+<h4 id="orgf8e4054">Logarithmic structure constant \(\ell\)</h4>
+<div class="outline-text-4" id="text-orgf8e4054">
 <div class="org-src-container">
-<pre class="src src-julia"><span style="color: #4271ae;">q</span>(B, r, s) = r<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">+</span> s<span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>B)
+<pre class="src src-julia"><span style="color: #4271ae;">&#946;m1P</span>(B, r, s) = <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(r<span style="color: #bb9200;">+</span>s<span style="color: #bb9200;">/</span>B) <span style="color: #07c365;"># </span><span style="color: #07c365;">\beta^{-1}P_{(r,s)}</span>
 
 <span style="color: #718c00;">"""Factor \ell_{(r,s)} that appears in logarithmic blocks"""</span>
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">ell</span>(corr, r, s)
-    B = corr.charge[<span style="color: #718c00;">"B"</span>]
-    b = corr.charge[<span style="color: #718c00;">"b"</span>]
-    q_ext = [[corr.fields[i][<span style="color: #718c00;">"P"</span>][left]<span style="color: #bb9200;">/</span>b <span style="color: #8959a8;">for</span> i in <span style="color: #f5871f; font-weight: bold;">1</span>:<span style="color: #f5871f; font-weight: bold;">4</span>], [corr.fields[i][<span style="color: #718c00;">"P"</span>][right]<span style="color: #bb9200;">/</span>b <span style="color: #8959a8;">for</span> i <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:<span style="color: #f5871f; font-weight: bold;">4</span>]]
-    <span style="color: #4271ae;">term1</span>(j) = &#968;(<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">2</span>q(B, r, j)) <span style="color: #bb9200;">+</span> &#968;(<span style="color: #f5871f; font-weight: bold;">2</span>q(B, r, <span style="color: #bb9200;">-</span>j))
-    term2 = big(<span style="color: #f5871f; font-weight: bold;">4</span>)<span style="color: #bb9200;">*</span>&#960;<span style="color: #bb9200;">/</span>tan(&#960;<span style="color: #bb9200;">*</span>big(s)<span style="color: #bb9200;">/</span>B)
-    <span style="color: #4271ae;">term3</span>(lr, pm1, pm2, a, b) = &#968;(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">-</span> (<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">^</span>&#1013;<span style="color: #bb9200;">*</span>q(B, r, j) <span style="color: #bb9200;">+</span> pm1<span style="color: #bb9200;">*</span>q_ext[lr][a] <span style="color: #bb9200;">+</span> pm2<span style="color: #bb9200;">*</span>q_ext[lr][b])
-    <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">4</span><span style="color: #bb9200;">*</span>sum(term1(j) <span style="color: #8959a8;">for</span> j <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>s:s) <span style="color: #bb9200;">-</span> term2 <span style="color: #bb9200;">-</span> <span style="color: #bb9200;">\</span>
-        sum(term3(lr, pm1, pm2, <span style="color: #f5871f; font-weight: bold;">1</span>, <span style="color: #f5871f; font-weight: bold;">2</span>) <span style="color: #bb9200;">+</span> term3(lr, pm1, pm2, <span style="color: #f5871f; font-weight: bold;">3</span>, <span style="color: #f5871f; font-weight: bold;">4</span>)
-                        <span style="color: #8959a8;">for</span> lr in (left, right) <span style="color: #8959a8;">for</span> pm1 in (<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>,<span style="color: #f5871f; font-weight: bold;">1</span>) <span style="color: #8959a8;">for</span> pm2 <span style="color: #8959a8;">in</span> (<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>,<span style="color: #f5871f; font-weight: bold;">1</span>)
-                        <span style="color: #8959a8;">for</span> j <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>s:<span style="color: #f5871f; font-weight: bold;">2</span>:s<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)
+    c = corr.charge
+    B, &#946; = c[<span style="color: #718c00;">"B"</span>], c[<span style="color: #718c00;">"&#946;"</span>]
+    &#946;m1P_ext = [[corr.fields[i][<span style="color: #718c00;">"P"</span>][left]<span style="color: #bb9200;">/</span>&#946; <span style="color: #8959a8;">for</span> i in <span style="color: #f5871f; font-weight: bold;">1</span>:<span style="color: #f5871f; font-weight: bold;">4</span>], [corr.fields[i][<span style="color: #718c00;">"P"</span>][right]<span style="color: #bb9200;">/</span>&#946; <span style="color: #8959a8;">for</span> i <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:<span style="color: #f5871f; font-weight: bold;">4</span>]]
+
+    <span style="color: #4271ae;">term1</span>(j) = digamma_reg(<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#946;m1P(B, r, j)) <span style="color: #bb9200;">+</span> digamma_reg(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#946;m1P(B, r, <span style="color: #bb9200;">-</span>j))
+
+    res = <span style="color: #bb9200;">-</span>big(<span style="color: #f5871f; font-weight: bold;">4</span>)<span style="color: #bb9200;">*</span>&#960;<span style="color: #bb9200;">/</span>tan(&#960;<span style="color: #bb9200;">*</span>big(s)<span style="color: #bb9200;">/</span>B) <span style="color: #07c365;"># </span><span style="color: #07c365;">I put big(n)*\pi otherwise n*\pi where n is an integer has double precision instead of bigfloat</span>
+
+    <span style="color: #4271ae;">term3</span>(j, lr, pm1, pm2, a, b) = digamma_reg(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">+</span> (lr <span style="color: #bb9200;">==</span> left <span style="color: #8959a8;">?</span> <span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #8959a8;">:</span> <span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">*</span>&#946;m1P(B, r, j) <span style="color: #bb9200;">+</span> pm1<span style="color: #bb9200;">*</span>&#946;m1P_ext[lr][a] <span style="color: #bb9200;">+</span> pm2<span style="color: #bb9200;">*</span>&#946;m1P_ext[lr][b])
+
+    <span style="color: #8959a8;">return</span> res <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">4</span><span style="color: #bb9200;">*</span>sum(term1(j) <span style="color: #8959a8;">for</span> j <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>s:s) <span style="color: #bb9200;">-</span>
+        sum(term3(j, lr, pm1, pm2, a, b)
+                        <span style="color: #8959a8;">for</span> pm1 <span style="color: #8959a8;">in</span> (<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>,<span style="color: #f5871f; font-weight: bold;">1</span>)
+                        <span style="color: #8959a8;">for</span> pm2 <span style="color: #8959a8;">in</span> (<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>,<span style="color: #f5871f; font-weight: bold;">1</span>)
+                        <span style="color: #8959a8;">for</span> j <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>s:<span style="color: #f5871f; font-weight: bold;">2</span>:s<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>
+                        <span style="color: #8959a8;">for</span> (a,b) <span style="color: #8959a8;">in</span> ((<span style="color: #f5871f; font-weight: bold;">1</span>,<span style="color: #f5871f; font-weight: bold;">2</span>), (<span style="color: #f5871f; font-weight: bold;">3</span>, <span style="color: #f5871f; font-weight: bold;">4</span>))
+                        <span style="color: #8959a8;">for</span> lr <span style="color: #8959a8;">in</span> (left, right)
+        )
 <span style="color: #8959a8;">end</span>
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-org54f7ae3" class="outline-4">
-<h4 id="org54f7ae3">Computation of the block</h4>
-<div class="outline-text-4" id="text-org54f7ae3">
+<div id="outline-container-orgfbdcf3a" class="outline-4">
+<h4 id="orgfbdcf3a">Computation of the block</h4>
+<div class="outline-text-4" id="text-orgfbdcf3a">
+<p>
+We compute \(H^{\text{der}}_{P}\) as
+</p>
+
+\begin{align}
+H_{P}^{\text{der}} &= 2P(\log(16q) H_{P} + H_{P}') \\
+                     &= 2P \left(   \log(16q) + \sum_{N=1}^{N_{\text{max}}} \sum_{mn \leq N} (16q)^{N} \left(\frac{\log 16q}{\delta - \delta_{(m,n)}} - \frac{1}{(\delta - \delta_{(m,n)})^{2}} \right)\right)
+\end{align}
+
+
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">===========================================================================================</span>
 <span style="color: #07c365;">Compute the conformal block</span>
 <span style="color: #07c365;">===========================================================================================#</span>
-<span style="color: #718c00;">"""</span>
-<span style="color: #718c00;">    H(q, Nmax, block, corr, lr, derivative = false)</span>
-
-<span style="color: #718c00;">Compute the function ``H(q,&#948;)``. If derivative=true, compute instead the function H^{\text{der}}</span>
-<span style="color: #718c00;">"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">H</span>(q, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, lr, derivative=<span style="color: #f5871f;">false</span>)
-    &#948; = block.channelField[<span style="color: #718c00;">"&#948;"</span>][lr]
-    B = corr.charge[<span style="color: #718c00;">"B"</span>]
-    sq = <span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q
-    lsq = log(sq)
-    res = derivative <span style="color: #8959a8;">?</span> log(<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q) <span style="color: #8959a8;">:</span> <span style="color: #f5871f; font-weight: bold;">1</span>
-    pow = <span style="color: #f5871f; font-weight: bold;">1</span>
-    <span style="color: #8959a8;">for</span> N <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:Nmax
-
-        <span style="color: #8959a8;">if</span> derivative
-            term = log(<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q)<span style="color: #bb9200;">*</span>d
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">P_squared_ratio_reg</span>(q, c<span style="color: #bb9200;">::CentralCharge</span>, V<span style="color: #bb9200;">::Field</span>, m, n, lr)
+    <span style="color: #07c365;"># </span><span style="color: #07c365;">check V has integer Kac indices</span>
+    <span style="color: #8959a8;">if</span> V.isKac <span style="color: #bb9200;">&amp;&amp;</span> V.r<span style="color: #bb9200;">%</span><span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">&amp;&amp;</span> V.s<span style="color: #bb9200;">%</span><span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">&amp;&amp;</span> V.r <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">&amp;&amp;</span> (lr <span style="color: #bb9200;">==</span> left <span style="color: #bb9200;">&amp;&amp;</span> V.s <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">||</span> lr <span style="color: #bb9200;">==</span> right <span style="color: #bb9200;">&amp;&amp;</span> V.s <span style="color: #bb9200;">&lt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>)
+        <span style="color: #07c365;"># </span><span style="color: #07c365;">if s &lt; 0 and we're computing a right-handed block (\bar F) then the right dimension is P_(r,-s&gt;0). The divergence is always at P_(r,|s|).</span>
+        &#946; = c[<span style="color: #718c00;">"&#946;"</span>]
+        P = <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(&#946;<span style="color: #bb9200;">*</span>V.r <span style="color: #bb9200;">-</span> abs(V.s)<span style="color: #bb9200;">/</span>&#946;)
+        Pmn = <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(&#946;<span style="color: #bb9200;">*</span>m <span style="color: #bb9200;">-</span> n<span style="color: #bb9200;">/</span>&#946;)
+        <span style="color: #8959a8;">if</span> V.r <span style="color: #bb9200;">==</span> m <span style="color: #bb9200;">&amp;&amp;</span> abs(V.s) <span style="color: #bb9200;">==</span> n
+            <span style="color: #8959a8;">return</span> log(<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q) <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">4</span><span style="color: #bb9200;">*</span>P<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>)
         <span style="color: #8959a8;">else</span>
-            term = <span style="color: #f5871f; font-weight: bold;">1</span>
+            <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>(P<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">-</span>Pmn<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>)
         <span style="color: #8959a8;">end</span>
+    <span style="color: #8959a8;">else</span>
+        error(<span style="color: #718c00;">"Trying to compute a regularised block for a field with r=$(V.r) and s=$(V.s) . Both should be positive integers"</span>)
+    <span style="color: #8959a8;">end</span>
+<span style="color: #8959a8;">end</span>
 
-        sum_mn = sum(sum(computeCNmn(N, m, n, corr, block.channel, lr)<span style="color: #bb9200;">/</span>(&#948;<span style="color: #bb9200;">-</span>&#948;rs(m, n, B))
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block_recursion_coeff</span>(q, c, V, m, n, der, reg, lr)
+    &#946; = c[<span style="color: #718c00;">"&#946;"</span>]
+    P = V[<span style="color: #718c00;">"P"</span>][lr]
+    Pmn = <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(&#946;<span style="color: #bb9200;">*</span>m <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946;<span style="color: #bb9200;">*</span>n)
+    <span style="color: #8959a8;">if</span> der
+        <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>P<span style="color: #bb9200;">*</span>(log(<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q)<span style="color: #bb9200;">/</span>(P<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">-</span>Pmn<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>) <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>P<span style="color: #bb9200;">/</span>(P<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">-</span>Pmn<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">2P (log(16q)/(&#948;-\delta_{m,n}) - 1/(&#948;-\delta_{m,n})^2)</span>
+    <span style="color: #8959a8;">elseif</span> reg
+        <span style="color: #8959a8;">return</span> P_squared_ratio_reg(q, c, V, m, n, lr) <span style="color: #07c365;"># </span><span style="color: #07c365;">log(16q) - 1/4&#948; or 1/(&#948;-&#948;_{m,n})</span>
+    <span style="color: #8959a8;">else</span>
+        <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>(P<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">-</span> Pmn<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">1/(&#948;-&#948;_{m,n})</span>
+    <span style="color: #8959a8;">end</span>
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #718c00;">"""</span>
+<span style="color: #718c00;">    H(q, Nmax, block, corr, lr;</span>
+<span style="color: #718c00;">      der = false, reg = false)</span>
+
+<span style="color: #718c00;">Compute the function ``H(q,&#948;)``. If der=true, compute instead the function ``H^{\\text{der}}``. If reg=true, compute instead ``H^{\\text{reg}}``.</span>
+<span style="color: #718c00;">"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">H</span>(q, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, lr;
+           der = <span style="color: #f5871f;">false</span>, reg = <span style="color: #f5871f;">false</span>)
+    <span style="color: #4d4d4c; font-weight: bold;">@assert</span><span style="color: #bb9200;"> !</span>(der <span style="color: #bb9200;">&amp;&amp;</span> reg) <span style="color: #718c00;">"you should not compute the derivative of a regularised block"</span>
+    V = block.channelField
+    P = V[<span style="color: #718c00;">"P"</span>][lr]
+    c = corr.charge
+    &#946; = c[<span style="color: #718c00;">"&#946;"</span>]
+    pow = <span style="color: #f5871f; font-weight: bold;">1</span>
+
+    res = der <span style="color: #8959a8;">?</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>P<span style="color: #bb9200;">*</span>log(<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q) <span style="color: #8959a8;">:</span> <span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">H_P = 1 + sum(...), H_P^der = 2P log(16q) + sum(...)</span>
+
+    <span style="color: #8959a8;">for</span> N <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:Nmax
+        sum_mn = sum(sum(computeCNmn(N, m, n, corr, <span style="color: #718c00;">"s"</span>, lr)<span style="color: #bb9200;">*</span>block_recursion_coeff(q, c, V, m, n, der, reg, lr)
                          <span style="color: #8959a8;">for</span> n in <span style="color: #f5871f; font-weight: bold;">1</span>:N <span style="color: #8959a8;">if</span> m<span style="color: #bb9200;">*</span>n <span style="color: #bb9200;">&lt;=</span> N) <span style="color: #8959a8;">for</span> m <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:N)
+
         pow <span style="color: #bb9200;">*=</span> <span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q
         res <span style="color: #bb9200;">+=</span> pow <span style="color: #bb9200;">*</span> sum_mn
     <span style="color: #8959a8;">end</span>
+
     <span style="color: #8959a8;">return</span> res
 <span style="color: #8959a8;">end</span>
 
 <span style="color: #718c00;">"""</span>
-<span style="color: #718c00;">    block_chiral_schan(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)</span>
+<span style="color: #718c00;">    block_chiral_schan_value(block::FourPointBlockSphere, corr::FourPointCorrelation, x, lr)</span>
 
 <span style="color: #718c00;">Compute the chiral conformal block</span>
 
 <span style="color: #718c00;">``\\mathcal F^{(s)}_{\\delta}(x)``</span>
 
 <span style="color: #718c00;">"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block_chiral_schan</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, lr)
-    blockprefactor(block, corr, x, lr) <span style="color: #bb9200;">*</span> H(qfromx(x), Nmax, block, corr, lr)
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block_chiral_schan</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, lr;
+                            der=<span style="color: #f5871f;">false</span>, reg=<span style="color: #f5871f;">false</span>)
+    <span style="color: #8959a8;">return</span> blockprefactor(block, corr, x, lr) <span style="color: #bb9200;">*</span> H(qfromx(x), Nmax, block, corr, lr, der=der, reg=reg)
 <span style="color: #8959a8;">end</span>
 
-<span style="color: #718c00;">"""Compute the chiral conformal block</span>
+<span style="color: #718c00;">"""</span>
+<span style="color: #718c00;">    block_chiral(x, Nmax, block, corr, lr)</span>
+
+<span style="color: #718c00;">Compute the chiral conformal block</span>
 
 <span style="color: #718c00;">``\\mathcal F^{(\\text{chan})}_{\\delta}(x)``</span>
 
 <span style="color: #718c00;">where `chan` is `s`, `t`, or `u`."""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block_chiral</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, lr)
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block_chiral</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, lr;
+                      der = <span style="color: #f5871f;">false</span>, reg = <span style="color: #f5871f;">false</span>)
     chan = block.channel
-    block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr)
+    x_lr = (lr <span style="color: #bb9200;">==</span> left <span style="color: #8959a8;">?</span> x <span style="color: #8959a8;">:</span> conj(x))
+    <span style="color: #8959a8;">return</span> channelprefactor_chiral(block, corr, x_lr) <span style="color: #bb9200;">*</span>
+        block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr, der=der, reg=reg)
 <span style="color: #8959a8;">end</span>
 
 <span style="color: #718c00;">"""</span>
-<span style="color: #718c00;">    G(x, Nmax, block, corr)</span>
+<span style="color: #718c00;">    block_non_chiral_schan(x, Nmax, block, corr)</span>
 
-<span style="color: #718c00;">Compute the non-chiral conformal block</span>
+<span style="color: #718c00;">Compute the non-chiral conformal block G_(r,s) in the s channel.</span>
 
-<span style="color: #718c00;">``\\mathcal F^{(\\text{chan})}_{\\delta}(x) \\overline{\\mathcal F}^{(\\text{chan})}_{\\delta}( \bar x )``</span>
-
-<span style="color: #718c00;">where `chan` is `s`,`t` or `u`.</span>
-
-<span style="color: #eab700; font-weight: bold;">TODO:</span><span style="color: #718c00;"> logarithmic blocks</span>
+<span style="color: #eab700; font-weight: bold;">TODO:</span><span style="color: #718c00;"> regularise R_(r,s) / \bar{R}_(r,s)</span>
 <span style="color: #718c00;">"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>)
-    channelprefactor(block, corr, x) <span style="color: #bb9200;">*</span> <span style="color: #bb9200;">\</span>
-        block_chiral(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, left) <span style="color: #bb9200;">*</span> <span style="color: #bb9200;">\</span>
-        conj(block_chiral(conj(x), Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>, right))
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block_non_chiral_schan</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>)
+
+    Vchan = block.channelField
+
+    <span style="color: #8959a8;">if</span> Vchan.isKac <span style="color: #bb9200;">&amp;&amp;</span> (Vchan.r<span style="color: #bb9200;">%</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;"> !=</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">||</span> Vchan.s<span style="color: #bb9200;">%</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;"> !=</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">||</span> spin(Vchan) <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">non-logarithmic block</span>
+
+        <span style="color: #8959a8;">return</span> block_chiral_schan(x, Nmax, block, corr, left) <span style="color: #bb9200;">*</span> block_chiral_schan(conj(x), Nmax, block, corr, right)
+
+    <span style="color: #8959a8;">elseif</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">accidentally non-logarithmic block</span>
+        <span style="color: #8959a8;">return</span>
+    <span style="color: #8959a8;">else</span>
+        <span style="color: #07c365;"># </span><span style="color: #07c365;">logarithmic block</span>
+
+        r, s = Vchan.r, Vchan.s
+
+        <span style="color: #4d4d4c; font-weight: bold;">@assert</span><span style="color: #bb9200;"> !</span>(Vchan.r <span style="color: #bb9200;">&lt;</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">||</span> Vchan.s <span style="color: #bb9200;">&lt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>) <span style="color: #718c00;">"Trying to compute a logarithmic block with a negative index: r=$(Vchan.r), s=$(Vchan.s) .</span>
+<span style="color: #718c00;">                                               This goes against the chosen convention"</span>
+        c = corr.charge
+        block1 = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, Vchan) <span style="color: #07c365;"># </span><span style="color: #07c365;">non-log block with momenta (P_(r,s), P_(r,-s)) in the channel</span>
+        block2 = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, Field(c, Kac=<span style="color: #f5871f;">true</span>, r=r, s=<span style="color: #bb9200;">-</span>s)) <span style="color: #07c365;"># </span><span style="color: #07c365;">non-log block with momenta (P_(r,-s), P_(r,s)) in the channel</span>
+
+        F_Prms = block_chiral_schan(x, Nmax, block2, corr, left) <span style="color: #07c365;"># </span><span style="color: #07c365;">F_{P_(r,-s)}</span>
+        F_Prms_bar = block_chiral_schan(conj(x), Nmax, block1, corr, right) <span style="color: #07c365;"># </span><span style="color: #07c365;">\bar F_{P_(r,-s)}</span>
+        F_der_Prms = block_chiral_schan(x, Nmax, block2, corr, left, der=<span style="color: #f5871f;">true</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">F'_{P_(r,-s)}</span>
+        F_der_Prms_bar = block_chiral_schan(conj(x), Nmax, block1, corr, right, der=<span style="color: #f5871f;">true</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">\bar F'_{P_(r,-s)}</span>
+        F_reg_Prs = block_chiral_schan(x, Nmax, block1, corr, left, reg=<span style="color: #f5871f;">true</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">F^reg_{P_(r,s)}</span>
+        F_reg_Prs_bar = block_chiral_schan(conj(x), Nmax, block2, corr, right, reg=<span style="color: #f5871f;">true</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">\bar F^reg_{P_(r,s)}</span>
+
+        R = Rmn(r, s, corr, <span style="color: #718c00;">"s"</span>, left) <span style="color: #07c365;"># </span><span style="color: #07c365;">Vchan["P"][left] = P_(r,s)</span>
+        R_bar = Rmn(r, s, corr, <span style="color: #718c00;">"s"</span>, right)
+
+        term1 = (F_reg_Prs <span style="color: #bb9200;">-</span> R<span style="color: #bb9200;">*</span>F_der_Prms)<span style="color: #bb9200;">*</span>F_Prms_bar
+        term2 = R<span style="color: #bb9200;">/</span>R_bar<span style="color: #bb9200;">*</span>F_Prms<span style="color: #bb9200;">*</span>(F_reg_Prs_bar <span style="color: #bb9200;">-</span> R_bar<span style="color: #bb9200;">*</span>F_der_Prms_bar)
+        term3 = <span style="color: #bb9200;">-</span>R<span style="color: #bb9200;">*</span>ell(corr, r, s)<span style="color: #bb9200;">*</span>F_Prms<span style="color: #bb9200;">*</span>F_Prms_bar
+
+        <span style="color: #07c365;"># </span><span style="color: #07c365;">return F_Prms, F_Prms_bar, F_der_Prms, F_der_Prms_bar, F_reg_Prs, F_reg_Prs_bar, ell(corr, r, s), R, R_bar</span>
+        <span style="color: #8959a8;">return</span> channel_sign(block, corr, x)<span style="color: #bb9200;">*</span>(term1<span style="color: #bb9200;">+</span>term2<span style="color: #bb9200;">+</span>term3)
+    <span style="color: #8959a8;">end</span>
+<span style="color: #8959a8;">end</span>
+
+<span style="color: #718c00;">"""</span>
+<span style="color: #718c00;">    block_non_chiral(x, Nmax, block, corr)</span>
+
+<span style="color: #718c00;">Compute the non-chiral conformal block G_(r,s) in the channel indicated in `block`.</span>
+
+<span style="color: #eab700; font-weight: bold;">TODO:</span><span style="color: #718c00;"> regularise R_(r,s) / \bar{R}_(r,s)</span>
+<span style="color: #718c00;">"""</span>
+<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">block_non_chiral</span>(x, Nmax, block<span style="color: #bb9200;">::FourPointBlockSphere</span>, corr<span style="color: #bb9200;">::FourPointCorrelation</span>)
+    <span style="color: #8959a8;">return</span> channelprefactor_non_chiral(block, corr, x) <span style="color: #bb9200;">*</span>
+        block_non_chiral_schan(crossratio(block.channel, x), Nmax, block, permute_ext_fields(corr, block.channel))
 <span style="color: #8959a8;">end</span>
 </pre>
 </div>
 </div>
 </div>
-<div id="outline-container-org5dd3d03" class="outline-4">
-<h4 id="org5dd3d03">End of module</h4>
-<div class="outline-text-4" id="text-org5dd3d03">
+<div id="outline-container-orgae47a8e" class="outline-4">
+<h4 id="orgae47a8e">End of module</h4>
+<div class="outline-text-4" id="text-orgae47a8e">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -1914,9 +2231,9 @@ H_{\delta}^{\text{der}} &= \log(16q) H_{\delta} + \frac{\partial }{\partial \del
 </div>
 </div>
 </div>
-<div id="outline-container-org4bbb7ab" class="outline-3">
-<h3 id="org4bbb7ab"><span class="section-number-3">3.6.</span> The <code>OnePointBlocksTorus</code> module</h3>
-<div class="outline-text-3" id="text-3-6">
+<div id="outline-container-org877bf72" class="outline-3">
+<h3 id="org877bf72"><span class="section-number-3">3.7.</span> The <code>OnePointBlocksTorus</code> module</h3>
+<div class="outline-text-3" id="text-3-7">
 <p>
 The module <code>OnePointBlocksTorus</code> exports
 </p>
@@ -1927,8 +2244,8 @@ The module <code>OnePointBlocksTorus</code> exports
 </ul>
 </div>
 <ul class="org-ul">
-<li><a id="org1c3903b"></a>Header<br />
-<div class="outline-text-5" id="text-org1c3903b">
+<li><a id="org77ddc99"></a>Header<br />
+<div class="outline-text-5" id="text-org77ddc99">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #718c00;">"""</span>
 <span style="color: #718c00;">Series expansion of one-point blocks on the torus</span>
@@ -1954,8 +2271,8 @@ The module <code>OnePointBlocksTorus</code> exports
 </div>
 </div>
 </li>
-<li><a id="org49d804f"></a>Computation of the block<br />
-<div class="outline-text-5" id="text-org49d804f">
+<li><a id="org46c6b11"></a>Computation of the block<br />
+<div class="outline-text-5" id="text-org46c6b11">
 <div class="org-src-container">
 <pre class="src src-julia">
 <span style="color: #4271ae;">qfromtau</span>(&#964;) = exp(<span style="color: #f5871f; font-weight: bold;">2</span>im<span style="color: #bb9200;">*</span>big(&#960;)<span style="color: #bb9200;">*</span>&#964;)
@@ -2010,8 +2327,8 @@ The module <code>OnePointBlocksTorus</code> exports
 </div>
 </div>
 </li>
-<li><a id="orge2d4831"></a>End of module<br />
-<div class="outline-text-5" id="text-orge2d4831">
+<li><a id="org699493f"></a>End of module<br />
+<div class="outline-text-5" id="text-org699493f">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
 </pre>
@@ -2020,201 +2337,13 @@ The module <code>OnePointBlocksTorus</code> exports
 </li>
 </ul>
 </div>
-<div id="outline-container-orged8c34a" class="outline-3">
-<h3 id="orged8c34a"><span class="section-number-3">3.7.</span> The <code>SpecialFunctions</code> module</h3>
-<div class="outline-text-3" id="text-3-7">
-</div>
-<div id="outline-container-orge2e1cf4" class="outline-4">
-<h4 id="orge2e1cf4">Header</h4>
-<div class="outline-text-4" id="text-orge2e1cf4">
-<div class="org-src-container">
-<pre class="src src-julia"><span style="color: #07c365;">#</span><span style="color: #07c365;">==================</span>
-
-<span style="color: #07c365;">SpecialFunctions.jl computes the special functions relevant for our applications in 2D CFT.</span>
-
-<span style="color: #07c365;">==================#</span>
-
-<span style="color: #8959a8;">module</span> SpecialFunctions
-
-<span style="color: #8959a8;">using</span> SpecialFunctions, ArbNumerics, Memoization
-<span style="color: #8959a8;">export</span> Barnes_G, log_double_Gamma, double_Gamma
-
-<span style="color: #07c365;"># </span><span style="color: #07c365;">the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_&#915;</span>(z)
-    <span style="color: #8959a8;">return</span> Complex{BigFloat}(lgamma(ArbComplex(z)))
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">&#915;</span>(z)
-    <span style="color: #8959a8;">return</span> Complex{BigFloat}(gamma(ArbComplex(z)))
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">&#968;</span>(z)
-    <span style="color: #8959a8;">return</span> Complex{BigFloat}(digamma(ArbComplex(z)))
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">trigamma</span>(z)
-    <span style="color: #8959a8;">return</span> Complex{BigFloat}(polygamma(ArbComplex(<span style="color: #f5871f; font-weight: bold;">1</span>), ArbComplex(z)))
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">poly&#915;</span>(n, z)
-    <span style="color: #8959a8;">return</span> Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z)))
-<span style="color: #8959a8;">end</span>
-<span style="color: #8959a8;">using</span> QuadGK <span style="color: #07c365;"># </span><span style="color: #07c365;">numerical integration</span>
-<span style="color: #8959a8;">using</span> Symbolics, Memoization
-
-<span style="color: #8959a8;">export</span> digamma_reg
-
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-orgfab412f" class="outline-4">
-<h4 id="orgfab412f">Regularized digamma Function</h4>
-<div class="outline-text-4" id="text-orgfab412f">
-<div class="org-src-container">
-<pre class="src src-julia"><span style="color: #718c00;">"""Regularised digamma function"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">digamma_reg</span>(z)
-    <span style="color: #8959a8;">if</span> real(z) <span style="color: #bb9200;">&gt;</span> <span style="color: #f5871f; font-weight: bold;">0</span>
-        <span style="color: #8959a8;">return</span> &#968;(z)
-    <span style="color: #8959a8;">elseif</span> imag(z) <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #bb9200;">&amp;&amp;</span> real(z)<span style="color: #bb9200;">%</span><span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">0</span>
-        <span style="color: #8959a8;">return</span> &#968;(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>z)
-    <span style="color: #8959a8;">else</span>
-        <span style="color: #8959a8;">return</span> &#968;(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>z) <span style="color: #bb9200;">-</span> big(&#960;)<span style="color: #bb9200;">/</span>tan(&#960;<span style="color: #bb9200;">*</span>z)
-    <span style="color: #8959a8;">end</span>
-<span style="color: #8959a8;">end</span>
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org42b328b" class="outline-4">
-<h4 id="org42b328b">Double gamma function</h4>
-<div class="outline-text-4" id="text-org42b328b">
-<p>
-The function <code>log_Barnes_GN</code> is the logarithm of the function <a href="eq:Barnes_{GN}">G<sub>N</sub></a>.
-</p>
-
-<div class="org-src-container">
-<pre class="src src-julia"><span style="color: #8959a8;">function</span> <span style="color: #4271ae;">integrand_C</span>(x, &#964;)
-    x = big(x)
-    <span style="color: #8959a8;">return</span> exp((<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>&#964;)<span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>sinh(x)<span style="color: #bb9200;">*</span>sinh(&#964;<span style="color: #bb9200;">*</span>x)) <span style="color: #bb9200;">-</span> exp(<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">/</span>(&#964;<span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">*</span>(exp(x)<span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>sinh(x))<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>&#964;<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span>)
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">modular_C</span>(&#964;)
-    P = precision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>)
-    <span style="color: #07c365;">#</span><span style="color: #07c365;">temporarily increase precision to avoid artificial divergence around zero</span>
-    setprecision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>, Int(floor(<span style="color: #f5871f; font-weight: bold;">1.3</span><span style="color: #bb9200;">*</span>P)))
-    cutoff = big(<span style="color: #f5871f; font-weight: bold;">10</span><span style="color: #bb9200;">^</span>(<span style="color: #bb9200;">-</span>P<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">5</span>)) <span style="color: #07c365;"># </span><span style="color: #07c365;">to prevent artificial divergence around zero</span>
-    tol = big(<span style="color: #f5871f; font-weight: bold;">10</span>)<span style="color: #bb9200;">^</span>P
-    value, error = quadgk(x <span style="color: #bb9200;">-&gt;</span> integrand_C(x, &#964;), cutoff, big(<span style="color: #f5871f;">Inf</span>), rtol = tol, order=<span style="color: #f5871f; font-weight: bold;">21</span>)
-    C0 = (<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">/</span>&#964; <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">3</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">+</span> &#964;<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">6</span>)<span style="color: #bb9200;">*</span>cutoff <span style="color: #bb9200;">+</span> (<span style="color: #f5871f; font-weight: bold;">5</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">12</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#964; <span style="color: #bb9200;">+</span> &#964;<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">12</span>)<span style="color: #bb9200;">*</span>cutoff<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">+</span> (<span style="color: #f5871f; font-weight: bold;">4</span><span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">9</span><span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">9</span> <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">54</span><span style="color: #bb9200;">*</span>&#964; <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">270</span><span style="color: #bb9200;">*</span>&#964;<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">3</span>)<span style="color: #bb9200;">*</span>cutoff<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">3</span>
-    setprecision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>, P)
-    <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#964;)<span style="color: #bb9200;">*</span>log(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>big(&#960;)) <span style="color: #bb9200;">-</span> value <span style="color: #bb9200;">-</span> C0
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">integrand_D</span>(x, &#964;)
-    x = big(x)
-    <span style="color: #8959a8;">return</span> x<span style="color: #bb9200;">*</span>exp((<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>&#964;)<span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">/</span>(sinh(x)<span style="color: #bb9200;">*</span>sinh(&#964;<span style="color: #bb9200;">*</span>x)) <span style="color: #bb9200;">-</span> exp(<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>x)<span style="color: #bb9200;">/</span>(&#964;<span style="color: #bb9200;">*</span>x)
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">modular_D</span>(&#964;)
-    P = precision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>)
-    <span style="color: #07c365;">#</span><span style="color: #07c365;">temporarily increase precision to avoid artificial divergence around zero</span>
-    setprecision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>, Int(floor(<span style="color: #f5871f; font-weight: bold;">1.3</span><span style="color: #bb9200;">*</span>P)))
-    cutoff = big(<span style="color: #f5871f; font-weight: bold;">10</span><span style="color: #bb9200;">^</span>(<span style="color: #bb9200;">-</span>P<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">5</span>)) <span style="color: #07c365;"># </span><span style="color: #07c365;">to prevent artificial divergence around zero</span>
-    tol = big(<span style="color: #f5871f; font-weight: bold;">10</span>)<span style="color: #bb9200;">^</span>P
-    value, error = quadgk( x <span style="color: #bb9200;">-&gt;</span> integrand_D(x, &#964;), big(<span style="color: #f5871f; font-weight: bold;">0</span>), big(<span style="color: #f5871f;">Inf</span>), rtol = tol, order=<span style="color: #f5871f; font-weight: bold;">21</span>)
-    setprecision(BigFloat, base=<span style="color: #f5871f; font-weight: bold;">10</span>, P)
-    <span style="color: #8959a8;">return</span> value
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #4d4d4c; font-weight: bold;">@memoize</span> <span style="color: #8959a8;">function</span> modular_coeff_a(&#964;)
-    <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#964;<span style="color: #bb9200;">*</span>log(big(<span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>&#960;<span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>log(&#964;) <span style="color: #bb9200;">-</span> &#964;<span style="color: #bb9200;">*</span>modular_C(&#964;)
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #4d4d4c; font-weight: bold;">@memoize</span> <span style="color: #8959a8;">function</span> modular_coeff_b(&#964;)
-    <span style="color: #8959a8;">return</span> <span style="color: #bb9200;">-</span>&#964;<span style="color: #bb9200;">*</span>log(&#964;) <span style="color: #bb9200;">-</span> &#964;<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>modular_D(&#964;)
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_Barnes_GN</span>(N, z, &#964;)
-    term1 = <span style="color: #bb9200;">-</span> log(&#964;) <span style="color: #bb9200;">-</span> log_&#915;(z)
-    term2 = modular_coeff_a(&#964;)<span style="color: #bb9200;">*</span>z<span style="color: #bb9200;">/</span>&#964; <span style="color: #bb9200;">+</span> modular_coeff_b(&#964;)<span style="color: #bb9200;">*</span>z<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#964;<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>)
-    term3 = sum(log_&#915;(m<span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">-</span> log_&#915;(z<span style="color: #bb9200;">+</span>m<span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">+</span> z<span style="color: #bb9200;">*</span>&#968;(m<span style="color: #bb9200;">*</span>&#964;)<span style="color: #bb9200;">+</span>z<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>trigamma(m<span style="color: #bb9200;">*</span>&#964;) <span style="color: #8959a8;">for</span> m <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:N)
-    <span style="color: #8959a8;">return</span> term1 <span style="color: #bb9200;">+</span> term2 <span style="color: #bb9200;">+</span> term3
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">polynomial_Pn</span>(n, z, &#964;)
-    <span style="color: #8959a8;">if</span> n <span style="color: #bb9200;">==</span> <span style="color: #f5871f; font-weight: bold;">1</span>
-        <span style="color: #8959a8;">return</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">6</span>
-    <span style="color: #8959a8;">else</span>
-        term1 = z<span style="color: #bb9200;">^</span>(n<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">/</span>factorial(big(n<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">2</span>))
-        <span style="color: #4271ae;">summand</span>(k) = ((<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">+</span>&#964;)<span style="color: #bb9200;">^</span>(k<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">2</span>) <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">1</span> <span style="color: #bb9200;">-</span> &#964;<span style="color: #bb9200;">^</span>(k<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">2</span>))<span style="color: #bb9200;">/</span>(factorial(big(k<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">2</span>))<span style="color: #bb9200;">*</span>&#964;) <span style="color: #bb9200;">*</span> polynomial_Pn(n<span style="color: #bb9200;">-</span>k, z, &#964;)
-        <span style="color: #8959a8;">return</span> term1 <span style="color: #bb9200;">-</span> sum(summand(k) <span style="color: #8959a8;">for</span> k <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:n<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)
-    <span style="color: #8959a8;">end</span>
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">rest_RMN</span>(M, N, z, &#964;)
-    <span style="color: #8959a8;">return</span> sum(factorial(big(k<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>))<span style="color: #bb9200;">*</span>(<span style="color: #bb9200;">-</span>&#964;)<span style="color: #bb9200;">^</span>(<span style="color: #bb9200;">-</span>k<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">*</span>polynomial_Pn(k, z, <span style="color: #bb9200;">-</span>&#964;)<span style="color: #bb9200;">/</span>N<span style="color: #bb9200;">^</span>k <span style="color: #8959a8;">for</span> k <span style="color: #8959a8;">in</span> <span style="color: #f5871f; font-weight: bold;">1</span>:M)
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #718c00;">"""Numerical approximation of the logarithm of Barne's G-function, up to a given tolerance"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_Barnes_G</span>(z, &#964;, tol)
-    z = complex(z)
-    d = <span style="color: #bb9200;">-</span>log(tol)<span style="color: #bb9200;">/</span>log(<span style="color: #f5871f; font-weight: bold;">10</span>)
-    M = BigInt(floor(<span style="color: #f5871f; font-weight: bold;">0.7</span><span style="color: #bb9200;">*</span>log(<span style="color: #f5871f; font-weight: bold;">10</span>)<span style="color: #bb9200;">/</span>log(<span style="color: #f5871f; font-weight: bold;">20</span>)<span style="color: #bb9200;">*</span>d))
-    N = <span style="color: #f5871f; font-weight: bold;">20</span><span style="color: #bb9200;">*</span>M
-    <span style="color: #8959a8;">return</span> log_Barnes_GN(N, z, &#964;) <span style="color: #bb9200;">+</span> z<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">3</span><span style="color: #bb9200;">*</span>rest_RMN(M, N, z, &#964;)
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">Barnes_G</span>(z, &#964;, tol)
-    <span style="color: #8959a8;">return</span> exp(log_Barnes_G(z, &#964;, tol))
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_Gamma_2</span>(w, &#946;, tol)
-    &#946; = real(&#946;<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946;) <span style="color: #bb9200;">&lt;</span> <span style="color: #f5871f; font-weight: bold;">0</span> <span style="color: #8959a8;">?</span> <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946; <span style="color: #8959a8;">:</span> &#946; <span style="color: #07c365;"># </span><span style="color: #07c365;">change &#946; -&gt; 1/&#946; if needed</span>
-    <span style="color: #8959a8;">return</span> w<span style="color: #bb9200;">/</span>(<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>&#946;)<span style="color: #bb9200;">*</span>log(big(<span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>&#960;) <span style="color: #bb9200;">+</span> (w<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">*</span>(w<span style="color: #bb9200;">-</span>&#946;<span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946;)<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1</span>)<span style="color: #bb9200;">*</span>log(&#946;) <span style="color: #bb9200;">-</span> log_Barnes_G(w<span style="color: #bb9200;">/</span>&#946;, <span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946;<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, tol)
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #718c00;">"""</span>
-<span style="color: #718c00;">        log_double_Gamma(w, &#946;, tol)</span>
-
-<span style="color: #718c00;">Compute the logarithm of the double gamma function &#915;_&#946;(w, &#946;) with precision tol</span>
-
-<span style="color: #718c00;">"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">log_double_Gamma</span>(w, &#946;, tol)
-    <span style="color: #8959a8;">return</span> log_Gamma_2(w, &#946;, tol) <span style="color: #bb9200;">-</span> log_Gamma_2((&#946;<span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">/</span>&#946;)<span style="color: #bb9200;">/</span><span style="color: #f5871f; font-weight: bold;">2</span>, &#946;, tol)
-<span style="color: #8959a8;">end</span>
-
-<span style="color: #718c00;">"""</span>
-<span style="color: #718c00;">        double_Gamma(w, &#946;, tol)</span>
-
-<span style="color: #718c00;">Compute the double gamma function &#915;_&#946;(w, &#946;) with precision tol</span>
-
-<span style="color: #718c00;">"""</span>
-<span style="color: #8959a8;">function</span> <span style="color: #4271ae;">double_Gamma</span>(w, &#946;, tol)
-    exp(log_double_Gamma(w, &#946;, tol))
-<span style="color: #8959a8;">end</span>
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org2a712e8" class="outline-4">
-<h4 id="org2a712e8">End module</h4>
-<div class="outline-text-4" id="text-org2a712e8">
-<div class="org-src-container">
-<pre class="src src-julia"><span style="color: #8959a8;">end</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">end module</span>
-</pre>
-</div>
-</div>
-</div>
-</div>
-<div id="outline-container-org8bab7f6" class="outline-3">
-<h3 id="org8bab7f6"><span class="section-number-3">3.8.</span> Setting-up bootstrap equations</h3>
+<div id="outline-container-org05665c5" class="outline-3">
+<h3 id="org05665c5"><span class="section-number-3">3.8.</span> Setting-up bootstrap equations</h3>
 <div class="outline-text-3" id="text-3-8">
 </div>
-<div id="outline-container-orgd6484ab" class="outline-4">
-<h4 id="orgd6484ab">Multithreading</h4>
-<div class="outline-text-4" id="text-orgd6484ab">
+<div id="outline-container-org4c9c8ba" class="outline-4">
+<h4 id="org4c9c8ba">Multithreading</h4>
+<div class="outline-text-4" id="text-org4c9c8ba">
 <p>
 Setting-up bootstrap equations requires evaluating conformal blocks at hundreds of positions. We parallelize this computation.
 </p>
@@ -2239,8 +2368,8 @@ help(Field)
 </div>
 </div>
 </div>
-<div id="outline-container-org01654b5" class="outline-3">
-<h3 id="org01654b5"><span class="section-number-3">3.9.</span> Unit testing</h3>
+<div id="outline-container-orgbda0087" class="outline-3">
+<h3 id="orgbda0087"><span class="section-number-3">3.9.</span> Unit testing</h3>
 <div class="outline-text-3" id="text-3-9">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">using</span> JuliVirBootstrap
@@ -2248,9 +2377,9 @@ help(Field)
 </pre>
 </div>
 </div>
-<div id="outline-container-org6d37b2b" class="outline-4">
-<h4 id="org6d37b2b">CFTData</h4>
-<div class="outline-text-4" id="text-org6d37b2b">
+<div id="outline-container-org55e1352" class="outline-4">
+<h4 id="org55e1352">CFTData</h4>
+<div class="outline-text-4" id="text-org55e1352">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #4d4d4c; font-weight: bold;">@testset</span> <span style="color: #718c00;">"CFTData.jl"</span> <span style="color: #8959a8;">begin</span>
 
@@ -2283,9 +2412,9 @@ help(Field)
 </div>
 </div>
 </div>
-<div id="outline-container-org6d0799a" class="outline-4">
-<h4 id="org6d0799a">Four-point correlation functions</h4>
-<div class="outline-text-4" id="text-org6d0799a">
+<div id="outline-container-org43885f9" class="outline-4">
+<h4 id="org43885f9">Four-point correlation functions</h4>
+<div class="outline-text-4" id="text-org43885f9">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #4d4d4c; font-weight: bold;">@testset</span> <span style="color: #718c00;">"FourPointCorrelationFunctions"</span> <span style="color: #8959a8;">begin</span>
 
@@ -2316,12 +2445,229 @@ help(Field)
 </div>
 </div>
 </div>
-<div id="outline-container-orgc1928bc" class="outline-4">
-<h4 id="orgc1928bc">Four-point blocks</h4>
+<div id="outline-container-orga180261" class="outline-4">
+<h4 id="orga180261">Four-point blocks</h4>
+<div class="outline-text-4" id="text-orga180261">
+</div>
+<ul class="org-ul">
+<li><a id="org4f0c6f5"></a>Boilerplate<br />
+<div class="outline-text-5" id="text-org4f0c6f5">
+<div class="org-src-container">
+<pre class="src src-julia">
+<span style="color: #4d4d4c; font-weight: bold;">@testset</span> <span style="color: #718c00;">"FourPointBlocks"</span> <span style="color: #8959a8;">begin</span>
+
+    left=<span style="color: #f5871f; font-weight: bold;">1</span>;
+    right=<span style="color: #f5871f; font-weight: bold;">2</span>;
+
+    <span style="color: #8959a8;">import</span> JuliVirBootstrap.FourPointBlocksSphere.qfromx
+
+</pre>
 </div>
 </div>
-<div id="outline-container-org9bbd4ad" class="outline-3">
-<h3 id="org9bbd4ad"><span class="section-number-3">3.10.</span> Development tests&#xa0;&#xa0;&#xa0;<span class="tag"><span class="noeval">noeval</span></span></h3>
+</li>
+<li><a id="org3c8f33f"></a>Series \(H\)<br />
+<div class="outline-text-5" id="text-org3c8f33f">
+<div class="org-src-container">
+<pre class="src src-julia">    c_sphere = CentralCharge(<span style="color: #718c00;">"b"</span>, (<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im)<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>))
+
+    q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
+
+    P = <span style="color: #f5871f; font-weight: bold;">0.23</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">11</span>im
+    P1 = <span style="color: #f5871f; font-weight: bold;">0.41</span><span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1.03</span>im
+
+    V_sphere_chan = Field(c_sphere, <span style="color: #718c00;">"P"</span>, sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>P, diagonal=<span style="color: #f5871f;">true</span>)
+    V_sphere_ext = Field(c_sphere, <span style="color: #718c00;">"P"</span>, P1<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>), diagonal=<span style="color: #f5871f;">true</span>)
+    VKac_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>, diagonal=<span style="color: #f5871f;">true</span>)
+
+    corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
+    block_sphere = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, V_sphere_chan)
+
+    h = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
+
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(h, <span style="color: #f5871f; font-weight: bold;">0.9999955375834808</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">2.735498726466085e-6</span>im, atol=<span style="color: #f5871f; font-weight: bold;">1e-8</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">value from Sylvain's code</span>
+
+
+</pre>
+</div>
+</div>
+</li>
+<li><a id="org0f05374"></a>Prefactors, change of channel<br />
+<div class="outline-text-5" id="text-org0f05374">
+<div class="org-src-container">
+<pre class="src src-julia">    setprecision(BigFloat, <span style="color: #f5871f; font-weight: bold;">64</span>)
+
+    c = CentralCharge(<span style="color: #718c00;">"&#946;"</span>, big(<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im));
+    V1 = Field(c, <span style="color: #718c00;">"&#916;"</span>, <span style="color: #f5871f; font-weight: bold;">0.23</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">11</span>im, diagonal=<span style="color: #f5871f;">true</span>);
+    V2 = Field(c, <span style="color: #718c00;">"&#916;"</span>, <span style="color: #f5871f; font-weight: bold;">3.43</span>, diagonal=<span style="color: #f5871f;">true</span>);
+    V3 = Field(c, <span style="color: #718c00;">"&#916;"</span>, <span style="color: #f5871f; font-weight: bold;">0.13</span>, diagonal=<span style="color: #f5871f;">true</span>);
+    V4 = Field(c, <span style="color: #718c00;">"&#916;"</span>, <span style="color: #f5871f; font-weight: bold;">1.3</span>, diagonal=<span style="color: #f5871f;">true</span>);
+    V = Field(c, <span style="color: #718c00;">"&#916;"</span>, <span style="color: #f5871f; font-weight: bold;">0.1</span>, diagonal = <span style="color: #f5871f;">true</span>);
+
+    corr = FourPointCorrelation(c, [V1, V2, V3, V4])
+
+    bl_s = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, V)
+    bl_t = FourPointBlockSphere(<span style="color: #718c00;">"t"</span>, V)
+    bl_u = FourPointBlockSphere(<span style="color: #718c00;">"u"</span>, V)
+
+    x=<span style="color: #f5871f; font-weight: bold;">0.05</span>
+
+    <span style="color: #07c365;"># </span><span style="color: #07c365;">comparing to values from Sylvain's code</span>
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(block_chiral(x, <span style="color: #f5871f; font-weight: bold;">6</span>, bl_s, corr, left), <span style="color: #f5871f; font-weight: bold;">2337.4038141240320199350204984981259378760811288542</span> <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">4771.3912725970751669197262259253749217475400016186</span>im, rtol = <span style="color: #f5871f; font-weight: bold;">1e-10</span>)
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(block_chiral(x, <span style="color: #f5871f; font-weight: bold;">6</span>, bl_t, corr, left), <span style="color: #f5871f; font-weight: bold;">52191.790807047848992452669811987274395806031692488</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">140430.98553278617162374003412214159828722759436549</span>im,rtol = <span style="color: #f5871f; font-weight: bold;">1e-10</span>)
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(block_chiral(x, <span style="color: #f5871f; font-weight: bold;">6</span>, bl_u, corr, left), <span style="color: #f5871f; font-weight: bold;">852.92814340196565010929995606986011067184449511918</span> <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">359.96303529282323934093142050535102602840290239155</span>im, rtol = <span style="color: #f5871f; font-weight: bold;">1e-10</span>)
+</pre>
+</div>
+</div>
+</li>
+<li><a id="org64ea267"></a>Asymptotics<br />
+<div class="outline-text-5" id="text-org64ea267">
+<div class="org-src-container">
+<pre class="src src-julia">    setprecision(BigFloat, <span style="color: #f5871f; font-weight: bold;">64</span>)
+    left = <span style="color: #f5871f; font-weight: bold;">1</span>
+    right = <span style="color: #f5871f; font-weight: bold;">2</span>
+
+    c = CentralCharge(<span style="color: #718c00;">"&#946;"</span>, <span style="color: #f5871f; font-weight: bold;">1.2</span> <span style="color: #bb9200;">+</span> .<span style="color: #f5871f; font-weight: bold;">1</span>im)
+    V1 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>, s=<span style="color: #f5871f; font-weight: bold;">0</span>)
+    V2 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">3</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>, s=<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">3</span>)
+
+    corr = FourPointCorrelation(c, [V1, V1, V2, V1])
+    block_s = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, V1)
+    block_t = FourPointBlockSphere(<span style="color: #718c00;">"t"</span>, V1)
+
+    z = <span style="color: #f5871f; font-weight: bold;">1e-8</span> <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">1e-10</span>im
+    &#916; = V1[<span style="color: #718c00;">"&#916;"</span>][left]
+
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> abs(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>block_non_chiral(z, <span style="color: #f5871f; font-weight: bold;">12</span>, block_s, corr)<span style="color: #bb9200;">*</span>z<span style="color: #bb9200;">^</span>&#916;<span style="color: #bb9200;">*</span>conj(z)<span style="color: #bb9200;">^</span>&#916;) <span style="color: #bb9200;">&lt;</span> <span style="color: #f5871f; font-weight: bold;">1e-5</span>
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> abs(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>block_non_chiral(<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">-</span>z, <span style="color: #f5871f; font-weight: bold;">12</span>, block_t, corr)<span style="color: #bb9200;">*</span>z<span style="color: #bb9200;">^</span>&#916;<span style="color: #bb9200;">*</span>conj(z)<span style="color: #bb9200;">^</span>&#916;) <span style="color: #bb9200;">&lt;</span> <span style="color: #f5871f; font-weight: bold;">1e-5</span> <span style="color: #07c365;"># </span><span style="color: #07c365;">both blocks are close to one</span>
+
+</pre>
+</div>
+</div>
+</li>
+<li><a id="org670be3e"></a>Derivative<br />
+<div class="outline-text-5" id="text-org670be3e">
+<div class="org-src-container">
+<pre class="src src-julia">    setprecision(BigFloat, <span style="color: #f5871f; font-weight: bold;">128</span>)
+
+    c = CentralCharge(<span style="color: #718c00;">"&#946;"</span>, big(<span style="color: #f5871f; font-weight: bold;">1.2</span> <span style="color: #bb9200;">+</span> .<span style="color: #f5871f; font-weight: bold;">1</span>im))
+    V1 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>, s=<span style="color: #f5871f; font-weight: bold;">0</span>)
+    V2 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">3</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>, s=<span style="color: #f5871f; font-weight: bold;">2</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">3</span>)
+
+    &#1013; = <span style="color: #f5871f; font-weight: bold;">1e-8</span>
+    V = Field(c, <span style="color: #718c00;">"P"</span>, <span style="color: #f5871f; font-weight: bold;">0.5</span>, diagonal=<span style="color: #f5871f;">true</span>)
+    Vshifted = Field(c, <span style="color: #718c00;">"P"</span>, <span style="color: #f5871f; font-weight: bold;">0.5</span><span style="color: #bb9200;">+</span>&#1013;, diagonal=<span style="color: #f5871f;">true</span>)
+
+    corr = FourPointCorrelation(c, [V1, V1, V2, V1])
+    block = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, V)
+    block_shifted = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, Vshifted)
+
+    block_der = block_chiral(z, <span style="color: #f5871f; font-weight: bold;">12</span>, block, corr, left, der=<span style="color: #f5871f;">true</span>)
+    block_der_manual = (block_chiral(z, <span style="color: #f5871f; font-weight: bold;">12</span>, block_shifted, corr, left) <span style="color: #bb9200;">-</span> block_chiral(z, <span style="color: #f5871f; font-weight: bold;">12</span>, block, corr, left))<span style="color: #bb9200;">/</span>&#1013;
+
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> abs(block_der <span style="color: #bb9200;">-</span> block_der_manual) <span style="color: #bb9200;">&lt;</span> <span style="color: #f5871f; font-weight: bold;">1e-6</span>
+</pre>
+</div>
+</div>
+</li>
+<li><a id="org1668bce"></a>Logarithmic blocks<br />
+<div class="outline-text-5" id="text-org1668bce">
+<div class="org-src-container">
+<pre class="src src-julia">    c = CentralCharge(<span style="color: #718c00;">"&#946;"</span>, big(.<span style="color: #f5871f; font-weight: bold;">8</span> <span style="color: #bb9200;">+</span> .<span style="color: #f5871f; font-weight: bold;">1</span>im))
+    V1 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>)
+    V2 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>)
+    V3 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>)
+    V4 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">3</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>)
+    V&#916; = Field(c, <span style="color: #718c00;">"&#916;"</span>, <span style="color: #f5871f; font-weight: bold;">0.5</span>, diagonal=<span style="color: #f5871f;">true</span>)
+
+    corr = FourPointCorrelation(c, [V1, V2, V3, V4])
+    corr&#916; = FourPointCorrelation(c, [V1, V2, V3, V&#916;])
+
+    ell = JuliVirBootstrap.FourPointBlocksSphere.ell(corr, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>)
+    ell&#916; = JuliVirBootstrap.FourPointBlocksSphere.ell(corr&#916;, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>)
+
+    <span style="color: #07c365;"># </span><span style="color: #07c365;">When all fields are degenerate</span>
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span>  isapprox(ell, <span style="color: #f5871f; font-weight: bold;">8.2808044631395529307</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">9.7096599503345083802</span>im, rtol = <span style="color: #f5871f; font-weight: bold;">1e-8</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">comparing with Sylvain's code</span>
+    <span style="color: #07c365;"># </span><span style="color: #07c365;">When not all fields are degenerate</span>
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(ell&#916;, <span style="color: #f5871f; font-weight: bold;">11.392850199938978801</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">7.6477614372039684265</span>im, rtol = <span style="color: #f5871f; font-weight: bold;">1e-8</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">comparing with Sylvain's code</span>
+
+    c = CentralCharge(<span style="color: #718c00;">"&#946;"</span>, big(<span style="color: #f5871f; font-weight: bold;">1.2</span> <span style="color: #bb9200;">+</span> .<span style="color: #f5871f; font-weight: bold;">1</span>im))
+    V1 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>)
+    V2 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>)
+    V3 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>)
+    V4 = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>)
+
+    V = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">2</span>, s=<span style="color: #f5871f; font-weight: bold;">3</span>)
+
+    x = <span style="color: #f5871f; font-weight: bold;">0.3</span> <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">0.1</span>im
+    Nmax = <span style="color: #f5871f; font-weight: bold;">26</span>
+    corr = FourPointCorrelation(c, [V1, V2, V3, V4])
+    <span style="color: #4271ae;">b</span>(channel) = FourPointBlockSphere(channel, V)
+    <span style="color: #4271ae;">block_value</span>(b) = block_non_chiral(x, Nmax, b, corr)
+
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(block_value(b(<span style="color: #718c00;">"s"</span>)), <span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">0.0062116451268237</span> <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">0.0009314731786393</span>im, rtol = <span style="color: #f5871f; font-weight: bold;">1e-8</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">comparing with Sylvain's code</span>
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(block_value(b(<span style="color: #718c00;">"t"</span>)), <span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">0.15830875034149818</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">0.130335270628475</span>im, rtol = <span style="color: #f5871f; font-weight: bold;">1e-8</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">comparing with Sylvain's code</span>
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(block_value(b(<span style="color: #718c00;">"u"</span>)), <span style="color: #f5871f; font-weight: bold;">296.0639291056886</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">16.68222738906</span>im, rtol = <span style="color: #f5871f; font-weight: bold;">1e-8</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">comparing with Sylvain's code</span>
+
+
+<span style="color: #8959a8;">end</span>
+</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<div id="outline-container-org77466ce" class="outline-4">
+<h4 id="org77466ce">One-point blocks</h4>
+<div class="outline-text-4" id="text-org77466ce">
+</div>
+<ul class="org-ul">
+<li><a id="org4f8c1b7"></a>Comparing against sphere four-point blocks<br />
+<div class="outline-text-5" id="text-org4f8c1b7">
+<div class="org-src-container">
+<pre class="src src-julia"><span style="color: #4d4d4c; font-weight: bold;">@testset</span> <span style="color: #718c00;">"OnePointBlocks"</span> <span style="color: #8959a8;">begin</span>
+    left=<span style="color: #f5871f; font-weight: bold;">1</span>;
+    right=<span style="color: #f5871f; font-weight: bold;">2</span>;
+
+    <span style="color: #8959a8;">import</span> JuliVirBootstrap.FourPointBlocksSphere.qfromx
+    c_torus = CentralCharge(<span style="color: #718c00;">"b"</span>, <span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im);
+    c_sphere = CentralCharge(<span style="color: #718c00;">"b"</span>, (<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im)<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>))
+
+    q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
+
+    P = <span style="color: #f5871f; font-weight: bold;">0.23</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">11</span>im
+    P1 = <span style="color: #f5871f; font-weight: bold;">0.41</span><span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1.03</span>im
+    V_torus_chan = Field(c_torus, <span style="color: #718c00;">"P"</span>, P, diagonal=<span style="color: #f5871f;">true</span>)
+    &#948;_torus = V_torus_chan[<span style="color: #718c00;">"&#948;"</span>][left]
+    &#948;11_torus = Field(c_torus, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
+    V_torus_ext = Field(c_torus, <span style="color: #718c00;">"P"</span>, P1, diagonal=<span style="color: #f5871f;">true</span>)
+
+    V_sphere_chan = Field(c_sphere, <span style="color: #718c00;">"P"</span>, sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>P, diagonal=<span style="color: #f5871f;">true</span>)
+    &#948;_sphere = V_sphere_chan[<span style="color: #718c00;">"&#948;"</span>][left]
+    &#948;21_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">2</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
+    &#948;12_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span>, s=<span style="color: #f5871f; font-weight: bold;">2</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
+    V_sphere_ext = Field(c_sphere, <span style="color: #718c00;">"P"</span>, P1<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>), diagonal=<span style="color: #f5871f;">true</span>)
+    VKac_sphere = Field(c_sphere, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">0</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">//</span><span style="color: #f5871f; font-weight: bold;">2</span>, diagonal=<span style="color: #f5871f;">true</span>)
+
+    corr_torus = OnePointCorrelation(c_torus, V_torus_ext)
+    block_torus = OnePointBlockTorus(V_torus_chan)
+
+    corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
+    block_sphere = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, V_sphere_chan)
+
+    h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
+    h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
+
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(h1, h2, atol=<span style="color: #f5871f; font-weight: bold;">1e-12</span>)
+<span style="color: #8959a8;">end</span>
+</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-org008c9d3" class="outline-3">
+<h3 id="org008c9d3"><span class="section-number-3">3.10.</span> Development tests</h3>
 <div class="outline-text-3" id="text-3-10">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">import</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
@@ -2361,9 +2707,9 @@ x = BigFloat(<span style="color: #718c00;">"0.05"</span>, RoundUp);
 2337.403811916126625122326580582469276291308611169647345129357174845040805086673 + 4771.391284704253687680894658772605764303477461447331028240571631385564211692817im
 </pre>
 </div>
-<div id="outline-container-org951ffc4" class="outline-4">
-<h4 id="org951ffc4">Relation between four-point blocks on the sphere and one-point blocks on the torus</h4>
-<div class="outline-text-4" id="text-org951ffc4">
+<div id="outline-container-org807b53d" class="outline-4">
+<h4 id="org807b53d">Relation between four-point blocks on the sphere and one-point blocks on the torus</h4>
+<div class="outline-text-4" id="text-org807b53d">
 <p>
 Four point blocks on the sphere are related to one-point blocks on the torus through the relation
 </p>
@@ -2401,7 +2747,6 @@ V_torus_chan = Field(c_torus, <span style="color: #718c00;">"P"</span>, P, diago
 &#948;_torus = V_torus_chan[<span style="color: #718c00;">"&#948;"</span>][left]
 &#948;11_torus = Field(c_torus, Kac=<span style="color: #f5871f;">true</span>, r=<span style="color: #f5871f; font-weight: bold;">1</span>, s=<span style="color: #f5871f; font-weight: bold;">1</span>, diagonal=<span style="color: #f5871f;">true</span>)[<span style="color: #718c00;">"&#948;"</span>][left]
 V_torus_ext = Field(c_torus, <span style="color: #718c00;">"P"</span>, P1, diagonal=<span style="color: #f5871f;">true</span>)
-corr_torus = OnePointCorrelation
 
 V_sphere_chan = Field(c_sphere, <span style="color: #718c00;">"P"</span>, sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>)<span style="color: #bb9200;">*</span>P, diagonal=<span style="color: #f5871f;">true</span>)
 &#948;_sphere = V_sphere_chan[<span style="color: #718c00;">"&#948;"</span>][left]
@@ -2416,15 +2761,6 @@ block_torus = OnePointBlockTorus(V_torus_chan)
 corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
 block_sphere = FourPointBlockSphere(<span style="color: #718c00;">"s"</span>, V_sphere_chan)
 
-
-C111_torus = JuliVirBootstrap.OnePointCorrelationFunctions.computeCNmn(<span style="color: #f5871f; font-weight: bold;">1</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, corr_torus, left)
-
-C212_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(<span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, <span style="color: #f5871f; font-weight: bold;">2</span>, corr_sphere, <span style="color: #718c00;">"s"</span>, left)
-C221_sphere = JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(<span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, corr_sphere, <span style="color: #718c00;">"s"</span>, left)
-
-<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span> <span style="color: #bb9200;">*</span> (C212_sphere<span style="color: #bb9200;">/</span>(&#948;_sphere<span style="color: #bb9200;">-</span>&#948;12_sphere) <span style="color: #bb9200;">+</span> C221_sphere<span style="color: #bb9200;">/</span>(&#948;_sphere<span style="color: #bb9200;">-</span>&#948;21_sphere))
-C111_torus<span style="color: #bb9200;">/</span>(&#948;_torus<span style="color: #bb9200;">-</span>&#948;11_torus)
-
 h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
 h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
 </pre>
@@ -2434,33 +2770,6 @@ h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; fo
 <pre class="src src-julia">println(<span style="color: #718c00;">"torus block = $h1 \nsphere block = $h2"</span>)
 </pre>
 </div>
-
-<div class="org-src-container">
-<pre class="src src-julia"> o
-</pre>
-</div>
-
-
-<div class="org-src-container">
-<pre class="src src-julia"><span style="color: #8959a8;">using</span> SpecialFunctions
-println(digamma(<span style="color: #f5871f; font-weight: bold;">0.5</span>))
-</pre>
-</div>
-</div>
-</div>
-<div id="outline-container-org215da83" class="outline-4">
-<h4 id="org215da83">G function</h4>
-<div class="outline-text-4" id="text-org215da83">
-<div class="org-src-container">
-<pre class="src src-julia"><span style="color: #8959a8;">using</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
-<span style="color: #8959a8;">using</span> QuadGK
-<span style="color: #8959a8;">using</span> JuliVirBootstrap
-<span style="color: #8959a8;">using</span> BenchmarkTools
-
-&#964; = big(<span style="color: #f5871f; font-weight: bold;">1.2</span> <span style="color: #bb9200;">+</span> <span style="color: #f5871f; font-weight: bold;">0.1</span>im)
-<span style="color: #4d4d4c; font-weight: bold;">@btime</span> JuliVirBootstrap.SpecialFunctions.modular_C(&#964;)
-</pre>
-</div>
 </div>
 </div>
 </div>
@@ -2468,7 +2777,7 @@ println(digamma(<span style="color: #f5871f; font-weight: bold;">0.5</span>))
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Paul ROUX</p>
-<p class="date">Created: 2024-05-23 Thu 10:58</p>
+<p class="date">Created: 2024-05-29 Wed 17:57</p>
 </div>
 </body>
 </html>

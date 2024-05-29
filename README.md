@@ -3,8 +3,8 @@
 #+setupfile: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
 #+setupfile: ~/.doom.d/setupfiles/org-basic-latex-export.org
 #+options: toc:3 num:2
+#+property: header_args: :eval never-export
 #+startup: folded
-#+property: header_args:julia :eval never-export
 
 * Table of contents :toc:noexport:
 - [[#overview][Overview]]
