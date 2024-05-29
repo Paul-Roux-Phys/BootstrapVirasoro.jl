@@ -82,6 +82,10 @@ function channelprefactor_chiral(block::FourPointBlockSphere, corr::FourPointCor
     end
 end
 
+function channelprefactor_non_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
+    return channelprefactor_chiral(block, corr, x)*channelprefactor_chiral(block, corr, conj(x))
+end
+
 """Sign (-1)^{S_1+S_2+S_3+S_4} when changing from s to t or u channels"""
 function channel_sign(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
     @match block.channel begin
@@ -119,7 +123,7 @@ function blockprefactor(block::FourPointBlockSphere, corr::FourPointCorrelation,
     e2 = sum(corr.fields[i]["δ"][lr] for i in 1:4) + (c-1)/24
     q=qfromx(x)
 
-    return x^e0 * (1-x)^e1 * jtheta3(0,q)^(-4*e2) * (16*q)^block.channelField["δ"][1]
+    return x^e0 * (1-x)^e1 * jtheta3(0,q)^(-4*e2) * (16*q)^block.channelField["δ"][lr]
 end
 
 """Degenerate dimensions"""
@@ -155,11 +159,11 @@ Compute the conformal block
 function P_squared_ratio_reg(q, c::CentralCharge, V::Field, m, n, lr)
     # check V has integer Kac indices
     if V.isKac && V.r%1 == 0 && V.s%1 == 0 && V.r > 0 && (lr == left && V.s > 0 || lr == right && V.s < 0)
-        # if s < 0 and we're computing a right-handed block (\bar F) then the right dimension is P_(r,-s>0)
-        P = V["P"][left]
+        # if s < 0 and we're computing a right-handed block (\bar F) then the right dimension is P_(r,-s>0). The divergence is always at P_(r,|s|).
         β = c["β"]
-        Pmn = 1/2*(β*m - 1/β*n)
-        if V.r == m && V.s == n
+        P = 1/2*(β*V.r - abs(V.s)/β)
+        Pmn = 1/2*(β*m - n/β)
+        if V.r == m && abs(V.s) == n
             return log(16*q) - 1/(4*P^2)
         else
             return 1/(P^2-Pmn^2)
@@ -235,28 +239,24 @@ function block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorre
                       der = false, reg = false)
     chan = block.channel
     x_lr = (lr == left ? x : conj(x))
-    return channelprefactor_chiral(block, corr, x_lr)*block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr, der=der, reg=reg)
+    return channelprefactor_chiral(block, corr, x_lr) *
+        block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr, der=der, reg=reg)
 end
 
 """
-    block_non_chiral(x, Nmax, block, corr)
+    block_non_chiral_schan(x, Nmax, block, corr)
 
-Compute the non-chiral conformal block
-
-``\\mathcal F^{(\\text{chan})}_{\\delta}(x) \\overline{\\mathcal F}^{(\\text{chan})}_{\\delta}( \bar x )``
-
-where `chan` is `s`,`t` or `u`.
+Compute the non-chiral conformal block G_(r,s) in the s channel.
 
 TODO: regularise R_(r,s) / \bar{R}_(r,s)
 """
-function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
+function block_non_chiral_schan(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
 
-    chan = block.channel
     Vchan = block.channelField
 
     if Vchan.isKac && (Vchan.r%1 != 0 || Vchan.s%1 != 0 || spin(Vchan) == 0) # non-logarithmic block
 
-        return channel_sign(block, corr, x) * block_chiral(x, Nmax, block, corr, left) * block_chiral(conj(x), Nmax, block, corr, right)
+        return block_chiral_schan(x, Nmax, block, corr, left) * block_chiral_schan(conj(x), Nmax, block, corr, right)
 
     elseif 0 == 1 # accidentally non-logarithmic block
         return
@@ -265,31 +265,41 @@ function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointC
 
         r, s = Vchan.r, Vchan.s
 
-        if Vchan.r < 0 || Vchan.s < 0
-            error("Trying to compute a logarithmic block with a negative index: r=$(Vchan.r), s=$(Vchan.s) . This goes against the chosen convention")
-        else
-            c = corr.charge
-            block1 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=s)) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
-            block2 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
+        @assert !(Vchan.r < 0 || Vchan.s < 0) "Trying to compute a logarithmic block with a negative index: r=$(Vchan.r), s=$(Vchan.s) .
+                                               This goes against the chosen convention"
+        c = corr.charge
+        block1 = FourPointBlockSphere("s", Vchan) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
+        block2 = FourPointBlockSphere("s", Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
 
-            F_Prms = block_chiral(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
-            F_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
-            F_der_Prms = block_chiral(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
-            F_der_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
-            F_reg_Prs = block_chiral(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
-            F_reg_Prs_bar = block_chiral(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
+        F_Prms = block_chiral_schan(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
+        F_Prms_bar = block_chiral_schan(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
+        F_der_Prms = block_chiral_schan(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
+        F_der_Prms_bar = block_chiral_schan(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
+        F_reg_Prs = block_chiral_schan(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
+        F_reg_Prs_bar = block_chiral_schan(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
 
-            R = Rmn(r, s, corr, chan, left) # Vchan["P"][left] = P_(r,s)
-            R_bar = Rmn(r, s, corr, chan, right)
+        R = Rmn(r, s, corr, "s", left) # Vchan["P"][left] = P_(r,s)
+        R_bar = Rmn(r, s, corr, "s", right)
 
-            term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
-            term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
-            term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
+        term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
+        term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
+        term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
 
-            return F_Prms, F_Prms_bar, F_der_Prms, F_der_Prms_bar, F_reg_Prs, F_reg_Prs_bar
-            # return channel_sign(block, corr, x)*(term1+term2+term3)
-        end
+        # return F_Prms, F_Prms_bar, F_der_Prms, F_der_Prms_bar, F_reg_Prs, F_reg_Prs_bar, ell(corr, r, s), R, R_bar
+        return channel_sign(block, corr, x)*(term1+term2+term3)
     end
+end
+
+"""
+    block_non_chiral(x, Nmax, block, corr)
+
+Compute the non-chiral conformal block G_(r,s) in the channel indicated in `block`.
+
+TODO: regularise R_(r,s) / \bar{R}_(r,s)
+"""
+function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
+    return channelprefactor_non_chiral(block, corr, x) *
+        block_non_chiral_schan(crossratio(block.channel, x), Nmax, block, permute_ext_fields(corr, block.channel))
 end
 
 end # end module

@@ -150,6 +150,7 @@ Given a charge `charge`, one of the four parameters `"Δ"`, `"δ"`, `"P"`, `"p"`
 create an object Field{T} (where T is the type of the values in `charge`) that represents a
 field of left and right dimensions given by leftvalue and rightvalue in the chosen
 parametrisation.
+If given only one value for the parameters Δ, δ, P or p, the field is diagonal by default
 
 # keyword arguments:
 
@@ -193,14 +194,20 @@ p = 1.0 + 0.0im
 function Field(
     charge::CentralCharge = CentralCharge("c", 1),
     parameter = "Δ",
-    leftvalue = 0, rightvalue = 0;
+    leftvalue = 0;
+    rightvalue = 0,
     Kac = false, r = 0, s = 0,
-    degenerate = false, diagonal = false
+    degenerate = false,
+    diagonal = false
     )
 
     T=typeof(charge.values["c"]) # values of dimensions have the same precision as central charges
-    if degenerate
+    if !Kac
+        diagonal = true # by default a field not given from Kac indices is diagonal
+    end
+    if degenerate # degenerate fields are diagonal and must be given from Kac indices
         Kac = true
+        diagonal = true
     end
     if Kac
         Pleft = 1/2*(charge["β"]*r - 1/charge["β"]*s)
@@ -223,10 +230,12 @@ function Base.:(==)(V1::Field, V2::Field)
 end
 
 """Compute the spin Δleft - Δright of a field."""
-function spin(field::Field)
+function spin(field::Field)::Rational
     if field.isdiagonal
         return 0
-    else
+    elseif field.isKac
+        return field.r*field.s
+    else # this should never happen
         return field["Δ"][1] - field["Δ"][2]
     end
 end
@@ -247,9 +256,8 @@ function Base.show(io::IO,field::Field)
             print("with ")
         end
         println("(left, right) dimensions:")
-        for (key, value) in field.values
-            println(io, "  $key = ($(value[1]), $(value[2]))")
-        end
+
+        println(io, "  Δ = ($(field["Δ"][1]), $(field["Δ"][2]))")
     end
 end
 

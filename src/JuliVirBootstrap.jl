@@ -21,7 +21,7 @@ Central charges and fields
 include("CFTData.jl")
 using .CFTData
 export CentralCharge
-export Field
+export Field, spin
 
 #===========================================================================================
 Correlation functions

@@ -144,7 +144,7 @@ end
     V2 = Field(c, Kac=true, r=1, s=1)
     V3 = Field(c, Kac=true, r=0, s=1//2)
     V4 = Field(c, Kac=true, r=0, s=3//2)
-    VΔ = Field(c, "Δ", 0.5)
+    VΔ = Field(c, "Δ", 0.5, diagonal=true)
 
     corr = FourPointCorrelation(c, [V1, V2, V3, V4])
     corrΔ = FourPointCorrelation(c, [V1, V2, V3, VΔ])
@@ -155,7 +155,25 @@ end
     # When all fields are degenerate
     @test  isapprox(ell, 8.2808044631395529307 - 9.7096599503345083802im, rtol = 1e-8) # comparing with Sylvain's code
     # When not all fields are degenerate
-    @test isapprox(ellΔ, 7.1885139869993229128 - 2.7060116937125697101im, rtol = 1e-8) # comparing with Sylvain's code
+    @test isapprox(ellΔ, 11.392850199938978801 - 7.6477614372039684265im, rtol = 1e-8) # comparing with Sylvain's code
+
+    c = CentralCharge("β", big(1.2 + .1im))
+    V1 = Field(c, Kac=true, r=0, s=1)
+    V2 = Field(c, Kac=true, r=0, s=1//2)
+    V3 = Field(c, Kac=true, r=0, s=1)
+    V4 = Field(c, Kac=true, r=0, s=1//2)
+
+    V = Field(c, Kac=true, r=2, s=3)
+
+    x = 0.3 + 0.1im
+    Nmax = 26
+    corr = FourPointCorrelation(c, [V1, V2, V3, V4])
+    b(channel) = FourPointBlockSphere(channel, V)
+    block_value(b) = block_non_chiral(x, Nmax, b, corr)
+
+    @test isapprox(block_value(b("s")), -0.0062116451268237 + 0.0009314731786393im, rtol = 1e-8) # comparing with Sylvain's code
+    @test isapprox(block_value(b("t")), -0.15830875034149818 - 0.130335270628475im, rtol = 1e-8) # comparing with Sylvain's code
+    @test isapprox(block_value(b("u")), 296.0639291056886 - 16.68222738906im, rtol = 1e-8) # comparing with Sylvain's code
 
 
 end

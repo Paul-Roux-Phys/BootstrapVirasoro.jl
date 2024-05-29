@@ -144,7 +144,7 @@ TODO: value of regularisation
 
     if Rmn_zero_order(m, n, corr, channel) > 0
         if m == 1
-            res = a
+            res = 0
         end
     else
         if m == 1

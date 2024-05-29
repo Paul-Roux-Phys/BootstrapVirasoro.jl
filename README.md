@@ -172,7 +172,9 @@ Up to logarithmic factors, the computation time is of order $d^2$, whereas it sh
 
 ** Four point functions on the sphere
 
-Because of conformal invariance, computation of any four-point correlation function reduces to the computation of
+*** Chiral and non chiral blocks
+
+Because of conformal invariance, computation of any four-point correlation function on the sphere reduces to the computation of
 
 $$ \mathcal G(x) = \langle V_{1}(x) V_{2}(0) V_{3}(\infty) V_{4}(1) \rangle $$
 
@@ -181,7 +183,7 @@ Four-point correlation functions can be written in terms of Virasoro blocks as
 \begin{align}
   \mathcal G(x) = \sum_{k \in \mathcal S} \frac{C_{12k} C_{k34}}{B_{k}} \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\end{align}
 
-We call $\mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)$ a (non-chiral) conformal block.
+We call $\mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)$ a non-chiral conformal block.
 In the case of a non-logarithmic theory, conformal blocks factorise as
 
 \begin{align}
@@ -283,6 +285,8 @@ D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
 
 ** One point functions on the torus
 
+*** Chiral and non-chiral blocks
+
 A one-point function on the torus can be written
 
 \begin{align}
@@ -293,10 +297,10 @@ Because of translation invariance, one-point functions on the torus do not depen
 
 \begin{align}
   \mathcal G(x) &= \sum_{V_{\Delta} \in \mathcal S} < V_{\sigma} | V_{\Delta_{1}}(x) |V_{\sigma}> \\
-                   &= \sum_{V_{\Delta} \in \mathcal S} C_{\Delta \Delta \Delta_{1}} \mathcal G_{\Delta} (\tau, c, \Delta_{1} | x)
+                   &= \sum_{V_{\Delta} \in \mathcal S} \frac{C_{\Delta \Delta \Delta_{1}}}{B_{\Delta}} \mathcal G_{\Delta} (\tau, c, \Delta_{1} | x)
 \end{align}
 
-The conformal block $\mathcal G_\Delta(\tau, c, \Delta_1|x)$ again factorises for non-logarithmic theories, and we write $\mathcal F_\Delta(\tau, c, \Delta_1 | x)$ the corresponding Virasoro block.
+The conformal block $\mathcal G_\Delta(\tau, c, \Delta_1|x)$ factorises for non-logarithmic theories, and we write $\mathcal F_\Delta(\tau, c, \Delta_1 | x)$ the corresponding Virasoro chiral block.
 
 *** Zamolodchikov's recursion for torus one-point blocks
 
@@ -362,7 +366,7 @@ The expression of logarithmic four-point blocks on the sphere can be found by as
  Z(P) = \sum_{k\in\mathbb{Z}} D_{P+k\beta^{-1}} \left|\mathcal{F}_{P+k\beta^{-1}}\right|^2 +\sum_{r=1}^\infty \sum_{s\in\frac{1}{r}\mathbb{Z}} D_{(r,s)}(P) \mathcal{G}_{(r,s)}\ .
 \end{align}
 
-(see the [[file:~/Documents/Cours suivis/Sylvain CFT review/CFT-Review/solvable.pdf][solvable.pdf]] file on [[https://github.com/ribault/CFT-Review][GitHub]]).
+(argument made by Sylvain in the [[file:~/Documents/Cours suivis/Sylvain CFT review/CFT-Review/solvable.pdf][solvable.pdf]] file on [[https://github.com/ribault/CFT-Review][GitHub]]).
 
 The coefficient $D_P$ has a double pole at $P_{(r,-s)}$. The blocks $\mathcal F_{P}$ have a simple pole at $P_{(r,s)}$, and we write
 
@@ -395,8 +399,8 @@ and
 
 Analysing the poles of this expression (there are double poles and simple ones), one arrives at the following expression for the logarithmic blocks: for $(r, s) \in \mathbb{N}^{*}$,
 
-\begin{align}
-\mathcal{G}_{(r,s)} = (\mathcal{F}_{P_{(r,s)}}^{\text{reg}} - R_{r,s}& \mathcal{F}^{'}_{P_{(r,-s)}}) \bar{\mathcal{F}}_{P_{(r,-s)}} + \frac{R_{r,s}}{\bar R_{r,s}} \mathcal{F}_{P_{(r,-s)}} (\bar{\mathcal{F}}_{P_{(r,s)}}^{\text{reg}} - \bar{R}_{r,s} \bar{\mathcal{F}}^{'}_{P_{(r,-s)}}) \\
+\begin{align}\label{eq:log_block}
+\mathcal{G}_{(r,s)} = (\mathcal{F}_{P_{(r,s)}}^{\text{reg}} - R_{r,s}& \mathcal{F}^{'}_{P_{(r,-s)}}) \bar{\mathcal{F}}_{P_{(r,-s)}} + \frac{R_{r,s}}{\bar R_{r,s}} \mathcal{F}_{P_{(r,-s)}} (\bar{\mathcal{F}}_{P_{(r,s)}}^{\text{reg}} - \bar{R}_{r,s} \bar{\mathcal{F}}^{'}_{P_{(r,-s)}})\nonumber \\
 & +R_{r,s} \underbrace{\left( \frac{D^{'}_{P_{(r,s)}}}{D_{P_{(r,s)}}} - \lim_{P \to P_{(r,-s)}} \left[ \frac{2}{P-P_{(r,-s)}} + \frac{D_{P}^{'}}{D_{P}} \right] \right)}_{-\ell^{(1)-}_{(r,s)}}\left|\mathcal{F}_{P_{(r,-s)}}\right|^{2},
 \end{align}
 
@@ -432,6 +436,14 @@ Explicitly,
 For $(r, s) \in \mathbb{N}^{*}$, $\mathcal G_{(r,s)}$ can actually be non-logarithmic, due to residues $R_{(r,s)}$ and $\bar R_{(r,s)}$ vanishing.
 
 *** Logarithmic blocks on the torus
+
+The argument we used for computing logarithmic blocks on the sphere can be transferred verbatim to the case of one point blocks on the torus. In particular, the [[ref:eq:log_block][expression]] of the logarithmic block is also valid for the torus one-point block, if we replace $D_P$ by the corresponding structure constant on the torus, namely
+
+\begin{align}
+  D_{P} \to \frac{C^{\text{ref}}_{P,P, P_1}}{B_{P}}
+\end{align}
+
+where $P_1$ is the momentum of the external field.
 
 ** Relation between sphere four-point blocks and torus one-point blocks
 :properties:
@@ -536,7 +548,7 @@ Central charges and fields
 include("CFTData.jl")
 using .CFTData
 export CentralCharge
-export Field
+export Field, spin
 
 #===========================================================================================
 Correlation functions
@@ -919,6 +931,7 @@ Given a charge `charge`, one of the four parameters `"Δ"`, `"δ"`, `"P"`, `"p"`
 create an object Field{T} (where T is the type of the values in `charge`) that represents a
 field of left and right dimensions given by leftvalue and rightvalue in the chosen
 parametrisation.
+If given only one value for the parameters Δ, δ, P or p, the field is diagonal by default
 
 # keyword arguments:
 
@@ -962,14 +975,20 @@ p = 1.0 + 0.0im
 function Field(
     charge::CentralCharge = CentralCharge("c", 1),
     parameter = "Δ",
-    leftvalue = 0, rightvalue = 0;
+    leftvalue = 0;
+    rightvalue = 0,
     Kac = false, r = 0, s = 0,
-    degenerate = false, diagonal = false
+    degenerate = false,
+    diagonal = false
     )
 
     T=typeof(charge.values["c"]) # values of dimensions have the same precision as central charges
-    if degenerate
+    if !Kac
+        diagonal = true # by default a field not given from Kac indices is diagonal
+    end
+    if degenerate # degenerate fields are diagonal and must be given from Kac indices
         Kac = true
+        diagonal = true
     end
     if Kac
         Pleft = 1/2*(charge["β"]*r - 1/charge["β"]*s)
@@ -992,10 +1011,12 @@ function Base.:(==)(V1::Field, V2::Field)
 end
 
 """Compute the spin Δleft - Δright of a field."""
-function spin(field::Field)
+function spin(field::Field)::Rational
     if field.isdiagonal
         return 0
-    else
+    elseif field.isKac
+        return field.r*field.s
+    else # this should never happen
         return field["Δ"][1] - field["Δ"][2]
     end
 end
@@ -1020,9 +1041,8 @@ function Base.show(io::IO,field::Field)
             print("with ")
         end
         println("(left, right) dimensions:")
-        for (key, value) in field.values
-            println(io, "  $key = ($(value[1]), $(value[2]))")
-        end
+
+        println(io, "  Δ = ($(field["Δ"][1]), $(field["Δ"][2]))")
     end
 end
 
@@ -1256,7 +1276,7 @@ TODO: value of regularisation
 
     if Rmn_zero_order(m, n, corr, channel) > 0
         if m == 1
-            res = a
+            res = 0
         end
     else
         if m == 1
@@ -1496,6 +1516,10 @@ function channelprefactor_chiral(block::FourPointBlockSphere, corr::FourPointCor
     end
 end
 
+function channelprefactor_non_chiral(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
+    return channelprefactor_chiral(block, corr, x)*channelprefactor_chiral(block, corr, conj(x))
+end
+
 """Sign (-1)^{S_1+S_2+S_3+S_4} when changing from s to t or u channels"""
 function channel_sign(block::FourPointBlockSphere, corr::FourPointCorrelation, x)
     @match block.channel begin
@@ -1550,7 +1574,7 @@ function blockprefactor(block::FourPointBlockSphere, corr::FourPointCorrelation,
     e2 = sum(corr.fields[i]["δ"][lr] for i in 1:4) + (c-1)/24
     q=qfromx(x)
 
-    return x^e0 * (1-x)^e1 * jtheta3(0,q)^(-4*e2) * (16*q)^block.channelField["δ"][1]
+    return x^e0 * (1-x)^e1 * jtheta3(0,q)^(-4*e2) * (16*q)^block.channelField["δ"][lr]
 end
 
 """Degenerate dimensions"""
@@ -1585,7 +1609,7 @@ function ell(corr, r, s)
 end
 #+end_src
 
-*** Computation of the block and its derivative
+*** Computation of the block
 
 We compute $H^{\text{der}}_{P}$ as
 
@@ -1602,11 +1626,11 @@ Compute the conformal block
 function P_squared_ratio_reg(q, c::CentralCharge, V::Field, m, n, lr)
     # check V has integer Kac indices
     if V.isKac && V.r%1 == 0 && V.s%1 == 0 && V.r > 0 && (lr == left && V.s > 0 || lr == right && V.s < 0)
-        # if s < 0 and we're computing a right-handed block (\bar F) then the right dimension is P_(r,-s>0)
-        P = V["P"][left]
+        # if s < 0 and we're computing a right-handed block (\bar F) then the right dimension is P_(r,-s>0). The divergence is always at P_(r,|s|).
         β = c["β"]
-        Pmn = 1/2*(β*m - 1/β*n)
-        if V.r == m && V.s == n
+        P = 1/2*(β*V.r - abs(V.s)/β)
+        Pmn = 1/2*(β*m - n/β)
+        if V.r == m && abs(V.s) == n
             return log(16*q) - 1/(4*P^2)
         else
             return 1/(P^2-Pmn^2)
@@ -1682,28 +1706,24 @@ function block_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorre
                       der = false, reg = false)
     chan = block.channel
     x_lr = (lr == left ? x : conj(x))
-    return channelprefactor_chiral(block, corr, x_lr)*block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr, der=der, reg=reg)
+    return channelprefactor_chiral(block, corr, x_lr) *
+        block_chiral_schan(crossratio(chan, x), Nmax, block, permute_ext_fields(corr, chan), lr, der=der, reg=reg)
 end
 
 """
-    block_non_chiral(x, Nmax, block, corr)
+    block_non_chiral_schan(x, Nmax, block, corr)
 
-Compute the non-chiral conformal block
-
-``\\mathcal F^{(\\text{chan})}_{\\delta}(x) \\overline{\\mathcal F}^{(\\text{chan})}_{\\delta}( \bar x )``
-
-where `chan` is `s`,`t` or `u`.
+Compute the non-chiral conformal block G_(r,s) in the s channel.
 
 TODO: regularise R_(r,s) / \bar{R}_(r,s)
 """
-function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
+function block_non_chiral_schan(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
 
-    chan = block.channel
     Vchan = block.channelField
 
     if Vchan.isKac && (Vchan.r%1 != 0 || Vchan.s%1 != 0 || spin(Vchan) == 0) # non-logarithmic block
 
-        return channel_sign(block, corr, x) * block_chiral(x, Nmax, block, corr, left) * block_chiral(conj(x), Nmax, block, corr, right)
+        return block_chiral_schan(x, Nmax, block, corr, left) * block_chiral_schan(conj(x), Nmax, block, corr, right)
 
     elseif 0 == 1 # accidentally non-logarithmic block
         return
@@ -1712,31 +1732,41 @@ function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointC
 
         r, s = Vchan.r, Vchan.s
 
-        if Vchan.r < 0 || Vchan.s < 0
-            error("Trying to compute a logarithmic block with a negative index: r=$(Vchan.r), s=$(Vchan.s) . This goes against the chosen convention")
-        else
-            c = corr.charge
-            block1 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=s)) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
-            block2 = FourPointBlockSphere(chan, Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
+        @assert !(Vchan.r < 0 || Vchan.s < 0) "Trying to compute a logarithmic block with a negative index: r=$(Vchan.r), s=$(Vchan.s) .
+                                               This goes against the chosen convention"
+        c = corr.charge
+        block1 = FourPointBlockSphere("s", Vchan) # non-log block with momenta (P_(r,s), P_(r,-s)) in the channel
+        block2 = FourPointBlockSphere("s", Field(c, Kac=true, r=r, s=-s)) # non-log block with momenta (P_(r,-s), P_(r,s)) in the channel
 
-            F_Prms = block_chiral(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
-            F_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
-            F_der_Prms = block_chiral(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
-            F_der_Prms_bar = block_chiral(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
-            F_reg_Prs = block_chiral(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
-            F_reg_Prs_bar = block_chiral(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
+        F_Prms = block_chiral_schan(x, Nmax, block2, corr, left) # F_{P_(r,-s)}
+        F_Prms_bar = block_chiral_schan(conj(x), Nmax, block1, corr, right) # \bar F_{P_(r,-s)}
+        F_der_Prms = block_chiral_schan(x, Nmax, block2, corr, left, der=true) # F'_{P_(r,-s)}
+        F_der_Prms_bar = block_chiral_schan(conj(x), Nmax, block1, corr, right, der=true) # \bar F'_{P_(r,-s)}
+        F_reg_Prs = block_chiral_schan(x, Nmax, block1, corr, left, reg=true) # F^reg_{P_(r,s)}
+        F_reg_Prs_bar = block_chiral_schan(conj(x), Nmax, block2, corr, right, reg=true) # \bar F^reg_{P_(r,s)}
 
-            R = Rmn(r, s, corr, chan, left) # Vchan["P"][left] = P_(r,s)
-            R_bar = Rmn(r, s, corr, chan, right)
+        R = Rmn(r, s, corr, "s", left) # Vchan["P"][left] = P_(r,s)
+        R_bar = Rmn(r, s, corr, "s", right)
 
-            term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
-            term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
-            term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
+        term1 = (F_reg_Prs - R*F_der_Prms)*F_Prms_bar
+        term2 = R/R_bar*F_Prms*(F_reg_Prs_bar - R_bar*F_der_Prms_bar)
+        term3 = -R*ell(corr, r, s)*F_Prms*F_Prms_bar
 
-            return F_Prms, F_Prms_bar, F_der_Prms, F_der_Prms_bar, F_reg_Prs, F_reg_Prs_bar
-            # return channel_sign(block, corr, x)*(term1+term2+term3)
-        end
+        # return F_Prms, F_Prms_bar, F_der_Prms, F_der_Prms_bar, F_reg_Prs, F_reg_Prs_bar, ell(corr, r, s), R, R_bar
+        return channel_sign(block, corr, x)*(term1+term2+term3)
     end
+end
+
+"""
+    block_non_chiral(x, Nmax, block, corr)
+
+Compute the non-chiral conformal block G_(r,s) in the channel indicated in `block`.
+
+TODO: regularise R_(r,s) / \bar{R}_(r,s)
+"""
+function block_non_chiral(x, Nmax, block::FourPointBlockSphere, corr::FourPointCorrelation)
+    return channelprefactor_non_chiral(block, corr, x) *
+        block_non_chiral_schan(crossratio(block.channel, x), Nmax, block, permute_ext_fields(corr, block.channel))
 end
 #+end_src
 
@@ -2057,7 +2087,7 @@ end
     V2 = Field(c, Kac=true, r=1, s=1)
     V3 = Field(c, Kac=true, r=0, s=1//2)
     V4 = Field(c, Kac=true, r=0, s=3//2)
-    VΔ = Field(c, "Δ", 0.5)
+    VΔ = Field(c, "Δ", 0.5, diagonal=true)
 
     corr = FourPointCorrelation(c, [V1, V2, V3, V4])
     corrΔ = FourPointCorrelation(c, [V1, V2, V3, VΔ])
@@ -2068,7 +2098,25 @@ end
     # When all fields are degenerate
     @test  isapprox(ell, 8.2808044631395529307 - 9.7096599503345083802im, rtol = 1e-8) # comparing with Sylvain's code
     # When not all fields are degenerate
-    @test isapprox(ellΔ, 7.1885139869993229128 - 2.7060116937125697101im, rtol = 1e-8) # comparing with Sylvain's code
+    @test isapprox(ellΔ, 11.392850199938978801 - 7.6477614372039684265im, rtol = 1e-8) # comparing with Sylvain's code
+
+    c = CentralCharge("β", big(1.2 + .1im))
+    V1 = Field(c, Kac=true, r=0, s=1)
+    V2 = Field(c, Kac=true, r=0, s=1//2)
+    V3 = Field(c, Kac=true, r=0, s=1)
+    V4 = Field(c, Kac=true, r=0, s=1//2)
+
+    V = Field(c, Kac=true, r=2, s=3)
+
+    x = 0.3 + 0.1im
+    Nmax = 26
+    corr = FourPointCorrelation(c, [V1, V2, V3, V4])
+    b(channel) = FourPointBlockSphere(channel, V)
+    block_value(b) = block_non_chiral(x, Nmax, b, corr)
+
+    @test isapprox(block_value(b("s")), -0.0062116451268237 + 0.0009314731786393im, rtol = 1e-8) # comparing with Sylvain's code
+    @test isapprox(block_value(b("t")), -0.15830875034149818 - 0.130335270628475im, rtol = 1e-8) # comparing with Sylvain's code
+    @test isapprox(block_value(b("u")), 296.0639291056886 - 16.68222738906im, rtol = 1e-8) # comparing with Sylvain's code
 
 
 end
