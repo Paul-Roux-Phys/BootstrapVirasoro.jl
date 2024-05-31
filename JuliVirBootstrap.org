@@ -553,6 +553,9 @@ export Field, spin
 #===========================================================================================
 Correlation functions
 ===========================================================================================#
+
+abstract type CorrelationFunction end
+
 include("CorrelationFunctions.jl")
 using .FourPointCorrelationFunctions
 export FourPointCorrelation
@@ -563,6 +566,9 @@ export OnePointCorrelation
 #===========================================================================================
 Conformal blocks
 ===========================================================================================#
+
+abstract type ConformalBlock end
+
 include("ConformalBlocks.jl")
 using .FourPointBlocksSphere
 export FourPointBlockSphere
@@ -756,9 +762,8 @@ end # end module
 :END:
 
 The file [[file:src/CFTData.jl][CFTData.jl]] defines
-- a struct ~CentralCharge~ that represents a central charge $c$ and contains the value of the four corresponding parameters $b, B, \beta, c$
-- a struct ~Field~ that represents a field $V$. The field can be defined from its Kac indices $r, s$, be diagonal, logarithmic, or degenerate. The struct contains booleans for these three characteristics, as well as rationals for $r$ and $s$, and the pairs of (left, right) values $(\Delta, \bar \Delta)$, $(p, \bar p)$, $(\delta, \bar \delta)$, $(P, \bar P)$.
-
+- a type ~CentralCharge~ that represents a central charge $c$.
+- a type ~Field~ that represents a field $V$. The field can be defined from its Kac indices $r, s$, be diagonal, logarithmic, or degenerate. The struct contains booleans for these three characteristics, as well as rationals for $r$ and $s$, and the pairs of (left, right) values $(\Delta, \bar \Delta)$, $(p, \bar p)$, $(\delta, \bar \delta)$, $(P, \bar P)$.
 
 *** Header
 

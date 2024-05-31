@@ -26,6 +26,9 @@ export Field, spin
 #===========================================================================================
 Correlation functions
 ===========================================================================================#
+
+abstract type CorrelationFunction end
+
 include("CorrelationFunctions.jl")
 using .FourPointCorrelationFunctions
 export FourPointCorrelation
@@ -36,6 +39,9 @@ export OnePointCorrelation
 #===========================================================================================
 Conformal blocks
 ===========================================================================================#
+
+abstract type ConformalBlock end
+
 include("ConformalBlocks.jl")
 using .FourPointBlocksSphere
 export FourPointBlockSphere
