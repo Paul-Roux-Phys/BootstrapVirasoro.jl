@@ -13,46 +13,68 @@ Provides types representing central charges and fields in CFT.
 """
 module CFTData
 
-using Match;
+using Match, Latexify;
 
-export CentralCharge, Field, spin
+export CentralCharge
+export ConformalDimension
+export Field, spin
 
-"""print complex numbers in latex format"""
-function Base.show(io::IO,::MIME"text/latex",z::Complex)
-    print("$(real(z)) + $(imag(z))i")
+"""
+    CentralCharge{T}
+
+Type representing a central charge.
+T is expected to be a real or complex number, of standard or arbitrary precision
+"""
+struct CentralCharge{T <: Union{AbstractFloat, Complex{Float64}, Complex{BigFloat}}}
+
+    β::T
+
 end
 
 """Get B from given parameter"""
-function Bfrom(parameter, value)
-    @match parameter begin
-        "c" => (value-13+sqrt(complex((value-1)*(value-25))))/12
-        "b" => value^2
-        "β" => -value^2
-        "B" => value
+function Bfrom(s::Symbol, x)
+    a = (x-1)*(x-25)
+    @match s begin
+        :β => -x^2
+        :c => if isreal(a) && a > 0
+                 (x-13+sqrt((x-1)*(x-25)))/12
+              else # a is complex
+                 (x-13+sqrt(complex((x-1)*(x-25))))/12
+              end
+        :b => x^2
+        :B => x
     end
 end
 
 """Get asked parameter from B"""
-function Bto(parameter, value)
-    @match parameter begin
-        "c" => 13+6*value+6/value
-        "b" => -sqrt(complex(value))
-        "β" => -im*sqrt(complex(value))
-        "B" => value
+function Bto(s::Symbol, x)
+    rx = sqrt(complex(x))
+    res = @match s begin
+        :β => -im*rx
+        :c => 13+6*x+6/x
+        :b => -rx
+        :B => x
     end
+    return isreal(res) ? real(res) : res
 end
 
-"""
-    CentralCharge{T}
-Object representing the central charge.
-Contains the values of the 4 parameters representing it.
-"""
-struct CentralCharge{T}
 
-    #= T is the type of the parameters; either Complex{Float64} or Complex{BigFloat}
-    for arbitrary precision. =#
-    values::Dict{String, T}
-
+function Base.getproperty(c::CentralCharge, s::Symbol)
+    β = Bto(:β, Bfrom(:β, getfield(c, :β)))
+    β = isreal(β) ? real(β) : β
+    if s === :β
+        β
+    elseif s === :c
+        13 - 6*β^2 - 6/β^2
+    elseif s === :B
+        -β^2
+    elseif s === :b
+        -im*β
+    elseif s === :n
+        -2*cos(oftype(β, π)*β^2)
+    else
+        error("$s is not a supported parametrisation of the central charge")
+    end
 end
 
 """
@@ -60,83 +82,97 @@ end
 
 Constructor function for the CentralCharge type.
 
-Given one of the four parameters `"c"`, `"b"`, `"β"`, `"B"` and its value,
-creates an object CentralCharge{T} where T is the type of `value`.
+Given one of the four parameters `c`, `b`, `β`, `B` and its value,
+creates an object CentralCharge{T} where T is real if `β` is real.
 
 # Example
 ```julia-repl
 julia> setprecision(BigFloat, 20, base=10)
-julia> charge = CentralCharge("β", sqrt(big(2)))
-Central charge :
-B = -2.0 + 0.0im
-c = -2.0 + 0.0im
-b = 0.0 + 1.414213562373095048804im
-β = -1.414213562373095048804 + 0.0im
+julia> CentralCharge(big"1.2")
+c = 0.1933333333333333332741, β = 1.200000000000000000003
+
 ```
 """
-function CentralCharge(parameter = "c", value = 1)
-    # Constructor
-    T=typeof(AbstractFloat(real(value)))
-    B=Bfrom(parameter, value)
-    dict=Dict(key => Bto(key, B) for key in ("c", "b", "β", "B"))
-    CentralCharge{complex(T)}(dict)
+function CentralCharge(s::Symbol, x)
+    β = Bto(:β, Bfrom(s, x))
+    CentralCharge(β)
 end
 
 """Display an object of type CentralCharge"""
-function Base.show(io::IO, charge::CentralCharge)
-    println("Central charge:")
-    for (key, value) in charge.values
-        println(io, "$key = $value")
-    end
+function Base.show(io::IO, c::CentralCharge)
+    println("c = $(c.c), β = $(c.β)")
 end
-
-"""Display the value of the central charge in LaTeX format"""
-function Base.show(io::IO, ::MIME"text/latex", charge::CentralCharge, parameter)
-    if parameter=="β"
-        print("\\beta = ")
-    else
-        print(parameter," = ")
-    end
-    show(io, MIME("text/latex"), charge[parameter])
-end
-
-"""Overload of [] to access values in charge"""
-Base.getindex(charge::CentralCharge, key) = charge.values[key];
 
 """Get P from any given parameter"""
-function P_from(parameter, value, c::CentralCharge)
-    @match parameter begin
-        "Δ" => sqrt(complex(value - (c["c"]-1)/24))
-        "δ" => sqrt(complex(value))
-        "P" => value
-        "p" => im*value
+function Pfrom(s::Symbol, x, c::CentralCharge)
+    res = @match s begin
+        :Δ => sqrt(complex(x - (c.c-1)/24))
+        :δ => sqrt(complex(x))
+        :P => x
+        :p => im*x
     end
+    return isreal(res) ? real(res) : res
 end
 
 """Get all parameters from P"""
-function P_to(parameter, value, c::CentralCharge)
-    @match parameter begin
-        "Δ" => value^2 + (c["c"]-1)/24
-        "δ" => value^2
-        "P" => value
-        "p" => -im*value
+function Pto(s::Symbol, x, c::CentralCharge)
+    @match s begin
+        :Δ => x^2 + (c.c-1)/24
+        :δ => x^2
+        :P => x
+        :p => -im*x
+        :w => -2*cos(oftype(c.β, π)*c.β*x)
     end
 end
+
+"""
+    ConformalDimension{T}
+Type for encoding a conformal dimension, and conveniently access its values in all parametrisations
+"""
+struct ConformalDimension{T <: Union{AbstractFloat, Complex{Float64}, Complex{BigFloat}}}
+
+    c::CentralCharge{T}
+    P::T
+    isKac::Bool
+    r::Rational
+    s::Rational
+
+end
+
+function ConformalDimension(c::CentralCharge{T}, sym::Symbol=:P, P=0; Kac=false, r=0, s=0) where {T}
+    if Kac
+        P = (r*c.β-s/c.β)/2
+    else
+        P = Pto(:P, Pfrom(sym, P, c), c)
+    end
+    ConformalDimension{T}(c, P, Kac, r, s)
+end
+
+function Base.getproperty(d::ConformalDimension, s::Symbol)
+    c = getfield(d, :c)
+    P = Pto(:P, Pfrom(:P, getfield(d, :P), c), c)
+    P = isreal(P) ? real(P) : P
+    if s in (:P, :p, :Δ, :δ, :w)
+        return Pto(s, P, c)
+    else
+        return getfield(d, s)
+    end
+    res = isreal(res) ? real(res) : res
+end
+
+const left, right = 1, 2
+
 
 """
     Field{T}
 Object representing a conformal field.
-Contains the values of the 4 parameters `"Δ"`,`"δ"`,`"P"`,`"p"` for its conformal dimension,
-and flags saying whether the field has declared and rational Kac indices, is degenerate, or diagonal.
+Contains the conformal dimensions, and flags saying whether the field has (rational) Kac indices, is degenerate, or diagonal.
 """
-struct Field{T}
+struct Field{T <: Union{AbstractFloat, Complex{Float64}, Complex{BigFloat}}}
 
-    values::Dict{String, Vector{T}}
-    isKac::Bool
-    r::Rational
-    s::Rational
-    isdegenerate::Bool
+    dim::Tuple{ConformalDimension{T}, ConformalDimension{T}}
     isdiagonal::Bool
+    isdegenerate::Bool
 
 end
 
@@ -146,11 +182,11 @@ end
 
 Constructor function for the Field type.
 
-Given a charge `charge`, one of the four parameters `"Δ"`, `"δ"`, `"P"`, `"p"` and two values,
-create an object Field{T} (where T is the type of the values in `charge`) that represents a
+Given a charge `charge`, one of the four parameters `Δ`, `δ`, `P`, `p` and two values,
+create an object `Field{T}` (where T is the type of the values in `charge`) that represents a
 field of left and right dimensions given by leftvalue and rightvalue in the chosen
 parametrisation.
-If given only one value for the parameters Δ, δ, P or p, the field is diagonal by default
+If given only one value for the parameters `Δ`, `δ`, `P` or `p`, the field is diagonal by default
 
 # keyword arguments:
 
@@ -164,16 +200,16 @@ given.
 
 # Examples
 ```julia-repl
-julia> charge = CentralCharge("b", big(0.5));
+julia> charge = CentralCharge(:b, big(0.5));
 julia> field = Field(charge, Kac=true, r=0, s=1)
 Non-diagonal field with Kac indices r = 0//1, s = 1//1 and (left,right) dimensions:
 Δ = ( 2.5625 + 0.0im, 2.5625 + 0.0im )
-P = ( -0.0 - 1.0im, 0.0 + 1.0im )
+  P = ( -0.0 - 1.0im, 0.0 + 1.0im )
 δ = ( 1.0 - 0.0im, 1.0 + 0.0im )
 p = ( -1.0 + 0.0im, 1.0 + 0.0im )
 ```
 ```julia-repl
-julia> charge = CentralCharge("β", 1.5+im);
+julia> charge = CentralCharge(:β, 1.5+im);
 julia> Field(charge, "δ", 2, 3)
 Non-diagonal field with (left, right) dimensions:
 Δ = ( 2.1579142011834325 - 0.6789940828402367im, 3.1579142011834316 - 0.6789940828402367im )
@@ -191,110 +227,81 @@ P = 0.0 + 1.0im
 p = 1.0 + 0.0im
 ```
 """
-function Field(
-    charge::CentralCharge = CentralCharge("c", 1),
-    parameter = "Δ",
-    leftvalue = 0;
-    rightvalue = 0,
-    Kac = false, r = 0, s = 0,
-    degenerate = false,
-    diagonal = false
-    )
+function Field(c::CentralCharge{T}, sym::Symbol=:P, dim=0;
+               Kac=false, r=0, s=0, degenerate=false, diagonal=false) where {T}
 
-    T=typeof(charge.values["c"]) # values of dimensions have the same precision as central charges
     if !Kac
-        diagonal = true # by default a field not given from Kac indices is diagonal
+        # diagonal = true # a field not given from Kac indices is diagonal
     end
     if degenerate # degenerate fields are diagonal and must be given from Kac indices
         Kac = true
         diagonal = true
     end
-    if Kac
-        Pleft = 1/2*(charge["β"]*r - 1/charge["β"]*s)
-        Pright = 1/2*(charge["β"]*r + 1/charge["β"]*s)
-    else
-        Pleft, Pright = P_from.(parameter, [leftvalue, rightvalue], Ref(charge))
-    end
+    dim_left = ConformalDimension(c, sym, dim, Kac=Kac, r=r, s=s)
     if diagonal
-        Pright = Pleft
+        dim_right = dim_left
+    else
+        @assert Kac==true "A non-diagonal field must be given from Kac indices"
+        dim_right = ConformalDimension(c, sym, dim_left, Kac=Kac, r=r, s=-s)
     end
-    values = Dict(key => P_to.(key, [Pleft, Pright], Ref(charge))
-                  for key in ("Δ", "δ", "P", "p"))
 
-    Field{complex(T)}(values, Kac, r, s, degenerate, diagonal)
+    Field{T}((dim_left, dim_right), diagonal, degenerate)
+end
+
+function Base.getproperty(V::Field, s::Symbol)
+    ds = getfield(V, :dim)
+    if s === :P
+        return ds[left].P, ds[right].P
+    elseif s === :Δ
+        return ds[left].Δ, ds[right].Δ
+    elseif s === :p
+        return ds[left].p, ds[right].p
+    elseif s === :δ
+        return ds[left].δ, ds[right].δ
+    elseif s in (:r, :s)
+        return getfield(ds[left], s) # by convention V_(r,s) denotes the field with left right dimension P_(r, s), P_(r, -s)
+    elseif s === :isKac
+        return (V.dim[left].isKac && V.dim[right].isKac && V.dim[left].r == V.dim[left].r && V.dim[left].s == -V.dim[right].s)
+    else
+        return getfield(V, s)
+    end
 end
 
 # Overload the == operator
 function Base.:(==)(V1::Field, V2::Field)
-    return V1["Δ"] == V2["Δ"]
+    return V1.Δ == V2.Δ
 end
 
 """Compute the spin Δleft - Δright of a field."""
-function spin(field::Field)::Rational
-    if field.isdiagonal
+function spin(V::Field)::Rational
+    if V.isdiagonal
         return 0
-    elseif field.isKac
-        return field.r*field.s
+    elseif V.isKac
+        return V.r*V.s
     else # this should never happen
-        return field["Δ"][1] - field["Δ"][2]
+        return V.Δ[1] - V.Δ[2]
     end
 end
 
-"""Display field"""
-function Base.show(io::IO,field::Field)
-    #Print fields
-    if field.isdiagonal
-        println("Diagonal field of dimension:")
-        for (key, value) in field.values
-            println(io, "  $key = $(value[1])")
-        end
+function Base.show(io::IO, d::ConformalDimension)
+    if d.isKac
+        print(io, "Kac indices r = $(d.r), s=$(d.s)")
     else
-        print("Non-diagonal field ")
-        if field.isKac
-            print("with Kac indices\n  r = $(field.r)\n  s = $(field.s)\nand ")
-        else
-            print("with ")
-        end
-        println("(left, right) dimensions:")
-
-        println(io, "  Δ = ($(field["Δ"][1]), $(field["Δ"][2]))")
+        print(io, "Δ = $(d.Δ), P = $(d.P)")
     end
 end
 
-"""Display dimension of field in latex format"""
-function Base.show(io::IO,::MIME"text/latex", field::Field,parameter)
-    if field.isdiagonal
-        if parameter == "Δ"
-            print("\\Delta = ")
-        elseif parameter == "δ"
-            print("\\delta = ")
-        else
-            print(parameter," = ")
-        end
-        show(io, MIME("text/latex"), field[parameter][1])
+function Base.show(io::IO, V::Field)
+    if V.isdiagonal
+        print(io, "Diagonal $(typeof(V)) with ")
+        show(V.dim[left])
     else
-        if parameter=="Δ"
-            print("(\\Delta, \\bar\\Delta) = ")
-        elseif parameter=="δ"
-            print("(\\delta, \\bar\\delta) = ")
-        else
-            print("($parameter, \\bar$parameter) = ")
-        end
-        print("("); show(io, MIME("text/latex"), field[parameter][1]); print(", ");
-        show(io, MIME("text/latex"), field[parameter][2]); print(")")
+        println(io, "Non-diagonal $(typeof(V))")
+        print(io, "left: ")
+        show(V.dim[left])
+        print(io, "\nright: ")
+        show(V.dim[right])
     end
 end
-
-# function Base.show(io::IO, arr::Vector{Field{T}}) where {T}
-#     println(io, "Vector{Field{$T}} with $(length(arr)) elements:")
-#     for (index, field) in enumerate(arr)
-#         print(io, "$(index): ")
-#         show(io, field)
-#         println()
-#     end
-# end
-
-"""Overload []"""
-Base.getindex(field::Field,key) = field.values[key];
 
 end # end module

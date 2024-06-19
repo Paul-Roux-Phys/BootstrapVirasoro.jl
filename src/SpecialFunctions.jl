@@ -6,90 +6,93 @@ SpecialFunctions.jl computes the special functions relevant for our applications
 
 module SpecialFunctions
 
-using SpecialFunctions # external Julia package (the module name is the same but there is no domain conflict)
+import SpecialFunctions as SF
 using Memoization
 using ArbNumerics # the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}
 using QuadGK # numerical integration
 
-export digamma_reg, Barnes_G, log_double_Gamma, double_Gamma
+export loggamma, gamma
+export digamma_reg, Barnes_G, logdoublegamma, doublegamma
 
-function log_Γ(z)
-    return Complex{BigFloat}(lgamma(ArbComplex(z)))
+"""
+    cotpi(x) = cot(π * x)
+"""
+cotpi(x) = SF._cotpi(x)
+
+ArbNumerics.loggamma = ArbNumerics.lgamma # rename ArbNumerics' loggamma function
+
+for f in (:gamma, :digamma)
+    @eval $f(z::Union{Real, Complex{Float64}}) = SF.$f(z)
+    @eval $f(z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.$f(ArbComplex(z, bits=precision(BigFloat))))
 end
 
-function Γ(z)
-    return Complex{BigFloat}(gamma(ArbComplex(z)))
-end
+trigamma(z::Union{Float64, Complex{Float64}}) = SF.trigamma(z)
+trigamma(z::Union{BigFloat, Complex{BigFloat}}) = BigFloat(ArbNumerics.polygamma(ArbComplex(1, bits=precision(BigFloat)), ArbComplex(z, bits=precision(BigFloat))))
 
-function ψ(z)
-    return Complex{BigFloat}(digamma(ArbComplex(z)))
-end
+loggamma(z::Union{Real, Complex{Float64}}) = SF.loggamma(z)
+loggamma(z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.lgamma(ArbComplex(z, bits=precision(BigFloat))))
 
-function trigamma(z)
-    return Complex{BigFloat}(polygamma(ArbComplex(1), ArbComplex(z)))
-end
 
-function polyΓ(n, z)
-    return Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z)))
-end
+polygamma(n, z::Union{Real, Complex{Float64}}) = SF.polygamma(n, z)
+polygamma(n, z::Complex{BigFloat}) = Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z, bits=precision(BigFloat))))
 
 """Regularised digamma function"""
 function digamma_reg(z)
     if real(z) > 0
-        return ψ(z)
-    elseif imag(z) == 0 && real(z)%1 == 0
-        return ψ(1-z)
+        return digamma(z)
+    elseif isreal(z) && real(z) < 0 && real(z)%1 == 0
+        return digamma(1-z)
     else
-        return ψ(1-z) - big(π)/tan(π*z)
+        return digamma(1-z) - oftype(z, π)*cotpi(z)
     end
 end
 
-function integrand_C(x, τ)
+function integrandC(x, τ)
     x = big(x)
     return exp((1-τ)*x)/(2*sinh(x)*sinh(τ*x)) - exp(-2*x)/(τ*x)*(exp(x)/(2*sinh(x))+1-τ/2)
 end
 
-function modular_C(τ)
+function modularC(τ)
     P = precision(BigFloat, base=10)
     #temporarily increase precision to avoid artificial divergence around zero
     setprecision(BigFloat, base=10, Int(floor(1.3*P)))
     cutoff = big(10^(-P/5)) # to prevent artificial divergence around zero
     tol = big(10)^P
-    value, error = quadgk(x -> integrand_C(x, τ), cutoff, big(Inf), rtol = tol, order=21)
+    value, error = quadgk(x -> integrandC(x, τ), cutoff, big(Inf), rtol = tol, order=21)
     C0 = (2/τ - 3//2 + τ/6)*cutoff + (5//12 - 1/τ + τ/12)*cutoff^2 + (4/(9*τ) - 2//9 + 1//54*τ - 1//270*τ^3)*cutoff^3
     setprecision(BigFloat, base=10, P)
-    return 1/(2*τ)*log(2*big(π)) - value - C0
+    return 1/(2*τ)*log(2*oftype(τ, π)) - value - C0
 end
 
-function integrand_D(x, τ)
+function integrandD(x, τ)
     x = big(x)
     return x*exp((1-τ)*x)/(sinh(x)*sinh(τ*x)) - exp(-2*x)/(τ*x)
 end
 
-function modular_D(τ)
+function modularD(τ)
     P = precision(BigFloat, base=10)
     #temporarily increase precision to avoid artificial divergence around zero
     setprecision(BigFloat, base=10, Int(floor(1.3*P)))
     cutoff = big(10^(-P/5)) # to prevent artificial divergence around zero
     tol = big(10)^P
-    value, error = quadgk( x -> integrand_D(x, τ), big(0), big(Inf), rtol = tol, order=21)
+    value, error = quadgk( x -> integrandD(x, τ), big(0), big(Inf), rtol = tol, order=21)
     setprecision(BigFloat, base=10, P)
     return value
 end
 
-@memoize function modular_coeff_a(τ)
-    return 1/2*τ*log(big(2)*π*τ) + 1/2*log(τ) - τ*modular_C(τ)
+@memoize function modularcoeff_a(τ)
+    return 1/2*τ*log(2*oftype(τ, π)*τ) + 1/2*log(τ) - τ*modularC(τ)
 end
 
-@memoize function modular_coeff_b(τ)
-    return -τ*log(τ) - τ^2*modular_D(τ)
+@memoize function modularcoeff_b(τ)
+    return -τ*log(τ) - τ^2*modularD(τ)
 end
 
 function log_Barnes_GN(N, z, τ)
     res = 0
-    res += - log(τ) - log_Γ(z)
-    res += modular_coeff_a(τ)*z/τ + modular_coeff_b(τ)*z^2/(2*τ^2)
-    res += sum(log_Γ(m*τ) - log_Γ(z+m*τ) + z*ψ(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
+    res += - log(τ) - loggamma(z)
+    res += modularcoeff_a(τ)*z/τ + modularcoeff_b(τ)*z^2/(2*τ^2)
+    res += sum(loggamma(m*τ) - loggamma(z+m*τ) + z*digamma(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
     return res
 end
 
@@ -126,27 +129,26 @@ end
 
 function log_Gamma_2(w, β, tol)
     β = real(β-1/β) < 0 ? 1/β : β # change β -> 1/β if needed
-    return w/(2*β)*log(big(2)*π) + (w/2*(w-β-1/β)+1)*log(β) - log_Barnes_G(w/β, 1/β^2, tol)
+    return w/(2*β)*log(2*oftype(β, π)) + (w/2*(w-β-1/β)+1)*log(β) - log_Barnes_G(w/β, 1/β^2, tol)
 end
 
 """
-        log_double_Gamma(w, β, tol)
+        logdoublegamma(w, β, tol) = Γ_β(w)
 
 Compute the logarithm of the double gamma function Γ_β(w, β) with precision tol
-
 """
-function log_double_Gamma(w, β, tol)
+function logdoublegamma(w, β, tol)
     return log_Gamma_2(w, β, tol) - log_Gamma_2((β+1/β)/2, β, tol)
 end
 
 """
-        double_Gamma(w, β, tol)
+        doublegamma(w, β, tol)
 
 Compute the double gamma function Γ_β(w, β) with precision tol
 
 """
-function double_Gamma(w, β, tol)
-    exp(log_double_Gamma(w, β, tol))
+function doublegamma(w, β, tol)
+    exp(logdoublegamma(w, β, tol))
 end
 
 end # end module

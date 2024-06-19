@@ -22,17 +22,17 @@ struct FourPointCorrelation{T}
     fields::Vector{Field{T}}
 end
 
-function FourPointCorrelation(charge::CentralCharge{T}, V1, V2, V3, V4) where {T}
-    return FourPointCorrelation{T}(charge, [V1, V2, V3, V4])
+function FourPointCorrelation(c::CentralCharge, V1, V2, V3, V4)
+    return FourPointCorrelation(c, [V1, V2, V3, V4])
 end
 
 """Display a four-point function"""
 function Base.show(io::IO, corr::FourPointCorrelation)
-    println("Four-point correlation function: < V_1 V_2 V_3 V_4 > where ")
-    print("V_1 = "); show(corr.fields[1])
-    print("V_2 = "); show(corr.fields[2])
-    print("V_3 = "); show(corr.fields[3])
-    print("V_4 = "); show(corr.fields[4])
+    print("Four-point correlation function: < V_1 V_2 V_3 V_4 > where ")
+    print("\nV_1 = "); show(corr.fields[1])
+    print("\nV_2 = "); show(corr.fields[2])
+    print("\nV_3 = "); show(corr.fields[3])
+    print("\nV_4 = "); show(corr.fields[4])
 end
 
 # explicit names for the indices of left and right dimensions
@@ -58,25 +58,11 @@ function Dmn(m, n, B)
     end
 end
 
-"""Permute the external fields to get t- or u-channels from s-channel"""
-function permute_ext_fields(corr::FourPointCorrelation, channel)
-    Vs=corr.fields
-    Vs = @match channel begin
-        "s" => [Vs[1], Vs[2], Vs[3], Vs[4]]
-        "t" => [Vs[1], Vs[4], Vs[3], Vs[2]]
-        "u" => [Vs[1], Vs[3], Vs[2], Vs[4]]
-    end
-    return FourPointCorrelation(corr.charge, Vs)
-end
-
-"""
-        Order of a pole of Rmn, assuming the central charge is generic. Also return the indices of the vanishing term.
-
-"""
-function Rmn_zero_order(m, n, corr::FourPointCorrelation, channel)
-    B = corr.charge["B"]
+"""Order of a zero of Rmn, assuming the central charge is generic. Also return the indices of the vanishing term."""
+function Rmn_zero_order(m, n, corr::FourPointCorrelation)
+    B = corr.charge.B
     order = 0
-    V=permute_ext_fields(corr, channel).fields
+    V=corr.fields
 
     if !((V[1].isKac && V[2].isKac) || (V[3].isKac && V[4].isKac))
         return 0
@@ -105,25 +91,25 @@ function Rmn_zero_order(m, n, corr::FourPointCorrelation, channel)
 end
 
 """Compute one of the terms in the double product of Rmn"""
-function Rmn_term(r, s, corr::FourPointCorrelation, channel, lr)
-    B = corr.charge["B"]
-    V = permute_ext_fields(corr, channel).fields
-    δ = [V[i]["δ"][lr] for i in 1:4]
-    if r == 0 && s == 0
-        return (δ[2]-δ[1])*(δ[3]-δ[4])
-    else
+function Rmn_term(r, s, corr::FourPointCorrelation, lr)
+    B = corr.charge.B
+    V = corr.fields
+    δ = [V[i].δ[lr] for i in 1:4]
+    if r != 0 || s != 0
         return (((δ[2]-δ[1])^2 - 2*δrs(r, s, B)*(δ[1]+δ[2]) + δrs(r, s, B)^2)
                 *((δ[3]-δ[4])^2 - 2*δrs(r, s, B)*(δ[3]+δ[4]) + δrs(r, s, B)^2))
+    else
+        return (δ[2]-δ[1])*(δ[3]-δ[4])
     end
 end
 
 """Compute the regularization of a term in the double product of Rmn"""
-function Rmn_term_reg(r, s, corr::FourPointCorrelation, channel, lr)
-    V = permute_ext_fields(corr, channel).fields
-    if r == 0 && s == 0
-        return 2*V[2]["P"][lr]
+function Rmn_term_reg(r, s, corr::FourPointCorrelation, lr)
+    V = corr.fields
+    if r != 0 || s != 0
+        return 8*V[1].P[lr]*V[2].P[lr]*Field(corr.charge, Kac=true, r=r, s=s)
     else
-        return 8*V[1]["P"][lr]*V[2]["P"][lr]*Field(corr.charge, Kac=true, r=r, s=s)
+        return 2*V[2].P[lr]
     end
 end
 
@@ -133,47 +119,40 @@ lr indicates the left or right moving parts of the fields
 Cache the result.
 TODO: value of regularisation
 """
-@memoize function Rmn(m, n, corr::FourPointCorrelation, channel, lr)
+@memoize function Rmn(m, n, corr::FourPointCorrelation, lr)
 
-    B = corr.charge["B"]
-    Vs = permute_ext_fields(corr, channel).fields
-    δ1 = Vs[1]["δ"][lr]
-    δ2 = Vs[2]["δ"][lr]
-    δ3 = Vs[3]["δ"][lr]
-    δ4 = Vs[4]["δ"][lr]
-
-    if Rmn_zero_order(m, n, corr, channel) > 0
+    if Rmn_zero_order(m, n, corr) == 0
         if m == 1
-            res = 0
+            res = prod(Rmn_term(0, s, corr, lr) for s in 1-n:2:0)
+        else # m > 1
+            res = prod(prod(Rmn_term(r, s, corr, lr)
+                            for s in 1-n:2:n-1) for r in 1-m:2:-1)
+            if m%2 == 1 # m odd -> treat r=0 term separately
+                res *= prod(Rmn_term(0, s, corr, lr) for s in 1-n:2:0)
+            end
         end
     else
         if m == 1
-            res = prod(Rmn_term(0, s, corr, channel, lr) for s in 1-n:2:0)
-        else # m > 1
-            res = prod(prod(Rmn_term(r, s, corr, channel, lr)
-                            for s in 1-n:2:n-1) for r in 1-m:2:-1)
-            if m%2 == 1 # m odd -> treat r=0 term separately
-                res *= prod(Rmn_term(0, s, corr, channel, lr) for s in 1-n:2:0)
-            end
+            res = 0
         end
     end
 
-    return res/(2*Dmn(m, n, B))
+    return res/(2*Dmn(m, n, corr.charge.B))
 end
 
-@memoize function computeCNmn(N, m, n, corr::FourPointCorrelation, channel, lr)
-    B = corr.charge["B"]
-    if Rmn_zero_order(m, n, corr, channel) > 0
+@memoize function computeCNmn(N, m, n, corr::FourPointCorrelation, lr)
+    B = corr.charge.B
+    if Rmn_zero_order(m, n, corr) > 0
         return 0
     elseif m*n > N
         return 0
     elseif m*n == N
-        return Rmn(m, n, corr, channel, lr)
+        return Rmn(m, n, corr, lr)
     else
-        res = sum(sum(computeCNmn(N-m*n, mp, np, corr, channel, lr)/(δrs(m, -n, B) - δrs(mp, np, B))
+        res = sum(sum(computeCNmn(N-m*n, mp, np, corr, lr)/(δrs(m, -n, B) - δrs(mp, np, B))
                       for mp in 1:N-m*n if mp*np <= N-m*n)
                   for np in 1:N-m*n)
-        return Rmn(m, n, corr, channel, lr) * res
+        return Rmn(m, n, corr, lr) * res
     end
 end
 
@@ -199,7 +178,7 @@ end
 
 """Order of a pole of Rmn^torus, assuming the central charge is generic"""
 function Rmn_zero_order(m, n, corr::OnePointCorrelation)
-    B = corr.charge["B"]
+    B = corr.charge.B
     V = corr.field
     if V.isKac && V.r%2==1 && V.s%2==1 && abs(V.r) <= 2*m-1 && abs(V.s) <= 2*n-1
         return 1
@@ -213,9 +192,9 @@ lr indicates the left or right moving parts of the fields
 TODO: value of regularisation
 """
 function Rmn(m, n, corr::OnePointCorrelation, lr)
-    B = corr.charge["B"]
+    B = corr.charge.B
     V = corr.field
-    δ1 = V["δ"][lr]
+    δ1 = V.δ[lr]
     if Rmn_zero_order(m, n, corr) > 0
         return 0
     else
@@ -225,7 +204,7 @@ function Rmn(m, n, corr::OnePointCorrelation, lr)
 end
 
 function computeCNmn(N, m, n, corr::OnePointCorrelation, lr)
-    B = corr.charge["B"]
+    B = corr.charge.B
     if Rmn_zero_order(m, n, corr) > 0
         return 0
     elseif m*n > N

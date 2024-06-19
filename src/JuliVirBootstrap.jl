@@ -7,13 +7,15 @@ Nivesvivat
 
 module JuliVirBootstrap
 
+using Latexify # print outputs in latex format
+
 #===========================================================================================
 Special functions
 ===========================================================================================#
 include("SpecialFunctions.jl")
 using .SpecialFunctions
 export Barnes_G
-export log_double_Gamma, double_Gamma
+export logdoublegamma, doublegamma
 
 #===========================================================================================
 Central charges and fields
@@ -21,6 +23,7 @@ Central charges and fields
 include("CFTData.jl")
 using .CFTData
 export CentralCharge
+export ConformalDimension
 export Field, spin
 
 #===========================================================================================
