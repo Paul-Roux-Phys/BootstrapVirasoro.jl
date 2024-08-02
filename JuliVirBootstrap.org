@@ -219,10 +219,10 @@ where $S=\Delta-\bar\Delta$ is the conformal spin, which we assume to be integer
 
 Four-point blocks can be computed efficiently thanks to [[https://en.wikipedia.org/wiki/Virasoro_conformal_block][Zamolodchikov's recursion]].
 
-We introduce a variable $q$ related to $z$ through
+We introduce a variable $q$ related to $x$ through
 
 \[
-z = \frac{\theta_2(q)^4}{\theta_3(q)^4}, \quad q = e^{-\pi\frac{K(1-x)}{ K(x)}}
+x = \frac{\theta_2(q)^4}{\theta_3(q)^4}, \quad q = e^{-\pi\frac{K(1-x)}{ K(x)}}
 \]
 
 where
@@ -261,7 +261,7 @@ Where the coefficient \(C_{m,n}^N\) is defined by the recursive formula
 C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
 \]
 
-And the coefficents \(R_{m,n}\) can be written
+And the coefficients \(R_{m,n}\) can be written
 
 \begin{align}
  R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}}
@@ -599,17 +599,19 @@ module SpecialFunctions
 import SpecialFunctions as SF
 using Memoization
 using ArbNumerics # the SpecialFunctions package has no arbitrary-precision complex-variable gamma function, however the ArbNumerics does. We use this, and convert to a Complex{BigFloat}
-using QuadGK # numerical integration
+import Base: precision
 
-export loggamma, gamma
-export digamma_reg, Barnes_G, logdoublegamma, doublegamma
+export loggamma,
+    gamma,
+    digamma_reg,
+    Barnes_G,
+    logdoublegamma,
+    doublegamma
 
 """
     cotpi(x) = cot(π * x)
 """
 cotpi(x) = SF._cotpi(x)
-
-ArbNumerics.loggamma = ArbNumerics.lgamma # rename ArbNumerics' loggamma function
 
 for f in (:gamma, :digamma)
     @eval $f(z::Union{Real, Complex{Float64}}) = SF.$f(z)
@@ -617,14 +619,44 @@ for f in (:gamma, :digamma)
 end
 
 trigamma(z::Union{Float64, Complex{Float64}}) = SF.trigamma(z)
-trigamma(z::Union{BigFloat, Complex{BigFloat}}) = BigFloat(ArbNumerics.polygamma(ArbComplex(1, bits=precision(BigFloat)), ArbComplex(z, bits=precision(BigFloat))))
+trigamma(z::BigFloat) = BigFloat(ArbNumerics.polygamma(ArbComplex(1, bits=precision(BigFloat)), ArbComplex(z, bits=precision(BigFloat))))
+trigamma(z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.polygamma(ArbComplex(1, bits=precision(BigFloat)), ArbComplex(z, bits=precision(BigFloat))))
 
 loggamma(z::Union{Real, Complex{Float64}}) = SF.loggamma(z)
 loggamma(z::Complex{BigFloat}) = Complex{BigFloat}(ArbNumerics.lgamma(ArbComplex(z, bits=precision(BigFloat))))
 
-
 polygamma(n, z::Union{Real, Complex{Float64}}) = SF.polygamma(n, z)
 polygamma(n, z::Complex{BigFloat}) = Complex{BigFloat}(polygamma(ArbComplex(n), ArbComplex(z, bits=precision(BigFloat))))
+
+function precision(z::Complex)
+    return precision(real(z))
+end
+
+"""Convert to a standard precision number"""
+function convert_precision(x::Number, precision)
+    if precision <= 53 # precision of Float64
+        if isreal(x)
+            return Float64(Real(x))
+        else
+            return Complex{Float64}(x)
+        end
+    else # precision > 53
+        if isreal(x)
+            return BigFloat(Real(x), precision=precision)
+        else
+            r = BigFloat(real(x), precision=precision)
+            i = BigFloat(imag(x), precision=precision)
+            return Complex{BigFloat}(r, i)
+        end
+    end
+end
+
+"""Change the precision of x to precision"""
+macro convert_precision!(var, precision)
+    quote
+        $var = convert_precision($var, $precision)
+    end |> esc
+end
 #+end_src
 
 *** Regularized digamma Function
@@ -653,14 +685,17 @@ function integrandC(x, τ)
 end
 
 function modularC(τ)
-    P = precision(BigFloat, base=10)
+    P = precision(BigFloat) ÷ 2
     #temporarily increase precision to avoid artificial divergence around zero
-    setprecision(BigFloat, base=10, Int(floor(1.3*P)))
-    cutoff = big(10^(-P/5)) # to prevent artificial divergence around zero
-    tol = big(10)^P
+    setprecision(BigFloat, Int(floor(1.3*P)))
+    cutoff = big(2^(-P/5)) # to prevent artificial divergence around zero
+    tol = big(2)^P
+
+    #compute integral
     value, error = quadgk(x -> integrandC(x, τ), cutoff, big(Inf), rtol = tol, order=21)
     C0 = (2/τ - 3//2 + τ/6)*cutoff + (5//12 - 1/τ + τ/12)*cutoff^2 + (4/(9*τ) - 2//9 + 1//54*τ - 1//270*τ^3)*cutoff^3
-    setprecision(BigFloat, base=10, P)
+    setprecision(BigFloat, 2P)
+
     return 1/(2*τ)*log(2*oftype(τ, π)) - value - C0
 end
 
@@ -681,17 +716,23 @@ function modularD(τ)
 end
 
 @memoize function modularcoeff_a(τ)
-    return 1/2*τ*log(2*oftype(τ, π)*τ) + 1/2*log(τ) - τ*modularC(τ)
+    return convert_precision(1/2*τ*log(2*oftype(τ, π)*τ) + 1/2*log(τ) - τ*modularC(τ), precision(τ))
 end
 
 @memoize function modularcoeff_b(τ)
-    return -τ*log(τ) - τ^2*modularD(τ)
+    return convert_precision(-τ*log(τ) - τ^2*modularD(τ), precision(τ))
 end
 
 function log_Barnes_GN(N, z, τ)
+    # keep only the minimum precision
+    prec = min(precision(z), precision(τ))
+    @convert_precision!(z, prec)
+    @convert_precision!(τ, prec)
+
+    #compute the sum
     res = 0
     res += - log(τ) - loggamma(z)
-    res += modularcoeff_a(τ)*z/τ + modularcoeff_b(τ)*z^2/(2*τ^2)
+    res += convert_precision(modularcoeff_a(τ)*z/τ + modularcoeff_b(τ)*z^2/(2*τ^2), prec)
     res += sum(loggamma(m*τ) - loggamma(z+m*τ) + z*digamma(m*τ)+z^2/2*trigamma(m*τ) for m in 1:N)
     return res
 end
@@ -711,15 +752,19 @@ end
 end
 
 function rest_RMN(M, N, z, τ)
-    return sum(factorial_big(k-1)*(-τ)^(-k-1)*polynomial_Pn(k, z, -τ)/N^k for k in 1:M)
+    # keep only the minimum precision
+    prec = min(precision(z), precision(τ))
+    @convert_precision!(z, prec)
+    @convert_precision!(τ, prec)
+
+    return convert_precision(sum(factorial_big(k-1)*(-τ)^(-k-1)*polynomial_Pn(k, z, -τ)/N^k for k in 1:M), prec)
 end
 
 """Numerical approximation of the logarithm of Barne's G-function, up to a given tolerance"""
 function log_Barnes_G(z, τ, tol)
-    z = complex(z)
     d = -log(tol)/log(10)
-    M = BigInt(floor(0.7*log(10)/log(20)*d))
-    N = 20*M
+    M = floor(0.8*log(10)/log(20)*d)
+    N = 30*M
     return log_Barnes_GN(N, z, τ) + z^3*rest_RMN(M, N, z, τ)
 end
 
@@ -744,7 +789,7 @@ end
 """
         doublegamma(w, β, tol)
 
-Compute the double gamma function Γ_β(w, β) with precision tol
+Compute the double gamma function Γ_β(w) with precision tol
 
 """
 function doublegamma(w, β, tol)
@@ -786,7 +831,7 @@ Provides types representing central charges and fields in CFT.
 """
 module CFTData
 
-using Match, Latexify;
+using Latexify;
 
 export CentralCharge
 export ConformalDimension

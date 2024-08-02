@@ -9,48 +9,33 @@ module JuliVirBootstrap
 
 using Latexify # print outputs in latex format
 
-#===========================================================================================
-Special functions
-===========================================================================================#
-include("SpecialFunctions.jl")
-using .SpecialFunctions
-export Barnes_G
-export logdoublegamma, doublegamma
+const left  = 1
+const right = 2
 
 #===========================================================================================
 Central charges and fields
 ===========================================================================================#
-include("CFTData.jl")
+include("CFTData/CFTData.jl")
 using .CFTData
-export CentralCharge
-export ConformalDimension
-export Field, spin
-
-#===========================================================================================
-Correlation functions
-===========================================================================================#
-
-abstract type CorrelationFunction end
-
-include("CorrelationFunctions.jl")
-using .FourPointCorrelationFunctions
-export FourPointCorrelation
-
-using .OnePointCorrelationFunctions
-export OnePointCorrelation
+export CentralCharge,
+       ConformalDimension,
+       Field, spin, swap_lr
 
 #===========================================================================================
 Conformal blocks
 ===========================================================================================#
+include("ConformalBlocks/ConformalBlocks.jl")
+using .ConformalBlocks
+export FourPointCorrelation, 
+    OnePointCorrelation,
+    FourPointBlock,
+    OnePointBlock,
+    evaluate_series,
+    evaluate_chiral
+# export FourPointBlockSphere
+# export block_chiral, block_non_chiral
 
-abstract type ConformalBlock end
-
-include("ConformalBlocks.jl")
-using .FourPointBlocksSphere
-export FourPointBlockSphere
-export block_chiral, block_non_chiral
-
-using .OnePointBlocksTorus
-export OnePointBlockTorus
+# using .OnePointBlocksTorus
+# export OnePointBlockTorus
 
 end

@@ -1,2 +1,4 @@
 using Documenter, JuliVirBootstrap
-makedocs(sitename="JuliVirBootstrap documentation")
+
+makedocs(sitename="JuliVirBootstrap documentation",
+         remotes=nothing)
