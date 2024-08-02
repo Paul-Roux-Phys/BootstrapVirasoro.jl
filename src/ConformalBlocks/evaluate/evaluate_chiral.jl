@@ -6,8 +6,7 @@ function series_argument_from_parameter(x, s::Symbol)
     between :crossratio, :τ, :q")
 end
 
-function evaluate_series(b::Block, x, s::Symbol, lr, der=false, reg=false)
-    q = series_argument_from_parameter(x, s)
+function evaluate_series(b::Block, q, lr, der=false, reg=false)
     return evalpoly(q, b._coefficients[lr])
 end
 
@@ -36,8 +35,21 @@ function evaluate_chiral(
     reg=false
 )
     x = get_position(pos, b)
-    h = evaluate_series(b, x, :crossratio, lr, der, reg)
+    q = series_argument_from_parameter(x, :crossratio)
+    V = b.channel_field
     p = blockprefactor_chiral(c, corr, b, x, lr)
+    h = evaluate_series(b, q, lr, der, reg)
+
+    # add the q-dependent part
+    if der
+        P = V.P[lr]
+        hprime = evaluate_series(b, q, lr, der=true)
+        h = muladd(h, log(q), hprime) # H_der = 2*P*log(q or 16q)H + H'
+    elseif reg
+        r, s = V.r, abs(V.s)
+        h += log(q) * (q)^(δrs(r, s, B)) *
+                evalpoly(q, [b._CNmn[(N, r, s)][lr] for N in 1:corr.Nmax])
+    end
 
     return p * h
 end

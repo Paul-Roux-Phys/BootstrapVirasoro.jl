@@ -19,6 +19,7 @@ struct FourPointCorrelation{T} <: Correlation{T}
     fields::NTuple{4, Field{T}}
     Nmax::Int
     _Rmn::Dict{Symbol, RmnTable{T}}
+    _Rmn_reg::Dict{Symbol, RmnTable{T}}
     _CNmn::Dict{Symbol, CNmnTable{T}}
 
 end
@@ -88,11 +89,11 @@ function FourPointCorrelation(
     tmp = Dict(
         s => FourPointCorrelation{T}(permute_fields(Vs, s), Nmax,
             Dict{Symbol,RmnTable{T}}(),
+            Dict{Symbol,RmnTable{T}}(),
             Dict{Symbol,CNmnTable{T}}()
         )
         for s in channels
     )
-
 
     Rmn_dict = Dict(
         x => Dict((m, n) => (Rmn(m, n, c, tmp[x], left), Rmn(m, n, c, tmp[x], right)) 
@@ -102,7 +103,9 @@ function FourPointCorrelation(
         for x in channels
     )
 
-    tmp = FourPointCorrelation{T}(Vs, Nmax, Rmn_dict, Dict{Symbol, CNmnTable{T}}())
+    Rmn_reg = Dict{Symbol, RmnTable{T}}()
+
+    tmp = FourPointCorrelation{T}(Vs, Nmax, Rmn_dict, Rmn_reg, Dict{Symbol, CNmnTable{T}}())
  
     CNmn = Dict(
         x => Dict(
@@ -119,7 +122,7 @@ function FourPointCorrelation(
         filter!(p -> p.second != (0, 0), CNmn[x]) # keep only non-zero values
     end
 
-    FourPointCorrelation{T}(Vs, Nmax, Rmn_dict, CNmn)
+    FourPointCorrelation{T}(Vs, Nmax, Rmn_dict, Rmn_reg, CNmn)
 end
 
 function FourPointCorrelation(
@@ -150,14 +153,13 @@ function Rmn_zero_order(m, n, corr::FourPointCorrelation)
     equivalently, if (|r1 \pm r2| <= m-1 and r1-r2 - (m-1) % 2 == 0)
     and (|s1 \pm s2| <= n-1 and s1-s2 - (n-1) % 2 == 0)
     =#
-    for pm in (-1,1)
-        for (i,j) in ((1,2), (3,4))
-            if V[i].isKac && V[j].isKac
-                if (abs(r[i]+pm*r[j]) <= m-1 && (r[i]+pm*r[j]-(m-1))%2 == 0) &&
-                    (abs(s[i]+pm*s[j]) <= n-1 && (s[i]+pm*s[j]-(n-1))%2 == 0)
-                    order += 1
-                end
-            end
+    for pm in (-1, 1), (i, j) in ((1, 2), (3, 4))
+        if (V[i].isKac && V[j].isKac
+            && (abs(r[i] + pm * r[j]) <= m - 1 && (r[i] + pm * r[j] - (m - 1)) % 2 == 0)
+            && (abs(s[i] + pm * s[j]) <= n - 1 && (s[i] + pm * s[j] - (n - 1)) % 2 == 0))
+            
+            order += 1
+
         end
     end
 
@@ -211,6 +213,10 @@ function Rmn(m, n, c::CentralCharge{T}, corr::FourPointCorrelation{T}, lr) where
     end
 
     return res/(2*Dmn(m, n, c.B))
+end
+
+function Rmn_reg(m, n, c::CentralCharge, corr::FourPointCorrelation)
+    
 end
 
 @memoize function computeCNmn(

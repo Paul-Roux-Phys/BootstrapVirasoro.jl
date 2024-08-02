@@ -7,7 +7,8 @@ Nivesvivat
 
 module JuliVirBootstrap
 
-using Latexify # print outputs in latex format
+using Latexify, # print outputs in latex format
+    Base.Threads
 
 const left  = 1
 const right = 2

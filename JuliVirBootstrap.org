@@ -386,7 +386,8 @@ where the prefactor is the prefactor in Zamolodchikov's recursion, and
 and
 
 \begin{align}
-\left( \frac{1}{P^{2}_{(r,s)} - P^{2}_{(m,n)}} \right)^{\text{reg}} =
+\left(  \frac{(16q)^{P^{2}}}{P^{2}_{(r,s)} - P^{2}_{(m,n)}} \right)^{\text{reg}} =
+(16q)^{P^{2}} \times
 \begin{cases}
 \log 16q - \frac{1}{4P_{(r,s)}^{2}} \text{  if  } (m,n)=(r,s) \\
 \frac{1}{P^{2}_{(r,s)} - P^{2}_{(m,n)}}  \text{  otherwise}

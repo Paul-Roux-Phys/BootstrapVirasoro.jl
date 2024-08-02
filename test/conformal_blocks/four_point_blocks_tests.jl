@@ -9,22 +9,18 @@
 
     V_chan = Field(c, :P, sqrt(2) * P, diagonal=true)
     V_ext = Field(c, :P, P1 / sqrt(2), diagonal=true)
-    VKac = Field(c, Kac=true, r=0, s=1 // 2, diagonal=true)
+    VKac = Field(c, Kac=true, r=0, s=1//2, diagonal=true)
 
-    corr = FourPointCorrelation(c, VKac, V_ext, VKac, VKac, 10)
-    b = FourPointBlock(10, c, corr, :s, V_chan)
+    corr = FourPointCorrelation(c, VKac, V_ext, VKac, VKac, 20)
+    b = FourPointBlock(20, c, corr, :s, V_chan)
 
-    h = evaluate_series(b, x, :crossratio, left)
+    h = evaluate_series(b, 16q, left)
 
     @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol=1e-8) # value from Sylvain's code
 
-    q = qfromx(x)
-
-    h = evaluate_series(b, q, :q, left)
 end
 
 @testset "Chiral blocks" begin
-    setprecision(BigFloat, 128)
     c = CentralCharge(:c, big"0.1")
     V1 = Field(c, :Δ, 1, diagonal=true)
     V2 = Field(c, :Δ, 2, diagonal=true)
@@ -59,20 +55,20 @@ end
 end
 
 @testset "Non Chiral Blocks" begin
-    # setprecision(BigFloat, 64)
-    # c = CentralCharge(:β, big".912" + .1im)
-    # V1 = Field(c, Kac=true, r=1//2, s=0)
-    # V2 = Field(c, Kac=true, r=3//2, s=2//3)
+    c = CentralCharge(:β, big".912" + .1im)
+    V1 = Field(c, Kac=true, r=1//2, s=0)
+    V2 = Field(c, Kac=true, r=3//2, s=2//3)
 
-    # corr = FourPointCorrelation(c, [V1, V1, V2, V1])
-    # block_s = FourPointBlockSphere(corr, :s, V1, Nmax=15)
-    # block_t = FourPointBlockSphere(corr, :t, V1, Nmax=15)
+    corr = FourPointCorrelation(c, V1, V1, V2, V1, 20)
+    block_s = FourPointBlock(15, c, corr, :s, V1)
+    block_t = FourPointBlock(15, c, corr, :t, V1)
 
-    # z = 1e-8 + 1e-10im
-    # Δ1 = V1.Δ[left]
+    z = 1e-8 + 1e-10im
+    Δ1 = V1.Δ[left]
 
-    # @test abs(1-block_non_chiral(z, block_s)*z^Δ1*conj(z)^Δ1) < 1e-5
-    # @test abs(1-block_non_chiral(1-z, block_t)*z^Δ1*conj(z)^Δ1) < 1e-5 # both blocks are close to one
+    # both blocks should be close to one
+    # @test abs(1-evaluate_non_chiral(z, block_s)*z^Δ1*conj(z)^Δ1) < 1e-5
+    # @test abs(1-evaluate_non_chiral(1-z, block_t)*z^Δ1*conj(z)^Δ1) < 1e-5 
 end
 
 @testset "Block derivatives" begin
