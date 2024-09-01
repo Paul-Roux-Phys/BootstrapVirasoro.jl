@@ -1,5 +1,5 @@
 @testset "Zamolodchikov series" begin
-    import JuliVirBootstrap.ConformalBlocks: qfromx
+    import JuliVirBootstrap: qfromx, evaluate_series
 
     c = CentralCharge(:b, (1.2 + 0.1 * 1im) / sqrt(2))
     x = 0.05
@@ -11,10 +11,10 @@
     V_ext = Field(c, :P, P1 / sqrt(2), diagonal=true)
     VKac = Field(c, Kac=true, r=0, s=1//2, diagonal=true)
 
-    corr = FourPointCorrelation(c, VKac, V_ext, VKac, VKac, 20)
-    b = FourPointBlock(20, c, corr, :s, V_chan)
+    corr = Correlation(VKac, V_ext, VKac, VKac, 12)
+    b = Block(corr, :s, V_chan, :left, 12)
 
-    h = evaluate_series(b, 16q, left)
+    h = evaluate_series(b, 16q)
 
     @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol=1e-8) # value from Sylvain's code
 
@@ -26,109 +26,151 @@ end
     V2 = Field(c, :Δ, 2, diagonal=true)
     V3 = Field(c, :Δ, 3, diagonal=true)
     V4 = Field(c, :Δ, 4, diagonal=true)
-    corr = FourPointCorrelation(c, V1, V2, V3, V4, 40)
+    co = Correlation(V1, V2, V3, V4, 40)
     V = Field(c, :Δ, big"0.5", diagonal=true)
-    block_s = FourPointBlock(40, c, corr, :s, V)
-    block_t = FourPointBlock(40, c, corr, :t, V)
-    block_u = FourPointBlock(40, c, corr, :u, V)
+    b_s = Block(co, :s, V, :left, 40)
+    b_t = Block(co, :t, V, :left, 40)
+    b_u = Block(co, :u, V, :left, 40)
     x=big"0.05"
 
     # comparing to values from Sylvain's code
     @test isapprox(
-        evaluate_chiral(c, corr, block_s, x, left),
+        evaluate(b_s, x),
         big"1679.9121886897846270816517306779666391454311387606437056866150367",
         rtol = 1e-20
     )
 
     @test isapprox(
-        evaluate_chiral(c, corr, block_t, x, left),
+        evaluate(b_t, x),
         big"10841.257658755518924543654668282368582",
         rtol = 1e-20
     )
 
     @test isapprox(
-        evaluate_chiral(c, corr, block_u, x, right),
+        evaluate(b_u, x),
         big"299.1843849134281379909218349390129720213727" -
             big"2026.47316197194594006925827438887723275377012"*im,
         rtol = 1e-20
     )
 end
 
+
 @testset "Non Chiral Blocks" begin
-    c = CentralCharge(:β, big".912" + .1im)
-    V1 = Field(c, Kac=true, r=1//2, s=0)
-    V2 = Field(c, Kac=true, r=3//2, s=2//3)
 
-    corr = FourPointCorrelation(c, V1, V1, V2, V1, 20)
-    block_s = FourPointBlock(15, c, corr, :s, V1)
-    block_t = FourPointBlock(15, c, corr, :t, V1)
+    c = CentralCharge(:β, big"0.8"+big"0.1"*im)
+    V = Field(c, Kac=true, r=2, s=3)
+    Nmax = 26
 
-    z = 1e-8 + 1e-10im
-    Δ1 = V1.Δ[left]
+    V1 = Field(c, Kac=true, r=0, s=1)
+    V2 = Field(c, Kac=true, r=0, s=1//2)
+    V3 = Field(c, Kac=true, r=0, s=1)
+    V4 = Field(c, Kac=true, r=0, s=1//2)
+    VΔ = Field(c, :Δ, big"0.5", diagonal=true)
 
-    # both blocks should be close to one
-    # @test abs(1-evaluate_non_chiral(z, block_s)*z^Δ1*conj(z)^Δ1) < 1e-5
-    # @test abs(1-evaluate_non_chiral(1-z, block_t)*z^Δ1*conj(z)^Δ1) < 1e-5 
-end
+    co = Correlation(V1, V2, V3, V4, Nmax)
+    coΔ = Correlation(V1, V2, V3, VΔ, Nmax)
 
-@testset "Block derivatives" begin
-    # setprecision(BigFloat, 256)
+    x = big"0.3"+big"0.1"*im
+    
+    @testset "Limit as z->0, z->1" begin
 
-    # c = CentralCharge(:β, big(1.2 + .1im))
-    # V1 = Field(c, Kac=true, r=1//2, s=0)
-    # V2 = Field(c, Kac=true, r=3//2, s=2//3)
+        block_s = Block(co, :s, VΔ, 15)
+        block_t = Block(co, :t, VΔ, 15)
 
-    # ϵ = big(1e-25)
-    # V = Field(c, :Δ, 0.5, diagonal=true)
-    # Vshiftedp = Field(c, :Δ, 0.5+ϵ, diagonal=true)
-    # Vshiftedm = Field(c, :Δ, 0.5-ϵ, diagonal=true)
+        z = 1e-8 + 1e-10im
+        Δ = V1.Δ[:left]
 
-    # corr = FourPointCorrelation(c, [V1, V1, V2, V1])
-    # block = FourPointBlockSphere(corr, :s, V, Nmax=50)
-    # block_shiftedp = FourPointBlockSphere(corr, :s, Vshiftedp, Nmax=50)
-    # block_shiftedm = FourPointBlockSphere(corr, :s, Vshiftedm, Nmax=50)
+        # both blocks should be close to one
+        @test abs(1 - evaluate(block_s, z) * z^Δ * conj(z)^Δ) < 1e-5
+        @test abs(1 - evaluate(block_t, 1 - z) * z^Δ * conj(z)^Δ) < 1e-5
+    end
 
-    # block_der = block_chiral(z, block, left, der=true)
-    # block_der_manual = (block_chiral(z, block_shiftedp, left) - block_chiral(z, block_shiftedm, left))/(2*ϵ)
+    @testset "Block derivatives" begin
+        setprecision(BigFloat, 256)
+        ϵ = 1e-25
 
-    # @test abs(block_der - block_der_manual) < 1e-6
-end
+        V0 = Field(c, :P, big"0.5", diagonal=true)
+        Vp = Field(c, :P, big"0.5" + ϵ, diagonal=true)
+        Vm = Field(c, :P, big"0.5" - ϵ, diagonal=true)
 
-@testset "Logarithmic blocks" begin
-    # c = CentralCharge(:β, big(.8 + .1im))
-    # V1 = Field(c, Kac=true, r=1, s=1)
-    # V2 = Field(c, Kac=true, r=1, s=1)
-    # V3 = Field(c, Kac=true, r=0, s=1//2)
-    # V4 = Field(c, Kac=true, r=0, s=3//2)
-    # VΔ = Field(c, :Δ, 0.5, diagonal=true)
+        b = Block(co, :s, V0, :left, 40, der=true)
+        b_p = Block(co, :s, Vp, :left, 40)
+        b_m = Block(co, :s, Vm, :left, 40)
 
-    # corr = FourPointCorrelation(c, [V1, V2, V3, V4])
-    # corrΔ = FourPointCorrelation(c, [V1, V2, V3, VΔ])
+        function eval_series_der(x)
+            q = 16qfromx(x)
+            series_der = evaluate_series(b, q, der=true)
+            byhand = (evaluate_series(b_p, q) - evaluate_series(b_m, q)) / (2 * ϵ)
+            series_der - byhand
+        end
 
-    # ell = JuliVirBootstrap.FourPointBlocksSphere.ell(corr, 2, 1)
-    # ellΔ = JuliVirBootstrap.FourPointBlocksSphere.ell(corrΔ, 2, 1)
+        @test abs(eval_series_der(big"0.3" + big"0.4" * im)) < big"1e-45"
+        @test abs(eval_series_der(big"0.01")) < big"1e-45"
+        @test abs(eval_series_der(big"10" + big"0.01" * im)) < big"1e-45"
 
-    # # When all fields are degenerate
-    # @test  isapprox(ell, 8.2808044631395529307 - 9.7096599503345083802im, rtol = 1e-8) # comparing with Sylvain's code
-    # # When not all fields are degenerate
-    # @test isapprox(ellΔ, 11.392850199938978801 - 7.6477614372039684265im, rtol = 1e-8) # comparing with Sylvain's code
+        function eval_block_der(x)
+            block_der = evaluate(b, x, der=true)
+            byhand = (evaluate(b_p, x) - evaluate(b_m, x)) / (2 * ϵ)
+            block_der - byhand
+        end
 
-    # c = CentralCharge(:β, big(1.2 + .1im))
-    # V1 = Field(c, Kac=true, r=0, s=1)
-    # V2 = Field(c, Kac=true, r=0, s=1//2)
-    # V3 = Field(c, Kac=true, r=0, s=1)
-    # V4 = Field(c, Kac=true, r=0, s=1//2)
+        @test abs(eval_block_der(big"0.3" + big"0.4" * im)) < big"1e-25"
+        @test abs(eval_block_der(big"0.01")) < big"1e-25"
+        @test abs(eval_block_der(big"10" + big"0.01" * im)) < big"1e-25"
+    end
 
-    # V = Field(c, Kac=true, r=2, s=3)
 
-    # x = 0.3 + 0.1im
-    # Nmax = 26
-    # corr = FourPointCorrelation(c, [V1, V2, V3, V4])
-    # b(channel) = FourPointBlockSphere(corr, channel, V)
-    # block_value(b) = block_non_chiral(x, b)
+    @testset "Logarithmic prefactor ell" begin
+        import JuliVirBootstrap: ell
 
-    # @test isapprox(block_value(b(:s)), -0.0062116451268237 + 0.0009314731786393im, rtol = 1e-5) # comparing with Sylvain's code
-    # @test isapprox(block_value(b(:t)), -0.15830875034149818 - 0.130335270628475im, rtol = 1e-5) # comparing with Sylvain's code
-    # @test isapprox(block_value(b(:u)), 296.0639291056886 - 16.68222738906im, rtol = 1e-3) # comparing with Sylvain's code:TODO precision problem
+        l = ell(co.fields, 2, 1)
+        lΔ = ell(coΔ.fields, 2, 1)
 
+        # comparing with Sylvain's code
+        # When all fields are degenerate
+        @test isapprox(l, 14.20389003630952076540 - 5.0517664348341790287im, rtol=1e-15)
+        # When not all fields are degenerate
+        @test isapprox(lΔ, 9.442859099125287026870 - 8.0848336893143160748im, rtol=1e-15)
+    end
+
+    @testset "Regularised blocks" begin
+        b = Block(co, :s, V, :left)
+        V12 = Field(c, Kac=true, r=1, s=2)
+        b2 = Block(coΔ, :t, V12, :left, Nmax)
+
+        @test isapprox(
+            evaluate(b, x),
+            big"0.51970140827959736684758007395822214" + 
+                big"0.5951179392484063703449815783272925"*im,
+            rtol=1e-25
+        )
+
+        @test isapprox(
+            evaluate(b2, x),
+            big"1.164057039115389253869277410981757" + 
+                big"-0.07162461483111554418789576414972262"*im,
+            rtol=1e-25
+        )
+    end
+
+    @testset "Full logarithmic blocks" begin
+        bl(channel) = Block(co, channel, V, Nmax)
+
+        # comparing with Sylvain's code
+        @test isapprox(
+            evaluate(bl(:s), x),
+            big"-0.0004874448542139286383748521" - big"0.001382427546460296313978939"*im,
+            rtol = 1e-20
+        )
+        @test isapprox(
+            evaluate(bl(:t), x),
+            big"-0.4855554411145733280520066" + big"0.1128101630322690069857833"*im,
+            rtol = 1e-20
+        )
+        @test isapprox(
+            evaluate(bl(:u), x),
+            big"494.0972423782253286819861" - big"1981.380770034717228952532"*im,
+            rtol = 1e-20
+        )
+    end
 end

@@ -1,5 +1,4 @@
 using JuliVirBootstrap
-import JuliVirBootstrap: left, right
 using Test
 
 @testset "JuliVirBootstrap Tests" begin

@@ -125,7 +125,6 @@ end
 
 """Degenerate dimensions"""
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
-
 βm1P(B, r, s) = 1/2*(r+s/B) # \beta^{-1}P_{(r,s)}
 
 """Factor \ell_{(r,s)} that appears in logarithmic blocks"""
