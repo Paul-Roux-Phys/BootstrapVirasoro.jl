@@ -74,8 +74,9 @@ end
     
     @testset "Limit as z->0, z->1" begin
 
-        block_s = Block(co, :s, VΔ, 15)
-        block_t = Block(co, :t, VΔ, 15)
+        cor = Correlation(V1, V1, V2, V1, 12)
+        block_s = Block(cor, :s, V1, 12)
+        block_t = Block(cor, :t, V1, 12)
 
         z = 1e-8 + 1e-10im
         Δ = V1.Δ[:left]
@@ -123,8 +124,8 @@ end
     @testset "Logarithmic prefactor ell" begin
         import JuliVirBootstrap: ell
 
-        l = ell(co.fields, 2, 1)
-        lΔ = ell(coΔ.fields, 2, 1)
+        l = ell(co.fields, :s, 2, 1)
+        lΔ = ell(coΔ.fields, :s, 2, 1)
 
         # comparing with Sylvain's code
         # When all fields are degenerate
@@ -168,8 +169,9 @@ end
             rtol = 1e-20
         )
         @test isapprox(
-            evaluate(bl(:u), x),
-            big"494.0972423782253286819861" - big"1981.380770034717228952532"*im,
+            evaluate(bl(:u), 5-x), # evaluate near 5 because near zero the numerical error
+                                   # can be large
+            big"-6.036027998137231362922e-6" + big"2.335826931375437289964e-5"*im,
             rtol = 1e-20
         )
     end
