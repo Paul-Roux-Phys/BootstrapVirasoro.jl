@@ -402,6 +402,8 @@ Analysing the poles of this expression (there are double poles and simple ones),
 & +R_{r,s} \underbrace{\left( \frac{D^{'}_{P_{(r,s)}}}{D_{P_{(r,s)}}} - \lim_{P \to P_{(r,-s)}} \left[ \frac{2}{P-P_{(r,-s)}} + \frac{D_{P}^{'}}{D_{P}} \right] \right)}_{-\ell^{(1)-}_{(r,s)}}\left|\mathcal{F}_{P_{(r,-s)}}\right|^{2},
 \end{align}
 
+see Liouville theory at central charge less than 1 ref [13].
+
 in which the primes denote derivatives with respect to the momentum $P$. The derivative of the block is
 
 \begin{align}

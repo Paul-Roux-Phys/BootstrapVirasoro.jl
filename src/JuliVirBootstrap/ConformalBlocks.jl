@@ -4,7 +4,7 @@ import BarnesDoubleGamma: digamma_reg
 
 export Correlation,
     ExtFields,
-    FouFields,
+    FourFields,
     OneField,
     Block,
     BlockChiral,
