@@ -12,7 +12,6 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 ArbNumerics = "1.5.2"
-BarnesDoubleGamma = "1.0.0"
 EllipticFunctions = "2.0.1"
 Memoization = "0.2.1"
 SpecialFunctions = "2.4.0"

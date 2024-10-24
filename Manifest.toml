@@ -2,7 +2,7 @@
 
 julia_version = "1.9.4"
 manifest_format = "2.0"
-project_hash = "0168110dc1cb8aeacc35e6b54593d4fb9d309081"
+project_hash = "f5c7fc1828b39f18b646dd971af311eebd386513"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -35,9 +35,9 @@ uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
 
 [[deps.BarnesDoubleGamma]]
 deps = ["ArbNumerics", "Memoization", "QuadGK", "SpecialFunctions"]
-path = "/Users/Paul/.julia/dev/BarnesDoubleGamma"
+git-tree-sha1 = "cc188835d6d6170fcde6431b68c99bfdd34a4eab"
 uuid = "8c4ec0a7-3a81-41b6-9d5f-01f75984e8d3"
-version = "1.0.0"
+version = "1.0.1"
 
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
