@@ -24,3 +24,4 @@ end
 include("CFTData/central_charges.jl")
 include("CFTData/conformal_dimensions.jl")
 include("CFTData/fields.jl")
+include("CFTData/spectra.jl")

@@ -2,7 +2,7 @@
     c_torus = CentralCharge(:b, 1.2+.1*1im);
     c_sphere = CentralCharge(:b, (1.2+.1*1im)/sqrt(2))
 
-    q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
+    q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(0.05)
 
     P = 0.23+.11im
     P1 = 0.41+1.03im
@@ -24,8 +24,8 @@
     corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
     block_sphere = FourPointBlockSphere(:s, V_sphere_chan)
 
-    h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
-    h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+    h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
+    h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
 
     @test isapprox(h1, h2, atol=1e-12)
 

@@ -1,4 +1,4 @@
-#+title: JuliVirBootstrap Documentation
+#+title: BootstrapVirasoro Documentation
 #+author: Paul ROUX
 #+setupfile: /Users/Paul/.doom.d/setupfiles/org-html-themes/org/theme-readtheorg-local.setup
 #+setupfile: ~/.doom.d/setupfiles/org-basic-latex-export.org
@@ -464,9 +464,9 @@ Our code successfully reproduces this relation:
 
 #+begin_src julia :results silent
 import Pkg; Pkg.activate(".")
-using JuliVirBootstrap, BenchmarkTools, EllipticFunctions
-import JuliVirBootstrap.FourPointBlocksSphere.qfromx
-q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
+using BootstrapVirasoro, BenchmarkTools, EllipticFunctions
+import BootstrapVirasoro.FourPointBlocksSphere.qfromx
+q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(0.05)
 
 left=1;
 right=2;
@@ -494,8 +494,8 @@ block_torus = OnePointBlockTorus(V_torus_chan)
 corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
 block_sphere = FourPointBlockSphere(:s, V_sphere_chan)
 
-h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
-h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
+h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
 #+end_src
 
 #+begin_src julia :results output raw
@@ -515,10 +515,10 @@ sphere block = 1.000005991527301 - 1.1912765042311957e-5im
 
 ** Main module
 :PROPERTIES:
-:header-args:julia: :tangle ./src/JuliVirBootstrap.jl
+:header-args:julia: :tangle ./src/BootstrapVirasoro.jl
 :END:
 
-The module ~JuliVirBootstrap~ is the main module of this package, and it includes the sub-modules.
+The module ~BootstrapVirasoro~ is the main module of this package, and it includes the sub-modules.
 
 - ~CFTData~ provides types for central charges and fields.
 - ~CorrelationFunctions~ provides types for one-point and four-point correlation functions, as well as methods for computing coefficients appearing in their conformal blocks.
@@ -532,7 +532,7 @@ Nivesvivat
 
 ===========================================================================================#
 
-module JuliVirBootstrap
+module BootstrapVirasoro
 
 using Latexify # print outputs in latex format
 
@@ -1492,7 +1492,7 @@ export FourPointBlockSphere, block_chiral, block_non_chiral
 using ..CFTData, ..FourPointCorrelationFunctions
 using Match, EllipticFunctions, Memoization
 import ..FourPointCorrelationFunctions: Rmn
-import ..JuliVirBootstrap.SpecialFunctions: digamma_reg
+import ..BootstrapVirasoro.SpecialFunctions: digamma_reg
 
 # explicit names for the indices of left and right dimensions
 const left = 1
@@ -1961,7 +1961,7 @@ Setting-up bootstrap equations requires evaluating conformal blocks at hundreds 
 
 #+begin_src julia :session test :results silent
 using Pkg; Pkg.activate(".")
-using JuliVirBootstrap
+using BootstrapVirasoro
 
 help(Field)
 #+end_src
@@ -1981,7 +1981,7 @@ end
 :END:
 
 #+begin_src julia
-using JuliVirBootstrap
+using BootstrapVirasoro
 using Test
 #+end_src
 
@@ -2032,11 +2032,11 @@ end
     V4 = Field(c, :Δ, 1.3, diagonal=true)
     corr = FourPointCorrelation(c, V1, V2, V3, V4)
 
-    @test isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.Rmn(2, 1, corr, left),
+    @test isapprox(BootstrapVirasoro.FourPointCorrelationFunctions.Rmn(2, 1, corr, left),
                    0.31097697185245077-0.70523695127635733im, # value taken from Sylvain's code
                    atol=1e-8)
 
-    @test isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(7, 2, 3, corr, left),
+    @test isapprox(BootstrapVirasoro.FourPointCorrelationFunctions.computeCNmn(7, 2, 3, corr, left),
                    0.0019498393368877166+0.0026353877950837049im, # value taken from Sylvain's code
                    atol=1e-8)
 
@@ -2054,7 +2054,7 @@ end
     left=1;
     right=2;
 
-    import JuliVirBootstrap.FourPointBlocksSphere.qfromx
+    import BootstrapVirasoro.FourPointBlocksSphere.qfromx
 
 #+end_src
 
@@ -2063,7 +2063,7 @@ end
 #+begin_src julia
 c = CentralCharge(:b, (1.2+.1*1im)/sqrt(2))
 
-q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
+q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(0.05)
 
 P = 0.23+.11im
 P1 = 0.41+1.03im
@@ -2075,7 +2075,7 @@ VKac = Field(c, Kac=true, r=0, s=1//2, diagonal=true)
 corr = FourPointCorrelation(c, [VKac, V_ext, VKac,VKac])
 block = FourPointBlockSphere(corr, :s, V_chan)
 
-h = evalpoly(16*q, JuliVirBootstrap.FourPointBlocksSphere.H_series(block, left))
+h = evalpoly(16*q, BootstrapVirasoro.FourPointBlocksSphere.H_series(block, left))
 
 @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol=1e-8) # value from Sylvain's code
 #+end_src
@@ -2164,8 +2164,8 @@ VΔ = Field(c, :Δ, 0.5, diagonal=true)
 corr = FourPointCorrelation(c, [V1, V2, V3, V4])
 corrΔ = FourPointCorrelation(c, [V1, V2, V3, VΔ])
 
-ell = JuliVirBootstrap.FourPointBlocksSphere.ell(corr, 2, 1)
-ellΔ = JuliVirBootstrap.FourPointBlocksSphere.ell(corrΔ, 2, 1)
+ell = BootstrapVirasoro.FourPointBlocksSphere.ell(corr, 2, 1)
+ellΔ = BootstrapVirasoro.FourPointBlocksSphere.ell(corrΔ, 2, 1)
 
 # When all fields are degenerate
 @test  isapprox(ell, 8.2808044631395529307 - 9.7096599503345083802im, rtol = 1e-8) # comparing with Sylvain's code
@@ -2202,11 +2202,11 @@ end
     left=1;
     right=2;
 
-    import JuliVirBootstrap.FourPointBlocksSphere.qfromx
+    import BootstrapVirasoro.FourPointBlocksSphere.qfromx
     c_torus = CentralCharge(:b, 1.2+.1*1im);
     c_sphere = CentralCharge(:b, (1.2+.1*1im)/sqrt(2))
 
-    q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
+    q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(0.05)
 
     P = 0.23+.11im
     P1 = 0.41+1.03im
@@ -2228,8 +2228,8 @@ end
     corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
     block_sphere = FourPointBlockSphere(:s, V_sphere_chan)
 
-    h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
-    h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+    h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
+    h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
 
     @test isapprox(h1, h2, atol=1e-12)
 end
@@ -2242,11 +2242,11 @@ end
 
 #+begin_src julia :results silent
 import Pkg; Pkg.activate(".")
-using JuliVirBootstrap
+using BootstrapVirasoro
 #+end_src
 
 #+begin_src julia :results silent
-using JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+using BootstrapVirasoro, BenchmarkTools, EllipticFunctions
 
 left=1;
 right=2;
@@ -2262,7 +2262,7 @@ x = BigFloat("0.05", RoundUp);
 function test()
     corr = FourPointCorrelation(c, V1, V2, V3, V4)
     block = FourPointBlockSphere(:s, V)
-    calc = JuliVirBootstrap.FourPointBlocksSphere.block_chiral_schan(x, 20, block, corr, left);
+    calc = BootstrapVirasoro.FourPointBlocksSphere.block_chiral_schan(x, 20, block, corr, left);
 end;
 #+end_src
 
@@ -2289,16 +2289,16 @@ where
 
 #+begin_src julia :results silent
 import Pkg; Pkg.activate(".")
-using JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+using BootstrapVirasoro, BenchmarkTools, EllipticFunctions
 
 left=1;
 right=2;
 
-import JuliVirBootstrap.FourPointBlocksSphere.qfromx
+import BootstrapVirasoro.FourPointBlocksSphere.qfromx
 c_torus = CentralCharge(:b, 1.2+.1*1im);
 c_sphere = CentralCharge(:b, (1.2+.1*1im)/sqrt(2))
 
-q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(0.05)
+q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(0.05)
 
 P = 0.23+.11im
 P1 = 0.41+1.03im
@@ -2320,8 +2320,8 @@ block_torus = OnePointBlockTorus(V_torus_chan)
 corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
 block_sphere = FourPointBlockSphere(:s, V_sphere_chan)
 
-h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
-h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
+h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, left)
+h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
 #+end_src
 
 #+begin_src julia :results output

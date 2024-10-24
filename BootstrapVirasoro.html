@@ -6,7 +6,7 @@
 <!-- 2024-06-19 Wed 13:57 -->
 <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>JuliVirBootstrap Documentation</title>
+<title>BootstrapVirasoro Documentation</title>
 <meta name="author" content="Paul ROUX" />
 <meta name="generator" content="Org Mode" />
 <link rel="stylesheet" type="text/css" href="src/readtheorg_theme/css/htmlize.css"/>
@@ -50,7 +50,7 @@
 </head>
 <body>
 <div id="content" class="content">
-<h1 class="title">JuliVirBootstrap Documentation</h1>
+<h1 class="title">BootstrapVirasoro Documentation</h1>
 <div id="table-of-contents" role="doc-toc">
 <h2>Table of Contents</h2>
 <div id="text-table-of-contents" role="doc-toc">
@@ -791,9 +791,9 @@ Our code successfully reproduces this relation:
 
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">import</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
-<span style="color: #8959a8;">using</span> JuliVirBootstrap, BenchmarkTools, EllipticFunctions
-<span style="color: #8959a8;">import</span> JuliVirBootstrap.FourPointBlocksSphere.qfromx
-q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
+<span style="color: #8959a8;">using</span> BootstrapVirasoro, BenchmarkTools, EllipticFunctions
+<span style="color: #8959a8;">import</span> BootstrapVirasoro.FourPointBlocksSphere.qfromx
+q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
 
 left=<span style="color: #f5871f; font-weight: bold;">1</span>;
 right=<span style="color: #f5871f; font-weight: bold;">2</span>;
@@ -821,8 +821,8 @@ block_torus = OnePointBlockTorus(V_torus_chan)
 corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
 block_sphere = FourPointBlockSphere(<span style="color: #f5871f;">:s</span>, V_sphere_chan)
 
-h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
-h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
+h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
+h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
 </pre>
 </div>
 
@@ -853,7 +853,7 @@ sphere block = 1.000005991527301 - 1.1912765042311957e-5im
 <h3 id="org41dd4d3"><span class="section-number-3">3.1.</span> Main module</h3>
 <div class="outline-text-3" id="text-3-1">
 <p>
-The module <code>JuliVirBootstrap</code> is the main module of this package, and it includes the sub-modules.
+The module <code>BootstrapVirasoro</code> is the main module of this package, and it includes the sub-modules.
 </p>
 
 <ul class="org-ul">
@@ -870,7 +870,7 @@ The module <code>JuliVirBootstrap</code> is the main module of this package, and
 
 <span style="color: #07c365;">===========================================================================================#</span>
 
-<span style="color: #8959a8;">module</span> JuliVirBootstrap
+<span style="color: #8959a8;">module</span> BootstrapVirasoro
 
 <span style="color: #8959a8;">using</span> Latexify <span style="color: #07c365;"># </span><span style="color: #07c365;">print outputs in latex format</span>
 
@@ -1876,7 +1876,7 @@ The module <code>FourPointBlocksSphere</code> exports
 <span style="color: #8959a8;">using</span> ..CFTData, ..FourPointCorrelationFunctions
 <span style="color: #8959a8;">using</span> Match, EllipticFunctions, Memoization
 <span style="color: #8959a8;">import</span> ..FourPointCorrelationFunctions: Rmn
-<span style="color: #8959a8;">import</span> ..JuliVirBootstrap.SpecialFunctions: digamma_reg
+<span style="color: #8959a8;">import</span> ..BootstrapVirasoro.SpecialFunctions: digamma_reg
 
 <span style="color: #07c365;"># </span><span style="color: #07c365;">explicit names for the indices of left and right dimensions</span>
 <span style="color: #8959a8;">const</span> <span style="color: #c82829;">left</span> = <span style="color: #f5871f; font-weight: bold;">1</span>
@@ -2284,7 +2284,7 @@ Setting-up bootstrap equations requires evaluating conformal blocks at hundreds 
 
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">using</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
-<span style="color: #8959a8;">using</span> JuliVirBootstrap
+<span style="color: #8959a8;">using</span> BootstrapVirasoro
 
 help(Field)
 </pre>
@@ -2306,7 +2306,7 @@ help(Field)
 <h3 id="org47c7214"><span class="section-number-3">3.8.</span> Unit testing</h3>
 <div class="outline-text-3" id="text-3-8">
 <div class="org-src-container">
-<pre class="src src-julia"><span style="color: #8959a8;">using</span> JuliVirBootstrap
+<pre class="src src-julia"><span style="color: #8959a8;">using</span> BootstrapVirasoro
 <span style="color: #8959a8;">using</span> Test
 </pre>
 </div>
@@ -2362,11 +2362,11 @@ help(Field)
     V4 = Field(c, <span style="color: #f5871f;">:&#916;</span>, <span style="color: #f5871f; font-weight: bold;">1.3</span>, diagonal=<span style="color: #f5871f;">true</span>)
     corr = FourPointCorrelation(c, V1, V2, V3, V4)
 
-    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.Rmn(<span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, corr, left),
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(BootstrapVirasoro.FourPointCorrelationFunctions.Rmn(<span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>, corr, left),
                    <span style="color: #f5871f; font-weight: bold;">0.31097697185245077</span><span style="color: #bb9200;">-</span><span style="color: #f5871f; font-weight: bold;">0.70523695127635733</span>im, <span style="color: #07c365;"># </span><span style="color: #07c365;">value taken from Sylvain's code</span>
                    atol=<span style="color: #f5871f; font-weight: bold;">1e-8</span>)
 
-    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(<span style="color: #f5871f; font-weight: bold;">7</span>, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">3</span>, corr, left),
+    <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(BootstrapVirasoro.FourPointCorrelationFunctions.computeCNmn(<span style="color: #f5871f; font-weight: bold;">7</span>, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">3</span>, corr, left),
                    <span style="color: #f5871f; font-weight: bold;">0.0019498393368877166</span><span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">0.0026353877950837049</span>im, <span style="color: #07c365;"># </span><span style="color: #07c365;">value taken from Sylvain's code</span>
                    atol=<span style="color: #f5871f; font-weight: bold;">1e-8</span>)
 
@@ -2389,7 +2389,7 @@ help(Field)
     left=<span style="color: #f5871f; font-weight: bold;">1</span>;
     right=<span style="color: #f5871f; font-weight: bold;">2</span>;
 
-    <span style="color: #8959a8;">import</span> JuliVirBootstrap.FourPointBlocksSphere.qfromx
+    <span style="color: #8959a8;">import</span> BootstrapVirasoro.FourPointBlocksSphere.qfromx
 
 </pre>
 </div>
@@ -2400,7 +2400,7 @@ help(Field)
 <div class="org-src-container">
 <pre class="src src-julia">c = CentralCharge(<span style="color: #f5871f;">:b</span>, (<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im)<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>))
 
-q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
+q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
 
 P = <span style="color: #f5871f; font-weight: bold;">0.23</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">11</span>im
 P1 = <span style="color: #f5871f; font-weight: bold;">0.41</span><span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1.03</span>im
@@ -2412,7 +2412,7 @@ VKac = Field(c, Kac=<span style="color: #f5871f;">true</span>, r=<span style="co
 corr = FourPointCorrelation(c, [VKac, V_ext, VKac,VKac])
 block = FourPointBlockSphere(corr, <span style="color: #f5871f;">:s</span>, V_chan)
 
-h = evalpoly(<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q, JuliVirBootstrap.FourPointBlocksSphere.H_series(block, left))
+h = evalpoly(<span style="color: #f5871f; font-weight: bold;">16</span><span style="color: #bb9200;">*</span>q, BootstrapVirasoro.FourPointBlocksSphere.H_series(block, left))
 
 <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(h, <span style="color: #f5871f; font-weight: bold;">0.9999955375834808</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">2.735498726466085e-6</span>im, atol=<span style="color: #f5871f; font-weight: bold;">1e-8</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">value from Sylvain's code</span>
 </pre>
@@ -2509,8 +2509,8 @@ V&#916; = Field(c, <span style="color: #f5871f;">:&#916;</span>, <span style="co
 corr = FourPointCorrelation(c, [V1, V2, V3, V4])
 corr&#916; = FourPointCorrelation(c, [V1, V2, V3, V&#916;])
 
-ell = JuliVirBootstrap.FourPointBlocksSphere.ell(corr, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>)
-ell&#916; = JuliVirBootstrap.FourPointBlocksSphere.ell(corr&#916;, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>)
+ell = BootstrapVirasoro.FourPointBlocksSphere.ell(corr, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>)
+ell&#916; = BootstrapVirasoro.FourPointBlocksSphere.ell(corr&#916;, <span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">1</span>)
 
 <span style="color: #07c365;"># </span><span style="color: #07c365;">When all fields are degenerate</span>
 <span style="color: #4d4d4c; font-weight: bold;">@test</span>  isapprox(ell, <span style="color: #f5871f; font-weight: bold;">8.2808044631395529307</span> <span style="color: #bb9200;">-</span> <span style="color: #f5871f; font-weight: bold;">9.7096599503345083802</span>im, rtol = <span style="color: #f5871f; font-weight: bold;">1e-8</span>) <span style="color: #07c365;"># </span><span style="color: #07c365;">comparing with Sylvain's code</span>
@@ -2554,11 +2554,11 @@ corr = FourPointCorrelation(c, [V1, V2, V3, V4])
     left=<span style="color: #f5871f; font-weight: bold;">1</span>;
     right=<span style="color: #f5871f; font-weight: bold;">2</span>;
 
-    <span style="color: #8959a8;">import</span> JuliVirBootstrap.FourPointBlocksSphere.qfromx
+    <span style="color: #8959a8;">import</span> BootstrapVirasoro.FourPointBlocksSphere.qfromx
     c_torus = CentralCharge(<span style="color: #f5871f;">:b</span>, <span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im);
     c_sphere = CentralCharge(<span style="color: #f5871f;">:b</span>, (<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im)<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>))
 
-    q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
+    q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
 
     P = <span style="color: #f5871f; font-weight: bold;">0.23</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">11</span>im
     P1 = <span style="color: #f5871f; font-weight: bold;">0.41</span><span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1.03</span>im
@@ -2580,8 +2580,8 @@ corr = FourPointCorrelation(c, [V1, V2, V3, V4])
     corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
     block_sphere = FourPointBlockSphere(<span style="color: #f5871f;">:s</span>, V_sphere_chan)
 
-    h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
-    h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
+    h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
+    h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
 
     <span style="color: #4d4d4c; font-weight: bold;">@test</span> isapprox(h1, h2, atol=<span style="color: #f5871f; font-weight: bold;">1e-12</span>)
 <span style="color: #8959a8;">end</span>
@@ -2597,12 +2597,12 @@ corr = FourPointCorrelation(c, [V1, V2, V3, V4])
 <div class="outline-text-3" id="text-3-9">
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">import</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
-<span style="color: #8959a8;">using</span> JuliVirBootstrap
+<span style="color: #8959a8;">using</span> BootstrapVirasoro
 </pre>
 </div>
 
 <div class="org-src-container">
-<pre class="src src-julia"><span style="color: #8959a8;">using</span> JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+<pre class="src src-julia"><span style="color: #8959a8;">using</span> BootstrapVirasoro, BenchmarkTools, EllipticFunctions
 
 left=<span style="color: #f5871f; font-weight: bold;">1</span>;
 right=<span style="color: #f5871f; font-weight: bold;">2</span>;
@@ -2618,7 +2618,7 @@ x = BigFloat(<span style="color: #718c00;">"0.05"</span>, RoundUp);
 <span style="color: #8959a8;">function</span> <span style="color: #4271ae;">test</span>()
     corr = FourPointCorrelation(c, V1, V2, V3, V4)
     block = FourPointBlockSphere(<span style="color: #f5871f;">:s</span>, V)
-    calc = JuliVirBootstrap.FourPointBlocksSphere.block_chiral_schan(x, <span style="color: #f5871f; font-weight: bold;">20</span>, block, corr, left);
+    calc = BootstrapVirasoro.FourPointBlocksSphere.block_chiral_schan(x, <span style="color: #f5871f; font-weight: bold;">20</span>, block, corr, left);
 <span style="color: #8959a8;">end</span>;
 </pre>
 </div>
@@ -2656,16 +2656,16 @@ where
 
 <div class="org-src-container">
 <pre class="src src-julia"><span style="color: #8959a8;">import</span> Pkg; Pkg.activate(<span style="color: #718c00;">"."</span>)
-<span style="color: #8959a8;">using</span> JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+<span style="color: #8959a8;">using</span> BootstrapVirasoro, BenchmarkTools, EllipticFunctions
 
 left=<span style="color: #f5871f; font-weight: bold;">1</span>;
 right=<span style="color: #f5871f; font-weight: bold;">2</span>;
 
-<span style="color: #8959a8;">import</span> JuliVirBootstrap.FourPointBlocksSphere.qfromx
+<span style="color: #8959a8;">import</span> BootstrapVirasoro.FourPointBlocksSphere.qfromx
 c_torus = CentralCharge(<span style="color: #f5871f;">:b</span>, <span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im);
 c_sphere = CentralCharge(<span style="color: #f5871f;">:b</span>, (<span style="color: #f5871f; font-weight: bold;">1.2</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">1</span><span style="color: #bb9200;">*</span><span style="color: #f5871f; font-weight: bold;">1</span>im)<span style="color: #bb9200;">/</span>sqrt(<span style="color: #f5871f; font-weight: bold;">2</span>))
 
-q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
+q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(<span style="color: #f5871f; font-weight: bold;">0.05</span>)
 
 P = <span style="color: #f5871f; font-weight: bold;">0.23</span><span style="color: #bb9200;">+</span>.<span style="color: #f5871f; font-weight: bold;">11</span>im
 P1 = <span style="color: #f5871f; font-weight: bold;">0.41</span><span style="color: #bb9200;">+</span><span style="color: #f5871f; font-weight: bold;">1.03</span>im
@@ -2687,8 +2687,8 @@ block_torus = OnePointBlockTorus(V_torus_chan)
 corr_sphere = FourPointCorrelation(c_sphere, [VKac_sphere, V_sphere_ext, VKac_sphere,VKac_sphere])
 block_sphere = FourPointBlockSphere(<span style="color: #f5871f;">:s</span>, V_sphere_chan)
 
-h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
-h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
+h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q<span style="color: #bb9200;">^</span><span style="color: #f5871f; font-weight: bold;">2</span>, <span style="color: #f5871f; font-weight: bold;">5</span>, block_torus, corr_torus, left)
+h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, <span style="color: #f5871f; font-weight: bold;">5</span>, block_sphere, corr_sphere, left)
 </pre>
 </div>
 

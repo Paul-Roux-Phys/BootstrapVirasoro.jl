@@ -1,5 +1,5 @@
 @testset "Zamolodchikov series" begin
-    import JuliVirBootstrap: qfromx, evaluate_series
+    import BootstrapVirasoro: qfromx, evaluate_series
 
     c = CentralCharge(:b, (1.2 + 0.1 * 1im) / sqrt(2))
     x = 0.05
@@ -122,7 +122,7 @@ end
 
 
     @testset "Logarithmic prefactor ell" begin
-        import JuliVirBootstrap: ell
+        import BootstrapVirasoro: ell
 
         l = ell(co.fields, :s, 2, 1)
         lΔ = ell(coΔ.fields, :s, 2, 1)

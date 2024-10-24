@@ -31,8 +31,8 @@ pages:
         Pkg.develop(PackageSpec(path=pwd()))
         Pkg.instantiate()
         using Documenter: doctest
-        using JuliVirBootstrap
-        doctest(JuliVirBootstrap)
+        using BootstrapVirasoro
+        doctest(BootstrapVirasoro)
         include("docs/make.jl")'
     - mkdir -p public
     - mv docs/build public/dev

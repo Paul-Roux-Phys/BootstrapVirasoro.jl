@@ -70,8 +70,23 @@ function ConformalDimension(
         P = (r*c.β-s/c.β)/2
     else
         P = Pto(:P, Pfrom(sym, P, c), c)
+        r = 0
     end
     ConformalDimension{T}(c, P, Kac, r, s)
+end
+
+function get_indices(d::ConformalDimension)
+    if d.isKac
+        r = getfield(d, :r)
+        s = getfield(d, :s)
+        if r % 1 == s % 1 == 0
+            return Int.((r, s))
+        else
+            return r, s
+        end
+    else
+        return 0, 2 * d.c.β * d.P
+    end
 end
 
 function Base.getproperty(d::ConformalDimension, s::Symbol)
@@ -79,25 +94,17 @@ function Base.getproperty(d::ConformalDimension, s::Symbol)
     P = Pto(:P, Pfrom(:P, getfield(d, :P), c), c)
     P = realify(P)
     s in dimension_parameter_list && return Pto(s, P, c)
-    s === :indices && return (
-        if d.isKac
-            if d.r%1==d.s%1==0
-                Int.((d.r, d.s))
-            else
-                d.r, d.s
-            end
-        else
-            return 0, 2*d.c.β*d.P
-        end
-    )
+    s === :indices && return get_indices(d)
+    s === :r && return get_indices(d)[1]
+    s === :s && return get_indices(d)[2]
     return getfield(d, s)
 end
 
 function Base.show(io::IO, d::ConformalDimension{T}) where {T}
     if d.isKac
-        print(io, "ConformalDimension{$T} with Kac indices r = $(d.r), s=$(d.s)")
+        print(io, "ConformalDimension{$T} with Kac indices r = $(d.r), s = $(d.s)")
     else
-        print(io, "ConformalDimension{$T}\nΔ = $(d.Δ), P = $(d.P)")
+        print(io, "ConformalDimension{$T} with\nΔ = $(d.Δ), P = $(d.P)")
     end
 end
 

@@ -1,10 +1,10 @@
-using JuliVirBootstrap
+using BootstrapVirasoro
 using Test
 
-@testset "JuliVirBootstrap Tests" begin
+@testset "BootstrapVirasoro Tests" begin
 
     @testset "CFTData.jl" begin
-        include("cft_data_tests.jl")
+        include("cft_data/cft_data_tests.jl")
     end
 
     @testset "Conformal blocks" begin

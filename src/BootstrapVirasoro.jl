@@ -5,14 +5,14 @@ Nivesvivat
 
 ===========================================================================================#
 
-module JuliVirBootstrap
+module BootstrapVirasoro
 
-using Latexify, # print outputs in latex format
-    Base.Threads
+using Base.Threads
+# using Latexify
 
 # The exported methods and types are found in the following included files.
 # These files also document the exported methods
-include("JuliVirBootstrap/CFTData.jl")
-include("JuliVirBootstrap/ConformalBlocks.jl")
+include("BootstrapVirasoro/CFTData.jl")
+include("BootstrapVirasoro/ConformalBlocks.jl")
 
 end

@@ -1,4 +1,4 @@
-using Documenter, JuliVirBootstrap
+using Documenter, BootstrapVirasoro
 
-makedocs(sitename="JuliVirBootstrap documentation",
+makedocs(sitename="BootstrapVirasoro documentation",
          remotes=nothing)

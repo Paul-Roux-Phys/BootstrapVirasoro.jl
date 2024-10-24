@@ -44,10 +44,10 @@
   <internal package="biblatex" priority="9" active="0">
     <generic>latex</generic>
     <provides type="dynamic">
-      <file>JuliVirBootstrap.bcf</file>
+      <file>BootstrapVirasoro.bcf</file>
     </provides>
     <requires type="dynamic">
-      <file>JuliVirBootstrap.bbl</file>
+      <file>BootstrapVirasoro.bbl</file>
     </requires>
     <requires type="static">
       <file>blx-dm.def</file>
@@ -64,19 +64,19 @@
     <generic>biber</generic>
     <cmdline>
       <binary>biber</binary>
-      <infile>JuliVirBootstrap</infile>
+      <infile>BootstrapVirasoro</infile>
     </cmdline>
     <input>
-      <file>JuliVirBootstrap.bcf</file>
+      <file>BootstrapVirasoro.bcf</file>
     </input>
     <output>
-      <file>JuliVirBootstrap.bbl</file>
+      <file>BootstrapVirasoro.bbl</file>
     </output>
     <provides type="dynamic">
-      <file>JuliVirBootstrap.bbl</file>
+      <file>BootstrapVirasoro.bbl</file>
     </provides>
     <requires type="dynamic">
-      <file>JuliVirBootstrap.bcf</file>
+      <file>BootstrapVirasoro.bcf</file>
     </requires>
   </external>
 </requests>

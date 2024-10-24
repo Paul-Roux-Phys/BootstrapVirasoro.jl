@@ -13,10 +13,10 @@
 \setcounter{secnumdepth}{2}
 \author{Paul ROUX}
 \date{\today}
-\title{JuliVirBootstrap Documentation}
+\title{BootstrapVirasoro Documentation}
 \hypersetup{
  pdfauthor={Paul ROUX},
- pdftitle={JuliVirBootstrap Documentation},
+ pdftitle={BootstrapVirasoro Documentation},
  pdfkeywords={},
  pdfsubject={},
  pdfcreator={Emacs 29.1 (Org mode 9.7)}, 
@@ -609,9 +609,9 @@ Our code successfully reproduces this relation:
 \begin{Code}
 \begin{Verbatim}
 \color{EFD}\EFk{import} Pkg; Pkg.activate(\EFs{"."})
-\EFk{using} JuliVirBootstrap, BenchmarkTools, EllipticFunctions
-\EFk{import} JuliVirBootstrap.FourPointBlocksSphere.qfromx
-q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(\EFhn{0.05})
+\EFk{using} BootstrapVirasoro, BenchmarkTools, EllipticFunctions
+\EFk{import} BootstrapVirasoro.FourPointBlocksSphere.qfromx
+q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(\EFhn{0.05})
 
 left=\EFhn{1};
 right=\EFhn{2};
@@ -639,8 +639,8 @@ block\_torus = OnePointBlockTorus(V\_torus\_chan)
 corr\_sphere = FourPointCorrelation(c\_sphere, [VKac\_sphere, V\_sphere\_ext, VKac\_sphere,VKac\_sphere])
 block\_sphere = FourPointBlockSphere(\EFs{"s"}, V\_sphere\_chan)
 
-h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q\EFt{\char94{}}\EFhn{2}, \EFhn{5}, block\_torus, corr\_torus, left)
-h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
+h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q\EFt{\char94{}}\EFhn{2}, \EFhn{5}, block\_torus, corr\_torus, left)
+h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
 \end{Verbatim}
 \end{Code}
 
@@ -662,7 +662,7 @@ sphere block = 1.000005991527301 - 1.1912765042311957e-5im
 
 \subsection{Main module}
 \label{sec:orga85c686}
-The module \texttt{JuliVirBootstrap} is the main module of this package, and it includes the sub-modules.
+The module \texttt{BootstrapVirasoro} is the main module of this package, and it includes the sub-modules.
 
 \begin{itemize}
 \item \texttt{CFTData} provides types for central charges and fields.
@@ -679,7 +679,7 @@ The module \texttt{JuliVirBootstrap} is the main module of this package, and it 
 
 \EFc{===========================================================================================\#}
 
-\EFk{module} JuliVirBootstrap
+\EFk{module} BootstrapVirasoro
 
 \EFcd{\#}\EFc{===========================================================================================}
 \EFc{Special functions}
@@ -1624,7 +1624,7 @@ The module \texttt{FourPointBlocksSphere} exports
 \EFk{using} ..CFTData, ..FourPointCorrelationFunctions
 \EFk{using} Match, EllipticFunctions, Memoization
 \EFk{import} ..FourPointCorrelationFunctions: permute\_ext\_fields, Rmn
-\EFk{import} ..JuliVirBootstrap.SpecialFunctions: digamma\_reg
+\EFk{import} ..BootstrapVirasoro.SpecialFunctions: digamma\_reg
 \end{Verbatim}
 \end{Code}
 \subsubsection*{Four-point block sphere type}
@@ -2080,7 +2080,7 @@ Setting-up bootstrap equations requires evaluating conformal blocks at hundreds 
 \begin{Code}
 \begin{Verbatim}
 \color{EFD}\EFk{using} Pkg; Pkg.activate(\EFs{"."})
-\EFk{using} JuliVirBootstrap
+\EFk{using} BootstrapVirasoro
 
 help(Field)
 \end{Verbatim}
@@ -2100,7 +2100,7 @@ help(Field)
 \label{sec:org0231e24}
 \begin{Code}
 \begin{Verbatim}
-\color{EFD}\EFk{using} JuliVirBootstrap
+\color{EFD}\EFk{using} BootstrapVirasoro
 \EFk{using} Test
 \end{Verbatim}
 \end{Code}
@@ -2155,15 +2155,15 @@ help(Field)
     V4 = Field(c, \EFs{"Δ"}, \EFhn{1.3}, diagonal=\EFo{true})
     corr = FourPointCorrelation(c, V1, V2, V3, V4)
 
-    \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.Rmn(\EFhn{2}, \EFhn{1}, corr, \EFs{"s"}, left),
+    \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(BootstrapVirasoro.FourPointCorrelationFunctions.Rmn(\EFhn{2}, \EFhn{1}, corr, \EFs{"s"}, left),
                    \EFhn{0.31097697185245077}\EFt{-}\EFhn{0.70523695127635733}im, \EFcd{\#} \EFc{value taken from Sylvain's code}
                    atol=\EFhn{1e-8})
 
-    \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.Rmn(\EFhn{3}, \EFhn{3}, corr, \EFs{"t"}, left),
+    \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(BootstrapVirasoro.FourPointCorrelationFunctions.Rmn(\EFhn{3}, \EFhn{3}, corr, \EFs{"t"}, left),
                    \EFhn{4.3964194233662846e-5}\EFt{-}\EFhn{1.1534661157146291e-5}im, \EFcd{\#} \EFc{value taken from Sylvain's code}
                    atol=\EFhn{1e-8})
 
-    \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(JuliVirBootstrap.FourPointCorrelationFunctions.computeCNmn(\EFhn{7}, \EFhn{2}, \EFhn{3}, corr, \EFs{"s"}, left),
+    \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(BootstrapVirasoro.FourPointCorrelationFunctions.computeCNmn(\EFhn{7}, \EFhn{2}, \EFhn{3}, corr, \EFs{"s"}, left),
                    \EFhn{0.0019498393368877166}\EFt{+}\EFhn{0.0026353877950837049}im, \EFcd{\#} \EFc{value taken from Sylvain's code}
                    atol=\EFhn{1e-8})
 
@@ -2185,7 +2185,7 @@ help(Field)
     left=\EFhn{1};
     right=\EFhn{2};
 
-    \EFk{import} JuliVirBootstrap.FourPointBlocksSphere.qfromx
+    \EFk{import} BootstrapVirasoro.FourPointBlocksSphere.qfromx
 
 \end{Verbatim}
 \end{Code}
@@ -2196,7 +2196,7 @@ help(Field)
 \begin{Verbatim}
 \color{EFD}    c\_sphere = CentralCharge(\EFs{"b"}, (\EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im)\EFt{/}sqrt(\EFhn{2}))
 
-    q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(\EFhn{0.05})
+    q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(\EFhn{0.05})
 
     P = \EFhn{0.23}\EFt{+}.\EFhn{11}im
     P1 = \EFhn{0.41}\EFt{+}\EFhn{1.03}im
@@ -2208,7 +2208,7 @@ help(Field)
     corr\_sphere = FourPointCorrelation(c\_sphere, [VKac\_sphere, V\_sphere\_ext, VKac\_sphere,VKac\_sphere])
     block\_sphere = FourPointBlockSphere(\EFs{"s"}, V\_sphere\_chan)
 
-    h = JuliVirBootstrap.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
+    h = BootstrapVirasoro.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
 
     \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(h, \EFhn{0.9999955375834808} \EFt{-} \EFhn{2.735498726466085e-6}im, atol=\EFhn{1e-8}) \EFcd{\#} \EFc{value from Sylvain's code}
 
@@ -2308,8 +2308,8 @@ help(Field)
     corr = FourPointCorrelation(c, [V1, V2, V3, V4])
     corrΔ = FourPointCorrelation(c, [V1, V2, V3, VΔ])
 
-    ell = JuliVirBootstrap.FourPointBlocksSphere.ell(corr, \EFhn{2}, \EFhn{1})
-    ellΔ = JuliVirBootstrap.FourPointBlocksSphere.ell(corrΔ, \EFhn{2}, \EFhn{1})
+    ell = BootstrapVirasoro.FourPointBlocksSphere.ell(corr, \EFhn{2}, \EFhn{1})
+    ellΔ = BootstrapVirasoro.FourPointBlocksSphere.ell(corrΔ, \EFhn{2}, \EFhn{1})
 
     \EFcd{\#} \EFc{When all fields are degenerate}
     \textcolor[HTML]{483d8b}{\textbf{@test}}  isapprox(ell, \EFhn{8.2808044631395529307} \EFt{-} \EFhn{9.7096599503345083802}im, rtol = \EFhn{1e-8}) \EFcd{\#} \EFc{comparing with Sylvain's code}
@@ -2352,11 +2352,11 @@ help(Field)
     left=\EFhn{1};
     right=\EFhn{2};
 
-    \EFk{import} JuliVirBootstrap.FourPointBlocksSphere.qfromx
+    \EFk{import} BootstrapVirasoro.FourPointBlocksSphere.qfromx
     c\_torus = CentralCharge(\EFs{"b"}, \EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im);
     c\_sphere = CentralCharge(\EFs{"b"}, (\EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im)\EFt{/}sqrt(\EFhn{2}))
 
-    q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(\EFhn{0.05})
+    q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(\EFhn{0.05})
 
     P = \EFhn{0.23}\EFt{+}.\EFhn{11}im
     P1 = \EFhn{0.41}\EFt{+}\EFhn{1.03}im
@@ -2378,8 +2378,8 @@ help(Field)
     corr\_sphere = FourPointCorrelation(c\_sphere, [VKac\_sphere, V\_sphere\_ext, VKac\_sphere,VKac\_sphere])
     block\_sphere = FourPointBlockSphere(\EFs{"s"}, V\_sphere\_chan)
 
-    h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q\EFt{\char94{}}\EFhn{2}, \EFhn{5}, block\_torus, corr\_torus, left)
-    h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
+    h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q\EFt{\char94{}}\EFhn{2}, \EFhn{5}, block\_torus, corr\_torus, left)
+    h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
 
     \textcolor[HTML]{483d8b}{\textbf{@test}} isapprox(h1, h2, atol=\EFhn{1e-12})
 \EFk{end}
@@ -2391,13 +2391,13 @@ help(Field)
 \begin{Code}
 \begin{Verbatim}
 \color{EFD}\EFk{import} Pkg; Pkg.activate(\EFs{"."})
-\EFk{using} JuliVirBootstrap
+\EFk{using} BootstrapVirasoro
 \end{Verbatim}
 \end{Code}
 
 \begin{Code}
 \begin{Verbatim}
-\color{EFD}\EFk{using} JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+\color{EFD}\EFk{using} BootstrapVirasoro, BenchmarkTools, EllipticFunctions
 
 left=\EFhn{1};
 right=\EFhn{2};
@@ -2413,7 +2413,7 @@ x = BigFloat(\EFs{"0.05"}, RoundUp);
 \EFk{function} \EFf{test}()
     corr = FourPointCorrelation(c, V1, V2, V3, V4)
     block = FourPointBlockSphere(\EFs{"s"}, V)
-    calc = JuliVirBootstrap.FourPointBlocksSphere.block\_chiral\_schan(x, \EFhn{20}, block, corr, left);
+    calc = BootstrapVirasoro.FourPointBlocksSphere.block\_chiral\_schan(x, \EFhn{20}, block, corr, left);
 \EFk{end};
 \end{Verbatim}
 \end{Code}
@@ -2446,16 +2446,16 @@ where
 \begin{Code}
 \begin{Verbatim}
 \color{EFD}\EFk{import} Pkg; Pkg.activate(\EFs{"."})
-\EFk{using} JuliVirBootstrap, BenchmarkTools, EllipticFunctions
+\EFk{using} BootstrapVirasoro, BenchmarkTools, EllipticFunctions
 
 left=\EFhn{1};
 right=\EFhn{2};
 
-\EFk{import} JuliVirBootstrap.FourPointBlocksSphere.qfromx
+\EFk{import} BootstrapVirasoro.FourPointBlocksSphere.qfromx
 c\_torus = CentralCharge(\EFs{"b"}, \EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im);
 c\_sphere = CentralCharge(\EFs{"b"}, (\EFhn{1.2}\EFt{+}.\EFhn{1}\EFt{*}\EFhn{1}im)\EFt{/}sqrt(\EFhn{2}))
 
-q = JuliVirBootstrap.FourPointBlocksSphere.qfromx(\EFhn{0.05})
+q = BootstrapVirasoro.FourPointBlocksSphere.qfromx(\EFhn{0.05})
 
 P = \EFhn{0.23}\EFt{+}.\EFhn{11}im
 P1 = \EFhn{0.41}\EFt{+}\EFhn{1.03}im
@@ -2477,8 +2477,8 @@ block\_torus = OnePointBlockTorus(V\_torus\_chan)
 corr\_sphere = FourPointCorrelation(c\_sphere, [VKac\_sphere, V\_sphere\_ext, VKac\_sphere,VKac\_sphere])
 block\_sphere = FourPointBlockSphere(\EFs{"s"}, V\_sphere\_chan)
 
-h1 = JuliVirBootstrap.OnePointBlocksTorus.H(q\EFt{\char94{}}\EFhn{2}, \EFhn{5}, block\_torus, corr\_torus, left)
-h2 = JuliVirBootstrap.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
+h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q\EFt{\char94{}}\EFhn{2}, \EFhn{5}, block\_torus, corr\_torus, left)
+h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, \EFhn{5}, block\_sphere, corr\_sphere, left)
 \end{Verbatim}
 \end{Code}
 
