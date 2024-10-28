@@ -14,7 +14,7 @@ function ell(V::FourFields, chan, r, s)
             digamma_reg(-2*βm1P(B, r, j)) + digamma_reg(2*βm1P(B, r, -j))
             for j in 1-s:s
         ) - sum(
-            digamma_reg(1/2 + (lr == :left ? -1 : 1)*βm1P(B, r, j) +
+            digamma_reg(1//2 + (lr == :left ? -1 : 1)*βm1P(B, r, j) +
                                                   pm1*βm1P_ext[lr][a] + pm2*βm1P_ext[lr][b])
             for pm1 in (-1,1)
             for pm2 in (-1,1)

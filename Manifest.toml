@@ -2,7 +2,7 @@
 
 julia_version = "1.11.1"
 manifest_format = "2.0"
-project_hash = "06db79d9a0111793d2476c0415418df6f4e8f262"
+project_hash = "e9b95bedd43627784c20fd913c7d909a733137dd"
 
 [[deps.ANSIColoredPrinters]]
 git-tree-sha1 = "574baf8110975760d391c710b6341da1afa48d8c"
@@ -36,9 +36,9 @@ version = "1.11.0"
 
 [[deps.BarnesDoubleGamma]]
 deps = ["ArbNumerics", "Memoization", "QuadGK", "SpecialFunctions"]
-git-tree-sha1 = "cc188835d6d6170fcde6431b68c99bfdd34a4eab"
+git-tree-sha1 = "2c9c6f750af9e023ceb76fa6f42d3d835c505b6d"
 uuid = "8c4ec0a7-3a81-41b6-9d5f-01f75984e8d3"
-version = "1.0.1"
+version = "1.0.2"
 
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -122,9 +122,9 @@ version = "6.3.0+0"
 
 [[deps.GenericLinearAlgebra]]
 deps = ["LinearAlgebra", "Printf", "Random", "libblastrampoline_jll"]
-git-tree-sha1 = "f47136cac29a9b7a8a88dbce1195394978091edb"
+git-tree-sha1 = "c4f9c87b74aedf20920034bd4db81d0bffc527d2"
 uuid = "14197337-ba66-59df-a3e3-ca00e7dcff7a"
-version = "0.3.13"
+version = "0.3.14"
 
 [[deps.Git]]
 deps = ["Git_jll"]
@@ -202,9 +202,9 @@ version = "1.11.0"
 
 [[deps.Libiconv_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl"]
-git-tree-sha1 = "f9557a255370125b405568f9767d6d195822a175"
+git-tree-sha1 = "61dfdba58e585066d8bce214c5a51eaa0539f269"
 uuid = "94ce4f54-9a6c-5748-9c1c-f9c7231a4531"
-version = "1.17.0+0"
+version = "1.17.0+1"
 
 [[deps.LinearAlgebra]]
 deps = ["Libdl", "OpenBLAS_jll", "libblastrampoline_jll"]
