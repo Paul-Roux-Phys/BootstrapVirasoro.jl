@@ -11,11 +11,11 @@ Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
-ArbNumerics = "1.5.2"
+ArbNumerics = "1"
 BarnesDoubleGamma = "1"
-EllipticFunctions = "2.0.1"
-Memoization = "0.2.1"
-SpecialFunctions = "2.4.0"
+EllipticFunctions = "2"
+Memoization = "0"
+SpecialFunctions = "2"
 julia = "1"
 
 [extras]
