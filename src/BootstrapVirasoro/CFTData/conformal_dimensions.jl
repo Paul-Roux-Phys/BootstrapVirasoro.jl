@@ -53,6 +53,7 @@ struct ConformalDimension{T}
 
 end
 
+Prs(r, s, β) = 1/2 * (β*r - s/β)
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
 """

@@ -175,4 +175,14 @@ end
             rtol = 1e-20
         )
     end
+
+    @testset "Accidentally non-log as limits of generic log blocks" begin
+        V1 = Field(c, Kac=true, r=0, s=1)
+        V2 = Field(c, Kac=true, r=0, s=1//2)
+        V3 = Field(c, Kac=true, r=0, s=1)
+        V4 = Field(c, Kac=true, r=0, s=1//2)
+        VΔ = Field(c, :Δ, big"0.5", diagonal=true)
+
+        co = Correlation(V1, V2, V3, V4, Nmax)
+    end
 end

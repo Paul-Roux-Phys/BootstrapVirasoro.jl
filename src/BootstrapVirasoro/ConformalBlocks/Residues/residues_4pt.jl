@@ -3,6 +3,28 @@
 # for use in the Zamolodchikov recursion.
 =#
 
+function Rmn_term_vanishes(r, s, i, j, V::FourFields)
+    !(V[j].isKac && V[j].isKac) && return false
+
+    rs=[V[i].r for i in 1:4]
+    ss=[V[i].s for i in 1:4]
+
+
+    #= The term r, s in Rmn is zero if r1 \pm r2 + r or r3 \pm r4 + r is 0, and
+    s1 \pm s2 + s or s3 \pm s4 + s is 0.
+    =#
+    for pm in (-1, 1)
+        if (V[i].isKac && V[j].isKac
+            && (rs[i] + pm * rs[j] + r == 0)
+            && (ss[i] + pm * ss[j] + s == 0))
+            
+            return true
+        end
+    end
+
+    return false
+end
+
 
 function Rmn_zero_order(m, n, V::FourFields)
     order = 0
@@ -32,47 +54,39 @@ function Rmn_zero_order(m, n, V::FourFields)
     return order
 end
 
-function Rmn_term(r, s, V::FourFields, lr)
+function Rmn_term_nonzero(r, s, i, j, V, lr)
     B = V[1].c.B
     δ = [V[i].δ[lr] for i in 1:4]
-    if r != 0 || s != 0
-        return (((δ[2]-δ[1])^2 - 2*δrs(r, s, B)*(δ[1]+δ[2]) + δrs(r, s, B)^2)
-                *((δ[3]-δ[4])^2 - 2*δrs(r, s, B)*(δ[3]+δ[4]) + δrs(r, s, B)^2))
-    else
-        return (δ[2]-δ[1])*(δ[3]-δ[4])
-    end
+    (r != 0 || s != 0) && return (δ[j] - δ[i])^2 - 2 *
+                                 δrs(r, s, B) * (δ[i] + δ[j]) + δrs(r, s, B)^2
+    return (δ[j] - δ[i]) * (-1)^(j/2)
 end
 
-function Rmn_term_reg(r, s, V::FourFields, lr)
-    c = V[1].c
-    if r != 0 || s != 0
-        return 8*V[1].P[lr]*V[2].P[lr]*Field(c, Kac=true, r=r, s=s)
-    else
-        return 2*V[2].P[lr]
-    end
+function Rmn_term_reg(r, s, i, j, V::FourFields, lr)
+    (r != 0 || s != 0) && return 8 * V[i].P[lr] * V[j].P[lr] * Prs(r, s, V[1].c.β)
+    return 2 * V[j].P[lr]
 end
+
+function Rmn_term(r, s, i, j, V::FourFields, lr)
+    Rmn_term_vanishes(r, s, i, j, V) && return Rmn_term_reg(r, s, i, j, V, lr)
+    return Rmn_term_nonzero(r, s, i, j, V, lr)
+end
+
+Rmn_term(r, s, V::FourFields, lr) = prod(
+    Rmn_term(r, s, i, j, V, lr) for (i, j) in ((1, 2), (3, 4))
+)
 
 function computeRmn(m, n, V::FourFields{T}, lr) where {T}
-    if Rmn_zero_order(m, n, V) == 0
-        if m == 1
-            res = prod(Rmn_term(0, s, V, lr) for s in 1-n:2:0)
-        else # m > 1
-            res = prod(prod(Rmn_term(r, s, V, lr)
-                            for s in 1-n:2:n-1) for r in 1-m:2:-1)
-            if m%2 == 1 # m odd -> treat r=0 term separately
-                res *= prod(Rmn_term(0, s, V, lr) for s in 1-n:2:0)
-            end
+    if m == 1
+        res = prod(Rmn_term(0, s, V, lr) for s in 1-n:2:0)
+    else # m > 1
+        res = prod(prod(Rmn_term(r, s, V, lr)
+                        for s in 1-n:2:n-1) for r in 1-m:2:-1)
+        if m % 2 == 1 # m odd -> treat r=0 term separately
+            res *= prod(Rmn_term(0, s, V, lr) for s in 1-n:2:0)
         end
-    else
-        # if m == 1
-            res = zero(T)
-        # end
     end
 
-    return res/(2*Dmn(m, n, V[1].c.B))
-end
-
-function computeRmnreg(m, n, V::FourFields{T}, lr) where {T}
-    
+    return res/(2*Dmn(m, n, V[1].c.B)) 
 end
 
