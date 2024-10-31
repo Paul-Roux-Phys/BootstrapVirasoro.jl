@@ -89,4 +89,3 @@ function computeRmn(m, n, V::FourFields{T}, lr) where {T}
 
     return res/(2*Dmn(m, n, V[1].c.B)) 
 end
-

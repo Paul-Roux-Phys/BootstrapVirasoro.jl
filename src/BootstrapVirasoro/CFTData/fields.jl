@@ -73,7 +73,7 @@ function Field(
           A non-diagonal field must be given from Kac indices.
           If you mean to define a diagonal field, use `diagonal=true`.
         """
-        @assert r*s % 1 == 0 "The product r*s of Kac indices must be an integer"
+        r*s % 1 != 0 && @warn "You defined a field with non-integer r*s, is that intentional?"
         dim_right = ConformalDimension(c, sym, dim_left, Kac=Kac, r=r, s=-s)
     end
 

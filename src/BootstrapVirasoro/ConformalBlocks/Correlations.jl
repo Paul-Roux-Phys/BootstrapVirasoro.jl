@@ -85,8 +85,6 @@ function Correlation(V::ExtFields{T}, Nmax::Int) where {T}
             for lr in (:left, :right)
         )
 
-        # Rmnreg[x] = LeftRight(RmnTable{T}() for lr in (:left, :right))
-
         Rmnreg[x] = Tuple(
             Dict(
                 (m, n) => computeRmn(m, n, Vx, lr)

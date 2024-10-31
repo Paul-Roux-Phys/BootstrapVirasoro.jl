@@ -66,9 +66,8 @@ function evaluate(b::BlockNonChiral, x)
         if isaccidentallynonlogarithmic(b)
             Rreg = b.corr._Rmn_reg[b.channel][:left][(r, s)]
             Rregbar = b.corr._Rmn_reg[b.channel][:right][(r, s)]
-            @warn "need to fix variables zeros, set to 0 for now"
-            zeros = 0
-            return Freg*Fbar + (-1)^zeros * Rreg/Rregbar * F*Fregbar
+            nbzeros = Rmn_zero_order(r, s, b.fields)
+            return Freg*Fbar + (-1)^nbzeros * Rreg/Rregbar * F*Fregbar
 
         elseif islogarithmic(b)
             Fder = evaluate(b_op, x, :left, der=true)
