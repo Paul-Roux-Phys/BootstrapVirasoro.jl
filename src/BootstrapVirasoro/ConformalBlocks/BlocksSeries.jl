@@ -1,42 +1,49 @@
 struct BlockChiral{T} <: Block{T}
 
-    corr::Correlation{T}
+    corr::CorrelationChiral{T}
     channel::Symbol
     channel_dimension::ConformalDimension{T}
     Nmax::Int
-    lr::Symbol # indicates whether the block is left- or right-moving
     _coefficients::Vector{T}
     _coefficients_der::Vector{T}
 
 end
 
 function BlockChiral(
-    corr::Correlation,
+    corr::CorrelationChiral,
     chan::Symbol,
     d::ConformalDimension{T},
-    lr,
     Nmax::Int;
     der=false
 ) where {T}
-    CNmn = corr._CNmn[chan][lr]
+    CNmn = corr._CNmn[chan]
     coeffs = series_H(d, Nmax, CNmn, false)
     coeffs_der = Vector{T}()
     if der
         coeffs_der = series_H(d, Nmax, CNmn, true)
     end
 
-    BlockChiral{T}(corr, chan, d, Nmax, lr, coeffs, coeffs_der)
+    BlockChiral{T}(corr, chan, d, Nmax, coeffs, coeffs_der)
 end
 
-BlockChiral(corr, chan, V::Field, lr, Nmax, der=false) = 
-    BlockChiral(corr, chan, V.dims[lr], lr, Nmax, der=der)
+BlockChiral(corr::CorrelationChiral, chan, d::ConformalDimension; der=false) = 
+    BlockChiral(corr, chan, d, lr, corr.Nmax, der=der)
 
-BlockChiral(corr, chan, V::Field, lr; der=false) = 
-    BlockChiral(corr, chan, V.dims[lr], lr, corr.Nmax, der=der)
+BlockChiral(corr::CorrelationChiral, chan, V::Field, lr, Nmax; der=false) = 
+    BlockChiral(corr, chan, V.dims[lr], Nmax, der=der)
+
+BlockChiral(corr::Correlation, chan, V::Field, lr, Nmax; der=false) = 
+    BlockChiral(corr[lr], chan, V.dims[lr], Nmax, der=der)
+
+BlockChiral(corr::Correlation, chan, d::ConformalDimension, lr, Nmax; der=false) = 
+    BlockChiral(corr[lr], chan, d, Nmax, der=der)
+
+BlockChiral(corr, chan, V_or_d, lr; der=false) = 
+    BlockChiral(corr, chan, V_or_d, lr, corr.Nmax, der=der)
 
 function Base.getproperty(b::BlockChiral, s::Symbol)
-    s in (:_Rmn, :_CNmn) && return getfield(b.corr, s)[b.channel][b.lr]
-    s in (:c, :fields) && return getproperty(b.corr, s)
+    s in (:_Rmn, :_CNmn) && return getfield(b.corr, s)[b.channel]
+    s in (:c, :dims) && return getproperty(b.corr, s)
     return getfield(b, s)
 end
 
@@ -85,7 +92,7 @@ function BlockNonChiral(
     Nmax::Int
 ) where {T}
     left, leftder, right, rightder = Tuple(
-        BlockChiral(c, chan, V.dims[lr], lr, Nmax, der=der)
+        BlockChiral(c, chan, V, lr, Nmax, der=der)
         for lr in (:left, :right)
         for der in (false, true)
     )
@@ -97,7 +104,13 @@ BlockNonChiral(c, chan, V) = BlockNonChiral(c, chan, V, c.Nmax)
 
 function Base.getproperty(b::BlockNonChiral, s::Symbol)
     s === :c && return getfield(b.channel_field.dims[:left], s)
-    s in (:fields, :corr, :channel) && return getproperty(b.chiral_blocks[:left], s)
+    s === :corr && begin
+        left_corr = getfield(b, :chiral_blocks)[:left].corr
+        right_corr = getfield(b, :chiral_blocks)[:right].corr
+        return Correlation(left_corr, right_corr)
+    end
+    s === :fields && return getproperty(b, :corr).fields
+    s === :channel && return getproperty(getfield(b, :chiral_blocks)[:left], s)
     return getfield(b, s)
 end
 

@@ -1,23 +1,24 @@
-series_argument(x, V::FourFields) = 16*qfromx(x)
-series_argument(x, V::OneField) = exp(im*oftype(x, π)*x)
-series_argument(x, b::Block) = series_argument(x, b.fields)
+series_argument(x, V::Union{FourFields, FourDimensions}) = 16*qfromx(x)
+series_argument(x, V::Union{OneField, OneDimension}) = exp(im*oftype(x, π)*x)
+series_argument(x, b::BlockChiral) = series_argument(x, b.corr.dims)
+series_argument(x, b::BlockNonChiral) = series_argument(x, b.corr.fields)
 
 function evaluate_series(b::Block, q; der=false)
     der && return evalpoly(q, b._coefficients_der)
     evalpoly(q, b._coefficients)
 end
 
-get_position(x, V::FourFields, b::Block) = crossratio(b.channel, x)
-get_position(x, V::OneField, b::Block) = x
+get_position(x, V::Union{FourFields, FourDimensions}, b::Block) = crossratio(b.channel, x)
+get_position(x, V::Union{OneField, OneDimension}, b::Block) = x
+get_position(x, c::CorrelationChiral, b::Block) = get_position(x, c.dims, b)
 get_position(x, c::Correlation, b::Block) = get_position(x, c.fields, b)
 
 function evaluate(b::BlockChiral, x; der=false)
     c = b.corr
-    y = get_position(x, c.fields, b)
-    b.lr === :left ? Nothing : y = conj(y)
+    y = get_position(x, c.dims, b)
     q = series_argument(y, b)
     d = b.channel_dimension
-    p = blockprefactor_chiral(c.fields, b, y)
+    p = blockprefactor_chiral(c.dims, b, y)
     h = evaluate_series(b, q)
 
     # add the q-dependent parts
@@ -38,10 +39,11 @@ function evaluate(b::BlockChiral, x; der=false)
 end
 
 function evaluate(b::BlockNonChiral, x, lr; der=false)
+    xs = (x, conj(x))
     if der
-        return evaluate(b.chiral_blocks_der[lr], x, der=der)
+        return evaluate(b.chiral_blocks_der[lr], xs[lr], der=der)
     end
-    evaluate(b.chiral_blocks[lr], x)
+    evaluate(b.chiral_blocks[lr], xs[lr])
 end
 
 function evaluate(b::BlockNonChiral, x)
@@ -64,17 +66,17 @@ function evaluate(b::BlockNonChiral, x)
         Fregbar = evaluate(b_op, x, :right)
 
         if isaccidentallynonlogarithmic(b)
-            Rreg = b.corr._Rmn_reg[b.channel][:left][(r, s)]
-            Rregbar = b.corr._Rmn_reg[b.channel][:right][(r, s)]
-            nbzeros = Rmn_zero_order(r, s, b.fields)
+            Rreg = b.corr._Rmn_reg[:left][b.channel][(r, s)]
+            Rregbar = b.corr._Rmn_reg[:right][b.channel][(r, s)]
+            nbzeros = Rmn_zero_order(r, s, b.chiral_blocks[:left].dims)
             return Freg*Fbar + (-1)^nbzeros * Rreg/Rregbar * F*Fregbar
 
         elseif islogarithmic(b)
             Fder = evaluate(b_op, x, :left, der=true)
             Fderbar = evaluate(b, x, :right, der=true)
 
-            R = b.corr._Rmn[b.channel][:left][(r, s)]
-            Rbar = b.corr._Rmn[b.channel][:right][(r, s)]
+            R = b.corr._Rmn[:left][b.channel][(r, s)]
+            Rbar = b.corr._Rmn[:right][b.channel][(r, s)]
 
             return (
                 (Freg - R / 2 / Pp * Fder) * Fbar +

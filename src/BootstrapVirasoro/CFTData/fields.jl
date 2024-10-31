@@ -80,9 +80,19 @@ function Field(
     Field{T}(LeftRight((dim_left, dim_right)), diagonal, degenerate)
 end
 
-function Field()
-    return Field(CentralCharge(), Kac=true, r=0, s=0, degenerate=true, diagonal=true)
+function Field(ds::LeftRight{ConformalDimension})
+    diagonal = false
+    degenerate = false
+    if ds[:left] == ds[:right]
+        diagonal = true
+    end
+    if ds[:left].isKac && ds[:right].isKac 
+        degenerate=true
+    end
+    return Field(ds, diagonal, degenerate)
 end
+Field(d_left::ConformalDimension, d_right::ConformalDimension) = Field((d_left, d_right))
+Field()  = Field(CentralCharge(), Kac=true, r=0, s=0, degenerate=true, diagonal=true)
 
 function Base.getproperty(V::Field, s::Symbol)
     ds = getfield(V, :dims)

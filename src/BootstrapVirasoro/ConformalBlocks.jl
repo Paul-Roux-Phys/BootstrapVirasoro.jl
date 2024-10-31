@@ -13,7 +13,11 @@ export Correlation,
     evaluate_series,
     evaluate
 
-const ExtFields{T} = Tuple{Vararg{Field{T}}} # type for external tuple of fields
+const ExtDimensions{T} = Tuple{Vararg{ConformalDimension{T}}} # tuples of dimensions
+const FourDimensions{T} = NTuple{4, ConformalDimension{T}}
+const OneDimension{T} = Tuple{ConformalDimension{T}}
+
+const ExtFields{T} = Tuple{Vararg{Field{T}}} # tuples of fields
 const FourFields{T} = NTuple{4, Field{T}}
 const OneField{T} = Tuple{Field{T}}
 

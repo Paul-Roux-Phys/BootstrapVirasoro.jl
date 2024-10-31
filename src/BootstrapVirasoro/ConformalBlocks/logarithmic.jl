@@ -35,7 +35,7 @@ function isaccidentallynonlogarithmic(b::BlockNonChiral)
     V = b.channel_field
     !(V.isKac && V.r%1 == V.s%1 == 0) && return false
     r, s = V.indices
-    return Rmn_zero_order(r, s, permute_fields(b.fields, b.channel)) > 0
+    return Rmn_zero_order(r, s, permute_dimensions(b.chiral_blocks[:left].dims, b.channel)) > 0
 end
 
 function islogarithmic(b::BlockNonChiral)
