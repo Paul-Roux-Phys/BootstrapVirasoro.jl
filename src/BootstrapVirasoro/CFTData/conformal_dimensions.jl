@@ -62,9 +62,9 @@ Prs(r, s, β) = 1/2 * (β*r - s/β)
 Constructor function for the `ConformalDimension` type.
 """
 function ConformalDimension(
-    c::CentralCharge{T}=CentralCharge(),
-    sym::Symbol=:P,
-    P=0;
+    c::CentralCharge{T},
+    sym::Symbol,
+    P;
     Kac=false, r=0, s=0
 ) where {T}
     if Kac
@@ -75,6 +75,21 @@ function ConformalDimension(
     end
     ConformalDimension{T}(c, P, Kac, r, s)
 end
+
+function ConformalDimension(
+    c::CentralCharge;
+    Kac=missing, r=missing, s=missing,
+    Δ=missing, δ=missing, P=missing, p=missing
+)
+    Kac === true && return ConformalDimension(c, :Δ, 0, Kac=Kac, r=r, s=s)
+    Δ !== missing && return ConformalDimension(c, :Δ, Δ)
+    δ !== missing && return ConformalDimension(c, :δ, δ)
+    P !== missing && return ConformalDimension(c, :P, P)
+    p !== missing && return ConformalDimension(c, :p, p)
+    return ConformalDimension(c, :Δ, 0)
+end
+
+ConformalDimension() = ConformalDimension(CentralCharge())
 
 function get_indices(d::ConformalDimension)
     if d.isKac

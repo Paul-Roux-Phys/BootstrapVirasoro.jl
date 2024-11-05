@@ -56,8 +56,8 @@ indices r = 4//1, s=3//4
 """
 function Field(
     c::CentralCharge{T},
-    sym::Symbol = :P,
-    dim = 0;
+    sym::Symbol,
+    dim;
     Kac=false, r=0, s=0,
     degenerate=false, diagonal=false
 ) where {T}
@@ -80,6 +80,21 @@ function Field(
     Field{T}(LeftRight((dim_left, dim_right)), diagonal, degenerate)
 end
 
+function Field(
+    c::CentralCharge;
+    Kac=missing, r=missing, s=missing,
+    diagonal=false, degenerate=false,
+    Δ=missing, δ=missing, P=missing, p=missing
+)
+    Kac !== missing && return Field(c, :Δ, 0, Kac=Kac, r=r, s=s, degenerate=degenerate, diagonal=diagonal)
+    Δ !== missing && return Field(c, :Δ, Δ, diagonal=true)
+    δ !== missing && return Field(c, :δ, δ, diagonal=true)
+    P !== missing && return Field(c, :P, P, diagonal=true)
+    p !== missing && return Field(c, :p, p, diagonal=true)
+    return Field(c, :Δ, 0, Kac=true, r=1, s=1)
+end
+
+Field() = Field(CentralCharge())
 function Field(ds::LeftRight{ConformalDimension})
     diagonal = false
     degenerate = false
@@ -92,7 +107,6 @@ function Field(ds::LeftRight{ConformalDimension})
     return Field(ds, diagonal, degenerate)
 end
 Field(d_left::ConformalDimension, d_right::ConformalDimension) = Field((d_left, d_right))
-Field()  = Field(CentralCharge(), Kac=true, r=0, s=0, degenerate=true, diagonal=true)
 
 function Base.getproperty(V::Field, s::Symbol)
     ds = getfield(V, :dims)
