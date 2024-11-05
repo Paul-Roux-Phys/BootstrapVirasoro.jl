@@ -59,9 +59,18 @@ c = 0.1933333333333333332741, β = 1.200000000000000000003
 
 ```
 """
-function CentralCharge(s::Symbol=:c, x=1.0)
+function CentralCharge(s::Symbol, x)
     β = Bto(:β, Bfrom(s, x))
     CentralCharge(β)
+end
+
+function CentralCharge(; β=missing, c=missing, B=missing, n=missing, b=missing)
+    β !== missing && return CentralCharge(:β, β)
+    c !== missing && return CentralCharge(:c, c)
+    B !== missing && return CentralCharge(:B, B)
+    n !== missing && return CentralCharge(:n, n)
+    b !== missing && return CentralCharge(:b, b)
+    return CentralCharge(:c, 1)
 end
 
 """Display an object of type CentralCharge"""
