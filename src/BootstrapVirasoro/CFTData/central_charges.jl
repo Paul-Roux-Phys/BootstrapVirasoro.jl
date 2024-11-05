@@ -73,7 +73,6 @@ function CentralCharge(; β=missing, c=missing, B=missing, n=missing, b=missing)
     return CentralCharge(:c, 1)
 end
 
-"""Display an object of type CentralCharge"""
 function Base.show(io::IO, c::CentralCharge)
     println("c = $(c.c), β = $(c.β)")
 end
