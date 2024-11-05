@@ -31,23 +31,23 @@ function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
         dx = permute_dimensions(d, x)
 
         Rmn[x] = Dict(
-                (m, n) => computeRmn(m, n, dx)
-                for m in 1:Nmax, n in 1:Nmax
-                if Rmn_zero_order(m, n, dx) == 0 && m * n <= Nmax
-            )
+            (m, n) => computeRmn(m, n, dx)
+            for m in 1:Nmax, n in 1:Nmax
+            if Rmn_zero_order(m, n, dx) == 0 && m * n <= Nmax
+        )
 
         Rmnreg[x] = Dict(
-                (m, n) => computeRmn(m, n, dx)
-                for m in 1:Nmax, n in 1:Nmax
-                if Rmn_zero_order(m, n, dx) > 0 && m*n <= Nmax
-            )
+            (m, n) => computeRmn(m, n, dx)
+            for m in 1:Nmax, n in 1:Nmax
+            if Rmn_zero_order(m, n, dx) > 0 && m * n <= Nmax
+        )
 
         CNmn[x] = Dict(
-                (N, m, n) => computeCNmn(N, m, n, d[1].c, Rmn[x])
-                for m in 1:Nmax, n in 1:Nmax, N in 1:Nmax
-                if m * n <= N && (m, n) in keys(Rmn[x])
-            )
-        
+            (N, m, n) => computeCNmn(N, m, n, d[1].c, Rmn[x])
+            for m in 1:Nmax, n in 1:Nmax, N in 1:Nmax
+            if m * n <= N && (m, n) in keys(Rmn[x])
+        )
+
     end
 
     CorrelationChiral{T}(d, Nmax, Rmn, Rmnreg, CNmn)

@@ -13,10 +13,10 @@ function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
     #= The term r, s in Rmn is zero if r1 \pm r2 + r or r3 \pm r4 + r is 0, and
     s1 \pm s2 + s or s3 \pm s4 + s is 0.
     =#
-    for pm in (-1, 1)
+    for pm in (-1, 1), pm2 in (-1, 1)
         if (d[i].isKac && d[j].isKac
-            && (rs[i] + pm * rs[j] + r == 0)
-            && (ss[i] + pm * ss[j] + s == 0))
+            && (rs[i] + pm * rs[j] + pm2 * r == 0)
+            && (ss[i] + pm * ss[j] + pm2 * s == 0))
             
             return true
         end
