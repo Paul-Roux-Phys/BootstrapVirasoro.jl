@@ -1,7 +1,7 @@
 """Nome `q` from the cross-ratio `x`"""
 qfromx(x) = exp(-oftype(x, π) * ellipticK(1 - x) / ellipticK(x))
 
-""""Cross ratio `x` from the nome `q`"""
+"""Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
 
 #===========================================================================================

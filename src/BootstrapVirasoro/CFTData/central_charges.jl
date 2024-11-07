@@ -2,13 +2,26 @@
     CentralCharge{T}
 
 Type representing a central charge.
-T is expected to be a real or complex number, of standard or arbitrary precision
+T is expected to be a real or complex number, of standard or arbitrary precision.
+The supported parameters are `c`, `β`, `b`, `B`.
+
+# Examples
+
+```jldoctest
+julia> c = CentralCharge(c = 0.7)
+c = 0.7000000000000011 + 0.0im, β = -0.894427190999916 - 0.0im
+
+julia> c.b
+-0.0 + 0.894427190999916im
+
+julia> c.n
+1.6180339887498953 + 0.0im
+```
 """
 struct CentralCharge{T}
     β::T
 end
 
-"""Get B from given parameter"""
 function Bfrom(s::Symbol, x)
     a = (x-1)*(x-25)
     s === :β && return -x^2
@@ -21,9 +34,9 @@ function Bfrom(s::Symbol, x)
     )
     s === :b && return x^2
     s === :B && return x
+    error("unsupported parameter: $s")
 end
 
-"""Get asked parameter from B"""
 function Bto(s::Symbol, x)
     rx = sqrt(complex(x))
     s === :β && return -im*rx
@@ -43,38 +56,44 @@ function Base.getproperty(c::CentralCharge, s::Symbol)
     error("$s is not a supported parametrisation of the central charge")
 end
 
-"""
-    CentralCharge(parameter, value)
-
-Constructor function for the CentralCharge type.
-
-Given one of the four parameters `c`, `b`, `β`, `B` and its value,
-creates an object CentralCharge{T} where T is real if `β` is real.
-
-# Example
-```julia-repl
-julia> setprecision(BigFloat, 20, base=10)
-julia> CentralCharge(big"1.2")
-c = 0.1933333333333333332741, β = 1.200000000000000000003
-
-```
-"""
 function CentralCharge(s::Symbol, x)
     β = Bto(:β, Bfrom(s, x))
     CentralCharge(β)
 end
 
-function CentralCharge(; β=missing, c=missing, B=missing, n=missing, b=missing)
+"""
+    CentralCharge(parameter = value)
+
+Constructor function for the CentralCharge type.
+
+Given one of the four parameters `c`, `b`, `β`, `B` and its value,
+creates an object CentralCharge{T}.
+
+# Example
+
+```jldoctest
+julia> setprecision(BigFloat, 20, base=10);
+
+julia> CentralCharge(B = 0.5)
+c = 27.999999999999996 + 0.0im, β = 0.0 - 0.7071067811865476im
+
+julia> CentralCharge(β = 0.7)
+c = -2.184897959183676 + 0.0im, β = -0.7 - 0.0im
+
+julia> CentralCharge(c = big"0.1" + 0.2im)
+c = 0.09999999999999999991326 + 0.2000000000000000111158im, β = -0.8237591041762989640376 - 0.01729590504934815486866im
+```
+"""
+function CentralCharge(; β=missing, c=missing, B=missing, b=missing)
     β !== missing && return CentralCharge(:β, β)
     c !== missing && return CentralCharge(:c, c)
     B !== missing && return CentralCharge(:B, B)
-    n !== missing && return CentralCharge(:n, n)
     b !== missing && return CentralCharge(:b, b)
     return CentralCharge(:c, 1)
 end
 
 function Base.show(io::IO, c::CentralCharge)
-    println("c = $(c.c), β = $(c.β)")
+    print(io, "c = $(c.c), β = $(c.β)")
 end
 
 function Base.isequal(c1::CentralCharge, c2::CentralCharge)

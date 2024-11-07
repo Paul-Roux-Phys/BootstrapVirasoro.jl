@@ -10,6 +10,7 @@ export Correlation,
     BlockChiral,
     BlockNonChiral,
     qfromx,
+    xfromq,
     evaluate_series,
     evaluate
 

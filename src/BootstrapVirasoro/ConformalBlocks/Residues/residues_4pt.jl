@@ -25,6 +25,17 @@ function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
     return false
 end
 
+function reg_signs(r, s, i, j, d::FourDimensions)
+    rs=[d[i].r for i in 1:4]
+    ss=[d[i].s for i in 1:4]
+
+    for pm in (-1, 1), pm2 in (-1, 1)
+        if (rs[i] + pm * rs[j] + pm2 * r == 0) &&
+           (ss[i] + pm * ss[j] + pm2 * s == 0)
+            return pm, pm2
+        end
+    end
+end
 
 function Rmn_zero_order(m, n, d::FourDimensions)
     order = 0
@@ -62,7 +73,12 @@ function Rmn_term_nonzero(r, s, i, j, d::FourDimensions)
 end
 
 function Rmn_term_reg(r, s, i, j, d::FourDimensions)
-    (r != 0 || s != 0) && return 8 * d[i].P * d[j].P * Prs(r, s, d[1].c.β)
+    (r != 0 || s != 0) && begin
+        signs = reg_signs(r, s, i, j, d)
+        r0, s0 = -signs[2] .* d[i].indices .- signs[2] * signs[1] .* d[j].indices
+        P = Field(d[1].c, Kac=true, r=r0, s=s0).P[:left]
+        return 8 * signs[1] * signs[2] * d[i].P * d[j].P * P
+    end
     return 2 * d[j].P
 end
 

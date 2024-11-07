@@ -26,21 +26,28 @@ Type for encoding a conformal dimension.
 The supported parameters are `Δ`, `δ`, `P`, `p`, `w`, or the Kac indices `r` and `s`.
 
 # Examples
-```julia-repl
-julia> c = CentralCharge(:c, 0.5)
-c = 0.5 + 0.0im, β = -0.8660254037844386 - 0.0im
-julia> d1 = ConformalDimension(c, :P, 1.2+0.1im)
-ConformalDimension{ComplexF64}
+```jldoctest
+julia> c = CentralCharge(:c, 0.5);
+
+julia> d1 = ConformalDimension(c, P = 1.2+0.1im)
+ConformalDimension{ComplexF64} with
 Δ = 1.4091666666666667 + 0.24im, P = 1.2 + 0.1im
+
 julia> d2 = ConformalDimension(c, Kac=true, r=2, s=3//2)
-ConformalDimension{ComplexF64} with Kac indices r = 2//1, s=3//2
+ConformalDimension{ComplexF64} with Kac indices r = 2//1, s = 3//2
+
 julia> d1.P
 1.2 + 0.1im
+
 julia> d2.Δ
 -0.020833333333333332 + 0.0im
+
 julia> d1 + d2
-ConformalDimension{ComplexF64}
+ConformalDimension{ComplexF64} with
 Δ = 1.3883333333333332 + 0.24im, P = 1.1913489935345947 + 0.10072615216131914im
+
+julia> d1.w
+2.05874441299789 - 0.06772184182090507im
 ```
 """
 struct ConformalDimension{T}
@@ -56,11 +63,6 @@ end
 Prs(r, s, β) = 1/2 * (β*r - s/β)
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
-"""
-    ConformalDimension(c, parameter, value; Kac=false, r=0, s=0)
-    
-Constructor function for the `ConformalDimension` type.
-"""
 function ConformalDimension(
     c::CentralCharge{T},
     sym::Symbol,
@@ -76,6 +78,25 @@ function ConformalDimension(
     ConformalDimension{T}(c, P, Kac, r, s)
 end
 
+"""
+    ConformalDimension(c, parameter, value; Kac=false, r=0, s=0)
+    
+Constructor function for the `ConformalDimension` type.
+
+# Examples
+
+```jldoctest
+julia> c = CentralCharge(β = 0.3im)
+c = 80.20666666666665 + 0.0im, β = 0.0 - 0.3im
+
+julia> d1 = ConformalDimension(c, δ = 0.5)
+ConformalDimension{ComplexF64} with
+Δ = 3.800277777777777 + 0.0im, P = 0.7071067811865476
+
+julia> d2 = ConformalDimension(c, Kac=true, r=3//2, s=2//3)
+ConformalDimension{ComplexF64} with Kac indices r = 3//2, s = 2//3
+```
+"""
 function ConformalDimension(
     c::CentralCharge;
     Kac=missing, r=missing, s=missing,

@@ -76,7 +76,7 @@ struct Correlation{T}
 end
 
 function Base.show(io::IO, corr::Correlation)
-    print("Correlation function with external fields\n$(corr.fields)")
+    print(io, "Correlation function with external fields\n$(corr.fields)")
 end
 
 function permute_dimensions(ds::FourDimensions, chan::Symbol)

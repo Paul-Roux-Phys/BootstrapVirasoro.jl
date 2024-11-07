@@ -1,8 +1,40 @@
 """
     Field{T}
 Object representing a conformal field.
-Contains the conformal dimensions, and flags saying whether the field is degenerate or 
-diagonal.
+Contains the conformal dimensions, and flags saying whether the field has rational Kac
+indices and/or is diagonal. The user can access different parametrisations of the left and 
+right conformal dimensions, and Kac indices.
+
+# Examples
+
+```jldoctest
+julia> c = CentralCharge(B = 0.5)
+c = 27.999999999999996 + 0.0im, β = 0.0 - 0.7071067811865476im
+
+julia> V = Field(c, Kac=true, r=0, s=2//3)
+Non-diagonal Field{ComplexF64}
+left: ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = 2//3
+right: ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = -2//3
+
+julia> V.r
+0//1
+
+julia> V.s
+2//3
+
+julia> V.δ
+(-0.22222222222222215 - 0.0im, -0.22222222222222215 + 0.0im)
+
+julia> V.δ[:left]
+-0.22222222222222215 - 0.0im
+
+julia> V.p[:right]
+0.4714045207910316 + 0.0im
+
+julia> V2 = Field(c, δ = 0.5, diagonal=true)
+Diagonal Field{ComplexF64} with ConformalDimension{ComplexF64} with
+Δ = 1.625 + 0.0im, P = 0.7071067811865476
+```
 """
 struct Field{T}
 
@@ -13,7 +45,8 @@ struct Field{T}
 end
 
 """
-    Field(charge, parameter, value; kwargs...)
+    Field(charge, parameter = value; kwargs)
+    Field(charge, Kac = true, r = r, s = s)
 
 Constructor function for the Field type.
 
@@ -25,33 +58,37 @@ parametrisation.
 # keyword arguments:
 
 - `Kac::Bool`: if set to true, the field can be constructed from the values of its r and s
-indices. By convention V_(r,s) has left and right momenta (P_(r,s), P_(r,-s)).
+indices. By convention ``V_(r,s)`` has left and right momenta ``(P_(r,s), P_(r,-s))``.
 - `r::Rational`,`s::Rational`: used in conjunction to `Kac=true`, must be given rational
 values,
-- `degenerate::Bool`: set to `true` if the field is degenerate,
 - `diagonal::Bool`: set to `true` to get a diagonal field;
 
 # Examples
-```julia-repl
-julia> c = CentralCharge(:β, big"0.5")
-c = -12.5 + 0.0im, β = -0.5 - 0.0im
+```jldoctest
+julia> setprecision(BigFloat, 20, base=10);
+
+julia> c = CentralCharge(β = big"0.5");
+
 julia> V = Field(c, Kac=true, r=0, s=1)
 Non-diagonal Field{Complex{BigFloat}}
-left: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0//1, s=1//1
-right: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0//1, s=-1//1
+left: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = 1
+right: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = -1
+
 julia> V.Δ
 (0.4375 + 0.0im, 0.4375 + 0.0im)
+
 julia> V.P[:left]
 1.0
+
 julia> V.p[:right]
 -0.0 + 1.0im
+
 julia> V2 = Field(c, :P, 0.42, diagonal=true)
-Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}}
-Δ = -0.3861000000000000130562227695918406737932561928131814676581268821467171625805292 + 
-0.0im, P = 0.419999999999999984456877655247808434069156646728515625
+Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with
+Δ = -0.3861000000000000130545 + 0.0im, P = 0.4199999999999999844569
+
 julia> V3 = Field(c, Kac=true, degenerate=true, r=4, s=3//4)
-Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with Kac
-indices r = 4//1, s=3//4
+Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with Kac indices r = 4//1, s = 3//4
 ```
 """
 function Field(
@@ -150,12 +187,12 @@ end
 function Base.show(io::IO, V::Field)
     if V.isdiagonal
         print(io, "Diagonal $(typeof(V)) with ")
-        show(V.dims[:left])
+        show(io, V.dims[:left])
     else
-        println(io, "Non-diagonal $(typeof(V))")
+        print(io, "Non-diagonal $(typeof(V))\n")
         print(io, "left: ")
-        show(V.dims[:left])
+        show(io, V.dims[:left])
         print(io, "\nright: ")
-        show(V.dims[:right])
+        show(io, V.dims[:right])
     end
 end
