@@ -76,7 +76,7 @@ function Rmn_term_reg(r, s, i, j, d::FourDimensions)
     (r != 0 || s != 0) && begin
         signs = reg_signs(r, s, i, j, d)
         r0, s0 = -signs[2] .* d[i].indices .- signs[2] * signs[1] .* d[j].indices
-        P = Field(d[1].c, Kac=true, r=r0, s=s0).P[:left]
+        P = ConformalDimension(d[1].c, Kac=true, r=r0, s=s0).P
         return 8 * signs[1] * signs[2] * d[i].P * d[j].P * P
     end
     return 2 * d[j].P
@@ -91,6 +91,12 @@ Rmn_term(r, s, d::FourDimensions) = prod(
     Rmn_term(r, s, i, j, d) for (i, j) in ((1, 2), (3, 4))
 )
 
+"""
+    computeRmn(m, n, d::FourDimensions)
+
+Compute the ``Δ``-residue ``R_{m, n}`` of four-point blocks with external dimensions `d`,
+or regularisation thereof, so that ratios of vanishing residues are correct.
+"""
 function computeRmn(m, n, d::FourDimensions{T}) where {T}
     if m == 1
         res = prod(Rmn_term(0, s, d) for s in 1-n:2:0)

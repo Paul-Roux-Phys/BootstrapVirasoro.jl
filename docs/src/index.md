@@ -14,3 +14,4 @@ This is the documentation page for the `BootstrapVirasoro` package. `BootstrapVi
 * [Installation](installation.md)
 * [Basic types](cft_data.md)
 * [Conformal blocks](conformal_blocks.md)
+* [Reference](reference.md)

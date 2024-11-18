@@ -40,5 +40,5 @@ end
 
 function islogarithmic(b::BlockNonChiral)
     V = b.channel_field;
-    V.isKac && V.r%1 == V.s%1 == 0 && V.r*V.s != 0
+    V.isKac && V.r%1 == V.s%1 == 0 && V.r*V.s != 0 && !(isaccidentallynonlogarithmic(b))
 end

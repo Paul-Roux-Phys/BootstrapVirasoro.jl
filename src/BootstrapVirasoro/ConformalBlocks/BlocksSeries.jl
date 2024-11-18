@@ -32,10 +32,10 @@ BlockChiral(corr::CorrelationChiral, chan, d::ConformalDimension; der=false) =
 BlockChiral(corr::CorrelationChiral, chan, V::Field, lr, Nmax; der=false) = 
     BlockChiral(corr, chan, V.dims[lr], Nmax, der=der)
 
-BlockChiral(corr::Correlation, chan, V::Field, lr, Nmax; der=false) = 
+BlockChiral(corr::CorrelationNonChiral, chan, V::Field, lr, Nmax; der=false) = 
     BlockChiral(corr[lr], chan, V.dims[lr], Nmax, der=der)
 
-BlockChiral(corr::Correlation, chan, d::ConformalDimension, lr, Nmax; der=false) = 
+BlockChiral(corr::CorrelationNonChiral, chan, d::ConformalDimension, lr, Nmax; der=false) = 
     BlockChiral(corr[lr], chan, d, Nmax, der=der)
 
 BlockChiral(corr, chan, V_or_d, lr; der=false) = 
@@ -86,7 +86,7 @@ struct BlockNonChiral{T} <: Block{T}
 end
 
 function BlockNonChiral(
-    c::Correlation{T},
+    c::CorrelationNonChiral{T},
     chan::Symbol,
     V::Field{T},
     Nmax::Int
@@ -113,5 +113,3 @@ function Base.getproperty(b::BlockNonChiral, s::Symbol)
     s === :channel && return getproperty(getfield(b, :chiral_blocks)[:left], s)
     return getfield(b, s)
 end
-
-

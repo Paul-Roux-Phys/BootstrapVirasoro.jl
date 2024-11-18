@@ -23,7 +23,8 @@ makedocs(
         "Home" => "index.md",
         "installation.md",
         "cft_data.md",
-        "conformal_blocks.md"
+        "conformal_blocks.md",
+        "reference.md"
     ],
     checkdocs=:export
 )

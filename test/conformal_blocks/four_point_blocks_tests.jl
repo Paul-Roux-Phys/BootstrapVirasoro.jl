@@ -176,46 +176,31 @@ end
         )
     end
 
-    @testset "Accidentally non-log as limits of generic log blocks" begin
-        V1 = Field(c, Kac=true, r=3, s=1//3)
-        V2 = Field(c, Kac=true, r=3, s=1//3)
+    @testset "Acc. non-log from generic log" begin
+        V1 = Field(c, Kac=true, r=0, s=1)
+        V2 = Field(c, Kac=true, r=0, s=1//2)
         V3 = Field(c, Kac=true, r=2, s=1//2)
-        V4 = Field(c, Kac=true, r=2, s=3//2)
+        V_4(ϵ) = Field(c, Kac=true, r=2, s=3//2 + ϵ)
 
-        V = Field(c, Kac=true, r=3, s=3)
+        V = Field(c, Kac=true, r=1, s=12)
 
-        co = Correlation(V1, V2, V3, V4, Nmax)
+        corr(ϵ) = Correlation(V1, V2, V3, V_4(ϵ), Nmax)
+        ϵ = big"1" // big"10"^20
 
-        function shift_indices(V::FourFields, ϵ)
-            s_shift = zeros(Rational, 4)
-            for i in 1:4
-                if i % 2 == 0
-                    s_shift[i] = ϵ
-                end
-            end
+        block(chan, ϵ) = Block(corr(ϵ), chan, V, Nmax)
 
-            return [
-                Field(co.c, Kac=true, r = V[i].r, s = V[i].s + s_shift[i])
-                for i in 1:4
-            ]
+        redirect_stderr(devnull) do
+            @test isapprox(
+                evaluate(block(:s, 0), x),
+                evaluate(block(:s, ϵ), x),
+                rtol = 1e-18
+            )
+
+            @test isapprox(
+                evaluate(block(:t, 0), x),
+                evaluate(block(:t, ϵ), x),
+                rtol = 1e-18
+            )
         end
-
-        ϵ = big"1" // big"10"^40
-        co_shift = Correlation(shift_indices((V1, V2, V3, V4), ϵ)..., Nmax)
-
-        b1(chan) = Block(co, chan, V, Nmax)
-        b2(chan) = Block(co_shift, chan, V, Nmax)
-
-        @test isapprox(
-            evaluate(b1(:s), x),
-            evaluate(b2(:s), x),
-            rtol = 1e-35
-        )
-
-        @test isapprox(
-            evaluate(b1(:t), x),
-            evaluate(b2(:t), x),
-            rtol = 1e-35
-        )
     end
 end
