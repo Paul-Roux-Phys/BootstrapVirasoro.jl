@@ -46,7 +46,7 @@ struct BlockBulkInterchiral{T} <: Block{T}
 
 end
 
-function evaluate(b::BlockInterchiral, x)
+function evaluate(b::BlockBulkInterchiral, x)
     r0, s0 = b.r, b.s
     res = 0
     for f in b.blocks
