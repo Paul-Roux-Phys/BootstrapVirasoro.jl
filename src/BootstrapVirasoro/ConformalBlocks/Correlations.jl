@@ -180,9 +180,9 @@ the output can be a `CorrelationChiral` or `CorrelationNonChiral` object, as ind
 julia> c = CentralCharge(c = 0.5)
 c = 0.5 + 0.0im, β = -0.8660254037844386 - 0.0im
 
-julia> V1 = Field(c, Kac=true, r=1, s=0);
+julia> V1 = Field(c, r=1, s=0);
 
-julia> V2 = Field(c, Kac=true, r=2, s=1);
+julia> V2 = Field(c, r=2, s=1);
 
 julia> co = Correlation(V1, V2, V2, V1, 10)
 CorrelationNonChiral with external fields

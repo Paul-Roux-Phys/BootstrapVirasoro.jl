@@ -29,7 +29,7 @@ end
 BlockChiral(corr::CorrelationChiral, chan, d::ConformalDimension; der=false) = 
     BlockChiral(corr, chan, d, lr, corr.Nmax, der=der)
 
-BlockChiral(corr::CorrelationChiral, chan, V::Field, lr, Nmax; der=false) = 
+BlockChiral(corr::CorrelationChiral, chan, V::Field, lr::Symbol, Nmax::Int; der=false) = 
     BlockChiral(corr, chan, V.dims[lr], Nmax, der=der)
 
 BlockChiral(corr::CorrelationNonChiral, chan, V::Field, lr, Nmax; der=false) = 
@@ -38,13 +38,21 @@ BlockChiral(corr::CorrelationNonChiral, chan, V::Field, lr, Nmax; der=false) =
 BlockChiral(corr::CorrelationNonChiral, chan, d::ConformalDimension, lr, Nmax; der=false) = 
     BlockChiral(corr[lr], chan, d, Nmax, der=der)
 
-BlockChiral(corr, chan, V_or_d, lr; der=false) = 
+BlockChiral(corr, chan, V_or_d, lr::Symbol; der=false) = 
     BlockChiral(corr, chan, V_or_d, lr, corr.Nmax, der=der)
 
 function Base.getproperty(b::BlockChiral, s::Symbol)
     s in (:_Rmn, :_CNmn) && return getfield(b.corr, s)[b.channel]
     s in (:c, :dims) && return getproperty(b.corr, s)
     return getfield(b, s)
+end
+
+function Base.show(io::IO, b::BlockChiral)
+    println(io, "Chiral block for the correlation")
+    print(io, b.corr)
+    println(io, "In the channel $(b.channel)")
+    println(io, "propagating in the channel:")
+    println(io, "$(b.channel_dimension)")
 end
 
 """Compute the Nmax in the Zamolodchikov series such that `d + d_(r,s)`
@@ -112,4 +120,11 @@ function Base.getproperty(b::BlockNonChiral, s::Symbol)
     s === :fields && return getproperty(b, :corr).fields
     s === :channel && return getproperty(getfield(b, :chiral_blocks)[:left], s)
     return getfield(b, s)
+end
+
+function Base.show(io::IO, b::BlockNonChiral)
+    println(io, "Non chiral block for the correlation")
+    print(io, b.corr)
+    println(io, "channel: $(b.channel)")
+    println(io, "channel field: $(b.channel_field)")
 end

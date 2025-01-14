@@ -274,7 +274,7 @@ function block_non_chiral(x, block::FourPointBlockSphere)
                                                This goes against the chosen convention"
         c = corr.charge
         block1 = block
-        block2 = FourPointBlockSphere(corr, :s, Field(c, Kac=true, r=r, s=-s), Nmax=block._Nmax) # block with momenta (P_(r,-s), P_(r,s)) in the channel
+        block2 = FourPointBlockSphere(corr, :s, Field(c, r=r, s=-s), Nmax=block._Nmax) # block with momenta (P_(r,-s), P_(r,s)) in the channel
 
         F_Prms = block_chiral(x_chan, block2, left) # F_{P_(r,-s)}
         F_Prms_bar = block_chiral(conj(x_chan), block1, right) # \bar F_{P_(r,-s)}

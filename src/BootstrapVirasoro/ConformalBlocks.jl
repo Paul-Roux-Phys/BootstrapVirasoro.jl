@@ -9,6 +9,7 @@ export Correlation,
     Block,
     BlockChiral,
     BlockNonChiral,
+    GeneralizedBlock,
     qfromx,
     xfromq,
     evaluate_series,
@@ -40,7 +41,7 @@ it is non chiral, etc. See examples.
 julia> c = CentralCharge(β = sqrt(2))
 c = -2.0000000000000027 + 0.0im, β = -1.4142135623730951 - 0.0im
 
-julia> V1 = Field(c, Kac=true, r=2, s=3//2)
+julia> V1 = Field(c, r=2, s=3//2)
 Non-diagonal Field{ComplexF64}
 left: ConformalDimension{ComplexF64} with Kac indices r = 2//1, s = 3//2
 right: ConformalDimension{ComplexF64} with Kac indices r = 2//1, s = -3//2
@@ -105,15 +106,10 @@ ConformalDimension{ComplexF64} with Kac indices r = 2//1, s = 3//2
 ```
 """
 abstract type Correlation{T} end
-abstract type Block{T} end
 
-Block(c, chan, V::Field, Nmax::Int) = BlockNonChiral(c, chan, V, Nmax)
-Block(c, chan, V::Field, lr::Symbol, Nmax; der=false) = 
-    BlockChiral(c, chan, V.dims[lr], lr, Nmax, der=der)
-Block(c, chan, d::ConformalDimension, lr, Nmax; der=false) =
-    BlockChiral(c, chan, d, lr, Nmax, der=der)
-Block(c, chan, V::Field, lr::Symbol) = Block(c, chan, V, lr, c.Nmax)
-Block(c, chan, V::Field) = Block(c, chan, V, c.Nmax)
+abstract type GeneralizedBlock{T} end # generalised block, can be interchiral or conformal
+abstract type Block{T} <: GeneralizedBlock{T} end # conformal block
+abstract type BlockInterchiral{T} <: GeneralizedBlock{T} end # interchiral block (chiral or not)
 
 include("ConformalBlocks/residues.jl")
 include("ConformalBlocks/Correlations.jl")
@@ -122,3 +118,30 @@ include("ConformalBlocks/prefactors.jl")
 include("ConformalBlocks/logarithmic.jl")
 include("ConformalBlocks/evaluate.jl")
 include("ConformalBlocks/InterchiralBlocks.jl")
+
+Block(c::Correlation, chan::Symbol, V::Field, Nmax::Int) =
+    BlockNonChiral(c, chan, V, Nmax)
+Block(c::Correlation, chan, V::Field, lr::Symbol, Nmax; der=false) = 
+    BlockChiral(c, chan, V.dims[lr], lr, Nmax, der=der)
+Block(c, chan, d::ConformalDimension, lr, Nmax; der=false) =
+    BlockChiral(c, chan, d, lr, Nmax, der=der)
+Block(c, chan, V::Field, lr::Symbol) = Block(c, chan, V, lr, c.Nmax)
+Block(c, chan, d::ConformalDimension) = BlockChiral(c, chan, d, c.Nmax)
+Block(c, chan, V::Field) = Block(c, chan, V, c.Nmax)
+
+Nmax(Δmax::ConformalDimension, V::Field) =
+    ceil(Int, Δmax.Δ - minimum(abs(V.dims[lr].Δ) for lr in (:left, :right)))
+
+Block(c, chan, V::Field, Δmax::ConformalDimension) = Block(c, chan, V, Nmax(Δmax, V))
+Block(c, chan, V::Field, lr::Symbol, Δmax::ConformalDimension; der=false) =
+    Block(c, chan, V, Nmax(Δmax, V))
+Block(c, chan, d::ConformalDimension, lr, Δmax::ConformalDimension; der=false) =
+    BlockChiral(c, chan, d, lr, Nmax(Δmax, V), der=der)
+
+function GeneralizedBlock(c, chan, V::Field, Δmax::ConformalDimension; interchiral=true)
+    if interchiral
+        BlockInterchiralNonChiral(c, chan, V, Δmax)
+    else
+        Block(c, chan, V, Δmax)
+    end
+end

@@ -9,7 +9,7 @@
 
     V_chan = Field(c, :P, sqrt(2) * P, diagonal=true)
     V_ext = Field(c, :P, P1 / sqrt(2), diagonal=true)
-    VKac = Field(c, Kac=true, r=0, s=1//2, diagonal=true)
+    VKac = Field(c, r=0, s=1//2, diagonal=true)
 
     corr = Correlation(VKac, V_ext, VKac, VKac, 12)
     b = Block(corr, :s, V_chan, :left, 12)
@@ -58,13 +58,13 @@ end
 @testset "Non Chiral Blocks" begin
 
     c = CentralCharge(:β, big"0.8"+big"0.1"*im)
-    V = Field(c, Kac=true, r=2, s=3)
+    V = Field(c, r=2, s=3)
     Nmax = 26
 
-    V1 = Field(c, Kac=true, r=0, s=1)
-    V2 = Field(c, Kac=true, r=0, s=1//2)
-    V3 = Field(c, Kac=true, r=0, s=1)
-    V4 = Field(c, Kac=true, r=0, s=1//2)
+    V1 = Field(c, r=0, s=1)
+    V2 = Field(c, r=0, s=1//2)
+    V3 = Field(c, r=0, s=1)
+    V4 = Field(c, r=0, s=1//2)
     VΔ = Field(c, :Δ, big"0.5", diagonal=true)
 
     co = Correlation(V1, V2, V3, V4, Nmax)
@@ -136,7 +136,7 @@ end
 
     @testset "Regularised blocks" begin
         b = Block(co, :s, V, :left)
-        V12 = Field(c, Kac=true, r=1, s=2)
+        V12 = Field(c, r=1, s=2)
         b2 = Block(coΔ, :t, V12, :left, Nmax)
 
         @test isapprox(
@@ -176,13 +176,13 @@ end
         )
     end
 
-    @testset "Acc. non-log from generic log" begin
-        V1 = Field(c, Kac=true, r=0, s=1)
-        V2 = Field(c, Kac=true, r=0, s=1//2)
-        V3 = Field(c, Kac=true, r=2, s=1//2)
-        V_4(ϵ) = Field(c, Kac=true, r=2, s=3//2 + ϵ)
+    @testset "Accident. non-log from generic log" begin
+        V1 = Field(c, r=0, s=1)
+        V2 = Field(c, r=0, s=1//2)
+        V3 = Field(c, r=2, s=1//2)
+        V_4(ϵ) = Field(c, r=2, s=3//2 + ϵ)
 
-        V = Field(c, Kac=true, r=1, s=12)
+        V = Field(c, r=1, s=12)
 
         corr(ϵ) = Correlation(V1, V2, V3, V_4(ϵ), Nmax)
         ϵ = big"1" // big"10"^20

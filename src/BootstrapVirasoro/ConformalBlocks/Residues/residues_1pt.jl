@@ -21,7 +21,7 @@ function Rmn_zero_order(m, n, D::OneDimension)
     return 0
 end
 
-function Rmn_term_nonzero(r, s, d::FourDimensions)
+function Rmn_term_nonzero(r, s, d::OneDimension)
     B = d[1].c.B
     δ1 = d[1].δ
     return δrs(r, s, B) - δ1 

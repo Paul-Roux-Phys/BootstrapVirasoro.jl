@@ -1,7 +1,16 @@
-using BootstrapVirasoro
-using Test
+using BootstrapVirasoro,
+    Test,
+    Documenter
 
 @testset "BootstrapVirasoro Tests" begin
+
+    DocMeta.setdocmeta!(
+        BootstrapVirasoro,
+        :DocTestSetup,
+        :(using BootstrapVirasoro),
+        recursive=true
+    )
+    Documenter.doctest(BootstrapVirasoro)
 
     @testset "CFTData.jl" begin
         include("cft_data/cft_data_tests.jl")

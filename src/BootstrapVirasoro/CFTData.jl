@@ -11,12 +11,13 @@ Nivesvivat
 export LeftRight,
     CentralCharge,
     ConformalDimension,
-    Field, spin, swap_lr
+    Field, spin, swap_lr,
+    shift
 
-const LeftRight{T} = Tuple{T, T} # left and right pairs of things
+const LeftRight{T} = Tuple{T,T} # left and right pairs of things
 
 function Base.getindex(x::LeftRight, s::Symbol)
-    s === :left  && return x[1]
+    s === :left && return x[1]
     s === :right && return x[2]
     error("tried to access pair element other than 1, 2, :left or :right")
 end
@@ -24,4 +25,3 @@ end
 include("CFTData/central_charges.jl")
 include("CFTData/conformal_dimensions.jl")
 include("CFTData/fields.jl")
-include("CFTData/spectra.jl")

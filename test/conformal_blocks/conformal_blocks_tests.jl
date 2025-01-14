@@ -6,6 +6,6 @@ end
     include("four_point_blocks_tests.jl")
 end
 
-# @testset "OnePointBlocks" begin
-#     include("one_point_blocks_tests.jl")
-# end
+@testset "OnePointBlocks" begin
+    include("one_point_blocks_tests.jl")
+end

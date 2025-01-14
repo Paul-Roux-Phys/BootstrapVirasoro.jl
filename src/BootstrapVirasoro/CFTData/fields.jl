@@ -11,7 +11,7 @@ right conformal dimensions, and Kac indices.
 julia> c = CentralCharge(B = 0.5)
 c = 27.999999999999996 + 0.0im, β = 0.0 - 0.7071067811865476im
 
-julia> V = Field(c, Kac=true, r=0, s=2//3)
+julia> V = Field(c, r=0, s=2//3)
 Non-diagonal Field{ComplexF64}
 left: ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = 2//3
 right: ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = -2//3
@@ -45,8 +45,13 @@ struct Field{T}
 end
 
 """
+```julia
     Field(charge, parameter = value; kwargs)
-    Field(charge, Kac = true, r = r, s = s)
+    Field(charge, r = r, s = s)
+    Field((dim_left, dim_right))
+    Field(dim_left, dim_right)
+    Field(dim) # diagonal field
+```
 
 Constructor function for the Field type.
 
@@ -57,10 +62,8 @@ parametrisation.
 
 # keyword arguments:
 
-- `Kac::Bool`: if set to true, the field can be constructed from the values of its r and s
-indices. By convention ``V_(r,s)`` has left and right momenta ``(P_(r,s), P_(r,-s))``.
 - `r::Rational`,`s::Rational`: used in conjunction to `Kac=true`, must be given rational
-values,
+values. By convention ``V_(r,s)`` has left and right momenta ``(P_(r,s), P_(r,-s))``.
 - `diagonal::Bool`: set to `true` to get a diagonal field;
 
 # Examples
@@ -69,7 +72,7 @@ julia> setprecision(BigFloat, 20, base=10);
 
 julia> c = CentralCharge(β = big"0.5");
 
-julia> V = Field(c, Kac=true, r=0, s=1)
+julia> V = Field(c, r=0, s=1)
 Non-diagonal Field{Complex{BigFloat}}
 left: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = 1
 right: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = -1
@@ -87,7 +90,7 @@ julia> V2 = Field(c, :P, 0.42, diagonal=true)
 Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with
 Δ = -0.3861000000000000130545 + 0.0im, P = 0.4199999999999999844569
 
-julia> V3 = Field(c, Kac=true, degenerate=true, r=4, s=3//4)
+julia> V3 = Field(c, degenerate=true, r=4, s=3//4)
 Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with Kac indices r = 4//1, s = 3//4
 ```
 """
@@ -95,23 +98,25 @@ function Field(
     c::CentralCharge{T},
     sym::Symbol,
     dim;
-    Kac=false, r=0, s=0,
+    r=missing, s=missing,
     degenerate=false, diagonal=false
 ) where {T}
     if degenerate # degenerate fields are diagonal and must be given from Kac indices
-        @assert Kac == true "A degenerate field must be given from Kac indices."
+        @assert (r !== missing && s !== missing) "
+            A degenerate field must be given from Kac indices.
+        "
         diagonal = true
     end
-    dim_left = ConformalDimension(c, sym, dim, Kac=Kac, r=r, s=s)
+    dim_left = ConformalDimension(c, sym, dim, r=r, s=s)
     if diagonal
         dim_right = dim_left
     else
-        @assert Kac == true """
-          A non-diagonal field must be given from Kac indices.
-          If you mean to define a diagonal field, use `diagonal=true`.
-        """
-        r*s % 1 != 0 && @warn "You defined a field with non-integer r*s, is that intentional?"
-        dim_right = ConformalDimension(c, sym, dim_left, Kac=Kac, r=r, s=-s)
+        @assert (r !== missing && s !== missing) "
+            A non-diagonal field must be given from Kac indices.
+            If you mean to define a diagonal field, use `diagonal=true`.
+        "
+        r*s % 1 != 0 && @info "You defined a field with non-integer r*s, is that intentional?"
+        dim_right = ConformalDimension(c, sym, dim_left, r=r, s=-s)
     end
 
     Field{T}(LeftRight((dim_left, dim_right)), diagonal, degenerate)
@@ -119,16 +124,17 @@ end
 
 function Field(
     c::CentralCharge;
-    Kac=missing, r=missing, s=missing,
+    r=missing, s=missing,
     diagonal=false, degenerate=false,
     Δ=missing, δ=missing, P=missing, p=missing
 )
-    Kac !== missing && return Field(c, :Δ, 0, Kac=Kac, r=r, s=s, degenerate=degenerate, diagonal=diagonal)
+    r !== missing && s !== missing &&
+        return Field(c, :Δ, 0, r=r, s=s, degenerate=degenerate, diagonal=diagonal)
     Δ !== missing && return Field(c, :Δ, Δ, diagonal=true)
     δ !== missing && return Field(c, :δ, δ, diagonal=true)
     P !== missing && return Field(c, :P, P, diagonal=true)
     p !== missing && return Field(c, :p, p, diagonal=true)
-    return Field(c, :Δ, 0, Kac=true, r=1, s=1)
+    return Field(c, :Δ, 0, r=1, s=1, diagonal=true)
 end
 
 Field() = Field(CentralCharge())
@@ -144,6 +150,7 @@ function Field(ds::LeftRight{ConformalDimension})
     return Field(ds, diagonal, degenerate)
 end
 Field(d_left::ConformalDimension, d_right::ConformalDimension) = Field((d_left, d_right))
+Field(d::ConformalDimension) = Field(d, d)
 
 function Base.getproperty(V::Field, s::Symbol)
     ds = getfield(V, :dims)
@@ -154,11 +161,9 @@ function Base.getproperty(V::Field, s::Symbol)
     s === :δ && return LeftRight((ds[:left].δ, ds[:right].δ))
     s in (:r, :s) && return getfield(ds[:left], s) # by convention V_(r,s) denotes the field
                                              # with left right dimension P_(r, s), P_(r, -s)
-    s === :isKac && return (
-        V.dims[:left].isKac && V.dims[:right].isKac && 
-        V.dims[:left].r == V.dims[:left].r && V.dims[:left].s == -V.dims[:right].s
-    )
+    s === :isKac && return (V.dims[:left].isKac && V.dims[:right].isKac)
     s === :indices && return ds[:left].indices
+    getfield(V, :isdiagonal) && s === :dim && return ds[:left]
 
     return getfield(V, s)
 end
@@ -194,5 +199,13 @@ function Base.show(io::IO, V::Field)
         show(io, V.dims[:left])
         print(io, "\nright: ")
         show(io, V.dims[:right])
+    end
+end
+
+function shift(V::Field, s_shift)
+    if V.isdiagonal
+        Field(V.dim)
+    else
+        Field(shift(V.dims[:left], s_shift), shift(V.dims[:right], -s_shift))
     end
 end

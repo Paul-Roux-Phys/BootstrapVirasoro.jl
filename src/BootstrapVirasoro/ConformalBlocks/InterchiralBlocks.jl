@@ -1,12 +1,3 @@
-function shift(V::Field, k=1)
-    if V.r != 0 # the field is non-diagonal => shift s
-        return Field(V.c, Kac=true, r=V.r, s=V.s+k)
-    else # the field is diagonal => shift P
-        P = V.P[:left]
-        return Field(V.c, P=P+k/β, diagonal=true)
-    end
-end
-
 # ratio C_{r, s-1}/C_{r, s+1}
 function shift_C(V1, V2, r, s)
     β = V1.c.β
@@ -38,15 +29,36 @@ end
 shift_D(Vs::FourFields, r, s) =
     shift_C(Vs[1], Vs[2], r, s)*shift_C(Vs[3], Vs[4], r, s) / shift_B(r, s)
 
-struct BlockBulkInterchiral{T} <: Block{T}
+struct BlockInterchiralNonChiral{T} <: Block{T}
 
-    r::Rational
-    s::Number
     blocks::Vector{BlockNonChiral{T}}
 
 end
 
-function evaluate(b::BlockBulkInterchiral, x)
+function BlockInterchiralNonChiral(
+    c::CorrelationNonChiral{T}, chan, V::Field, Δmax
+) where {T}
+    fields = []
+    k = 0
+    while minimum(abs(shift(V, k).dims[lr].Δ) for lr in (:left, :right)) <= abs(Δmax.Δ) ||
+          minimum(abs(shift(V, -k).dims[lr].Δ) for lr in (:left, :right)) <= abs(Δmax.Δ)
+        push!(fields, shift(V, k))
+        push!(fields, shift(V, -k))
+        k += 2
+    end
+    blocks = [
+        Block(c, chan, V, Δmax) 
+        for V in fields if abs(V.dims[:left].Δ + V.dims[:right].Δ) <= abs(Δmax.Δ)
+    ]
+    BlockInterchiralNonChiral{T}(blocks)
+end
+
+function Base.getproperty(b::BlockInterchiralNonChiral, s::Symbol)
+    s === :fields && return [block.channel_field for block in b.blocks]
+    getfield(b, s)
+end
+
+function evaluate(b::BlockInterchiralNonChiral, x)
     r0, s0 = b.r, b.s
     res = 0
     for f in b.blocks
@@ -56,5 +68,12 @@ function evaluate(b::BlockBulkInterchiral, x)
             inv(shift_D(f.fields, r0, s0+i+1))
             for i in 0:2:n-2
         ) * evaluate(f, x)
+    end
+end
+
+function Base.show(io::IO, b::BlockInterchiralNonChiral)
+    println(io, "Non chiral interchiral block with channel fields")
+    for V in b.fields
+        println(io, V)
     end
 end

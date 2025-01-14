@@ -1,7 +1,5 @@
 #+title: BootstrapVirasoro Documentation
 #+author: Paul ROUX
-#+setupfile: /Users/Paul/.doom.d/setupfiles/org-html-themes/org/theme-readtheorg-local.setup
-#+setupfile: ~/.doom.d/setupfiles/org-basic-latex-export.org
 #+options: toc:3 num:2
 #+property: header_args: :eval never-export
 #+startup: folded

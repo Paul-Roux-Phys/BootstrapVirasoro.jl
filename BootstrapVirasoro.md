@@ -66,92 +66,91 @@ of special functions.
 
 The digamma function is defined for as
 
-\begin{align}
+$$\begin{align}
   \psi(z) = \frac{\Gamma'(z)}{\Gamma(z)}
-\end{align}
+\end{align}$$
 
 The function $\psi$ has poles at negative integers. We regularise the
 digamma function thanks to the equation
 
-\begin{align}
+$$\begin{align}
   \psi(1-x) - \psi(x) = \pi \operatorname{cot}(\pi x)
-\end{align}
+\end{align}$$
 
 which means we use the regularization
 
-\begin{align}
+$$\begin{align}
   \psi(-r) \underset{r\in\mathbb{N}}{=} \psi(r+1)
-\end{align}
+\end{align}$$
 
 ### Barne\'s G-function and the double Gamma function
 
 We need to compute the double Gamma function defined by the relations
 
-\begin{align}
+$$\begin{align}
  \Gamma_{\beta}= \Gamma_{\beta^{-1}}, \quad, \Gamma_{\beta}\left( \frac{\beta + \beta^{-1}}{2} \right) = 1, \quad \Gamma_{\beta}(w + \beta) = \sqrt{2\pi} \frac{\beta^{\beta w-\frac{1}{2}}}{\Gamma(\beta w)} \Gamma_{\beta}(w)
-\end{align}
+\end{align}$$
 
 (see [wikipedia
 article](https://en.wikipedia.org/wiki/Multiple_gamma_function)).
 
 It also obeys
 
-\begin{align}
+$$\begin{align}
   \Gamma_{\beta}(w+\beta^{-1}) = \sqrt{2\pi} \frac{\beta^{-\beta^{-1}w+\frac12}}{\Gamma(\beta^{-1}w)} \Gamma_{\beta}(w).
-\end{align}
+\end{align}$$
 
 For computing $\Gamma_\beta$ it is convenient to use its relation to the
 Barne\'s $G$ -function (see [wikipedia
 article](https://en.wikipedia.org/wiki/Barnes_G-function)), which is
 related to $\Gamma_\beta$ as
 
-\begin{align}
+$$\begin{align}
 \Gamma_\beta(w) = \frac{\Gamma_2(w|\beta,\beta^{-1})}{\Gamma_2\left(\frac{\beta+\beta^{-1}}{2}\middle|\beta,\beta^{-1}\right)} \quad , \quad
  \Gamma_2(w|\beta,\beta^{-1})=(2\pi)^{\frac{w}{2\beta}} \beta^{\frac{w}{2}(w-\beta-\beta^{-1})+1} G(\beta^{-1}w,\beta^{-2})^{-1}
-\end{align}
+\end{align}$$
 
 According to the theorem 1 in
 [arXiv:2208.13876](https://arxiv.org/abs/2208.13876), the $G$ function
 has the following product representation
 
-\begin{align}
+$$\begin{align}
   G(z, \tau) = G_{N}(z, \tau) \exp\left(z^{3} R_{M,N}(z,\tau) + O(N^{-M-1})\right)
-\end{align}
+\end{align}$$
 
 where $G_N$ is defined in terms of Gamma and polygamma functions,
 
-\begin{align}\label{eq:Barnes_{GN}}
+$$\begin{align}
  G_N(z,\tau) = \frac{1}{\tau\Gamma(z)} e^{a(\tau) \frac{z}{\tau}+b(\tau)\frac{z^2}{2\tau^2}}
  \prod_{m=1}^N \frac{\Gamma(m\tau)}{\Gamma(z+m\tau)}e^{z\psi(m\tau)+\frac{z^2}{2}\psi'(m\tau)}
-\end{align}
+\end{align}$$
 
 while $R_{M, N}$ is a linear combination of certain polynomials $P_k$,
 
-\begin{align}
+$$\begin{align}
 R_{M, N}(z,\tau) = \sum_{k=1}^M (k-1)!(-\tau)^{-k-1}P_k(z, -\tau) N^{-k}
-\end{align}
+\end{align}$$
 
 where the polynomials are defined recursively by $P_1(z,\tau)=\frac16$,
 and
 
-\begin{align}
+$$\begin{align}
 P_n(z,\tau) = \frac{z^{n-1}}{(n+2)!}-\frac{1}{\tau}\sum_{k=1}^{n-1} \frac{(1+\tau)^{k+2}-1-\tau^{k+2}}{(k+2)!} P_{n-k}(z,\tau)
-\end{align}
+\end{align}$$
 
 It remains to define the coefficients
 
-\begin{align}
+$$\begin{align}
 a(\tau) = \tfrac12\tau\log(2\pi\tau) +\tfrac12\log(\tau) -\tau C(\tau) \quad , \quad b(\tau) =-\tau\log(\tau) -\tau^2D(\tau)
-\end{align}
+\end{align}$$
 
 where the modular forms $C(\tau),D(\tau)$ are
 
-\begin{align}\label{eq:modularC}
+$$\begin{align}
 C(\tau) &= \frac{1}{2\tau}\log(2\pi) -\int_0^\infty dx\left[ \frac{e^{(1-\tau)x}}{2\sinh(x)\sinh(\tau x)}- \frac{e^{-2x}}{\tau x}\left(\frac{e^{x}}{2\sinh(x)}+1-\frac{\tau}{2}\right)\right]
 \\
-\label{eq:modularD}
 D(\tau) &= \int_0^\infty dx\left[ \frac{x e^{(1-\tau)x}}{\sinh(x)\sinh(\tau x)} - \frac{e^{-2x}}{\tau x}\right]
-\end{align}
+\end{align}$$
 
 (We rewrite denominators in terms of $\sinh$ in order to minimize
 numerical errors.)
@@ -159,17 +158,17 @@ numerical errors.)
 For numerical evaluation of these integrals, it is useful to know the
 expansion of their integrands as $x\to 0$:
 
-\begin{align}
+$$\begin{align}
 C(x, \tau) = \frac{2}{\tau} - \frac32 + \frac{\tau}{6} + \left(\frac56 - \frac{2}{\tau} + \frac{\tau}{6}\right)x  + \left( \frac4{3\tau} - \frac23 + \frac1{18}\tau - \frac{1}{90}\tau^{3}\right) x^{2}\quad , \quad D_0 = \frac{3}{\tau}-1
-\end{align}
+\end{align}$$
 
 The error is of order $\left(\frac{eN}{M}\right)^{-M}$, and the
 computation time of order $N+ M^2$. To minimize computation time while
 keeping the error of order $10^{-d}$, we take values of the type
 
-\begin{align}
+$$\begin{align}
 N = 20M, \quad M = \frac{\log(10)}{\alpha\log(20)}d
-\end{align}
+\end{align}$$
 
 where $\alpha$ is a parameter for reducing $M$, which otherwise is too
 high in practice. Up to logarithmic factors, the computation time is of
@@ -187,17 +186,17 @@ $$ \mathcal G(x) = \langle V_{1}(x) V_{2}(0) V_{3}(\infty) V_{4}(1) \rangle $$
 Four-point correlation functions can be written in terms of Virasoro
 blocks as
 
-\begin{align}
-  \mathcal G(x) = \sum_{k \in \mathcal S} \frac{C_{12k} C_{k34}}{B_{k}} \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\end{align}
+$$\begin{align}
+  \mathcal G(x) = \sum_{k \in \mathcal S} \frac{C_{12k} C_{k34}}{B_{k}} \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)\end{align}$$
 
 We call
 $\mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z)$ a
 non-chiral conformal block. In the case of a non-logarithmic theory,
 conformal blocks factorise as
 
-\begin{align}
+$$\begin{align}
   \mathcal G_{\Delta_k}^{(s)}(c |\Delta_{1}, \dots, \Delta_{4}|z) = \left| \mathcal F^{(s)}_{\Delta_{k}}(c | \Delta_{1}, \dots, \Delta_{4} | z) \right|^{2}
-\end{align}
+\end{align}$$
 
 where we have introduced the notation
 $\left|\mathcal F(\Delta, z)\right|^2 = \mathcal{F}(\Delta, z) \mathcal{F}(\bar\Delta, \bar z)$,
@@ -208,19 +207,19 @@ The coefficients $C_{ijk}$ are the three-point structure constants.
 
 Conformal blocks are characterized by the normalization conditions
 
-\begin{align}
+$$\begin{align}
  \mathcal{G}^{(s)}_\Delta(x) & \underset{x\to 0}{=} \left| x^{\Delta-\Delta_1-\Delta_2}\right|^2 \left(1+O(x)\right)
  \\
  \mathcal{G}^{(t)}_\Delta(x) & \underset{x\to 1}{=} \left|(1-x)^{\Delta-\Delta_1-\Delta_4}\right|^2 \left(1+O(1-x)\right)
  \\
  \mathcal{G}^{(u)}_\Delta(x) & \underset{x\to \infty}{=} \left|\left(\frac{1}{x}\right)^{\Delta+\Delta_1-\Delta_3} \right|^2\left(1+O\left(\frac{1}{x}\right)\right)
-\end{align}
+\end{align}$$
 
 Together with the invariance of
 $\left\langle \prod_{i=1}^4 V_{\Delta_i}(z_i) \right\rangle$ under
 permutations, this leads to the relations
 
-\begin{align}
+$$\begin{align}
 \mathcal{G}^{(t)}_{\Delta}(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
 &= (-1)^{S_1+S_2+S_3+S_4}
 \mathcal{G}^{(s)}_{\Delta}(\Delta_1,\Delta_4,\Delta_3,\Delta_2|1-x)
@@ -228,7 +227,7 @@ permutations, this leads to the relations
 \mathcal{G}^{(u)}_\Delta(\Delta_1,\Delta_2,\Delta_3,\Delta_4|x)
 &= (-1)^{S_1+S_2+S_3+S_4}
 \left|x^{-2\Delta_1}\right|^2 \mathcal{G}^{(s)}_\Delta(\Delta_1,\Delta_3,\Delta_2,\Delta_4|\tfrac{1}{x})
-\end{align}
+\end{align}$$
 
 where $S=\Delta-\bar\Delta$ is the conformal spin, which we assume to be
 integer.
@@ -256,11 +255,10 @@ function.
 
 In terms of these variables, our chiral $s$-channel conformal block is
 
-\begin{align}
-\label{eq:chiral_block}
+$$\begin{align}
 \mathcal{F}^{(s)}_{\delta}(c | \Delta_{1}, \dots, \Delta_{4} | x) =  x^{E_0} (1-x)^{E_1} \theta_3(q)^{-4E_2}
 (16q)^{\delta} H_{\delta}(c | \Delta_{1},\dots, \Delta_{4} | q)
-\end{align}
+\end{align}$$
 
 where we use the exponents
 
@@ -283,26 +281,23 @@ $$
 
 And the coefficients $R_{m,n}$ can be written
 
-\begin{align}
+$$\begin{align}
  R_{m,n} = \frac{1}{2}\frac{1}{D_{mn}}
 \prod_{r\overset{2}{=} 1-m}^{m-1}
 \prod_{s\overset{2}{=}1-n}^{n-1}
 &\sqrt{(\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2}\nonumber\\
 &\sqrt{(\delta_3-\delta_4)^2 -2\delta_{(r,s)}(\delta_3+\delta_4) + \delta_{(r,s)}^2}
-\end{align}
+\end{align}$$
 
 We do not actually take square roots, because each factor appears twice,
 except the $(r,s)=(0,0)$ factor which is however a perfect square. The
 normalization factor is
 
-```{=org}
-#+name: Dmn
-```
-\begin{equation}
+$$\begin{equation}
 D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
 \prod_{s=1}^{n-1} \frac{s^2}{B}\left(\frac{s^2}{B} - m^2B\right)
 \prod_{r=1}^{m-1} \prod_{s=1}^{n-1} \left(r^2B -\frac{s^2}{B} \right)^2.
-\end{equation}
+\end{equation}$$
 
 ## One point functions on the torus
 
@@ -310,17 +305,17 @@ D_{m,n} = mn \prod_{r=1}^{m-1} r^2B \left(r^2B - \frac{n^2}{B}\right)
 
 A one-point function on the torus can be written
 
-\begin{align}
+$$\begin{align}
  \mathcal G(x) = <V_{\Delta_1}(x)> = \operatorname{Tr} (q^{L_0-\frac{c}{24}} \bar q^{\bar L_{0}-\frac{c}{24}} V_{\Delta_{1}}(x))
-\end{align}
+\end{align}$$
 
 Because of translation invariance, one-point functions on the torus do
 not depend on the field\'s position. The trace can be written as
 
-\begin{align}
+$$\begin{align}
   \mathcal G(x) &= \sum_{V_{\Delta} \in \mathcal S} < V_{\sigma} | V_{\Delta_{1}}(x) |V_{\sigma}> \\
                    &= \sum_{V_{\Delta} \in \mathcal S} \frac{C_{\Delta \Delta \Delta_{1}}}{B_{\Delta}} \mathcal G_{\Delta} (\tau, c, \Delta_{1} | x)
-\end{align}
+\end{align}$$
 
 The conformal block $\mathcal G_\Delta(\tau, c, \Delta_1|x)$ factorises
 for non-logarithmic theories, and we write
@@ -332,26 +327,23 @@ chiral block.
 Like four-point blocks, torus one-point blocks can be computed
 recursively. We introduce $H$ defined by
 
-\begin{align}
+$$\begin{align}
   \mathcal F_{\Delta}(\tau, c, \Delta_{1} | x) = \frac{q^{\delta}}{\eta(q)} H^{\text{torus}}_{\Delta}(\tau, c, \Delta_{1} | q),
-\end{align}
+\end{align}$$
 
 where $q=e^{2i\pi \tau}$. The recursion formula for
 $H^{\text{torus}}_{\Delta}(\tau, c, \Delta_{1} | q)$ is
 
-\begin{align}
+$$\begin{align}
   H_{\Delta}^{\text{torus}} (\tau, c, \Delta_{1} | q) = 1 + \sum_{N=1}^{N_{\text{max}}}\sum C^{N, \text{torus}}_{m,n} \frac{q^N}{\delta - \delta_{(m,n)}}
-\end{align}
+\end{align}$$
 
 The coefficients $C_{m,n}^{N,\text{torus}}$ have the recursive
 representation
 
-```{=org}
-#+name: CNmn-torus
-```
-\begin{equation}
+$$\begin{equation}
 C^{N,\text{torus}}_{m,n} = R^{\text{torus}}_{m,n}\left(\delta_{N-mn,0} + \sum_{m'n'\leq N-mn} \frac{C^{N-mn}_{m',n'}}{\delta_{(m,-n)}-\delta_{(m',n')}} \right)
-\end{equation}
+\end{equation}$$
 
 An expression for the $R_{m,n}^{\text{torus}}$ can be found on [this
 wikipedia
@@ -364,7 +356,7 @@ $$
 
 where we do not actually take square roots, because each factor appears
 twice. The normalization factor is the same $D_{m,n}$ as in the
-[*four-point*]{.spurious-link target="Dmn"} case ref:Dmn
+four-point case.
 
 ## Logarithmic blocks
 
@@ -377,9 +369,6 @@ In loop models the action of $L_0$ is not diagonalisable, said otherwise
 some of the modules are logarithmic. The structure of a logarithmic
 module $\mathcal W^\kappa_{(r,s)}$ is the following:
 
-```{=org}
-#+attr_org: :width 650
-```
 ![](./imgs/logarithmic_module.png)
 
 $\mathcal L V_{(r,s)}$ and $\bar{\mathcal L} V_{(r,s)}$ are non-diagonal
@@ -387,15 +376,15 @@ primary fields. The parameter $\kappa$ is fixed in the presence of
 $V^d_{\langle1,2\rangle}$, in which case the logarithmic module is
 generated by
 
-\begin{align}
+$$\begin{align}
   W^{-}_{(r,s)} = \partial_{P} V_{P_{(r,-s)}} - \mathcal{L}_{(r,s)} \bar{\mathcal{L}}_{(r,s)} \partial_{P} V_{P_{(r,s)}}
-\end{align}
+\end{align}$$
 
 This is the necessary condition for the OPE
 
-\begin{align}
+$$\begin{align}
   V^{d}_{\langle 1,s_{0}\rangle} V_{P_{(r,0)}+\epsilon}
-\end{align}
+\end{align}$$
 
 to be finite.
 
@@ -404,9 +393,9 @@ to be finite.
 The expression of logarithmic four-point blocks on the sphere can be
 found by assuming the holomorphicity of the 4-point function
 
-\begin{align}
+$$\begin{align}
  Z(P) = \sum_{k\in\mathbb{Z}} D_{P+k\beta^{-1}} \left|\mathcal{F}_{P+k\beta^{-1}}\right|^2 +\sum_{r=1}^\infty \sum_{s\in\frac{1}{r}\mathbb{Z}} D_{(r,s)}(P) \mathcal{G}_{(r,s)}\ .
-\end{align}
+\end{align}$$
 
 (argument made by Sylvain in the
 [solvable.pdf](~/Documents/Cours suivis/Sylvain CFT review/CFT-Review/solvable.pdf)
@@ -415,62 +404,62 @@ file on [GitHub](https://github.com/ribault/CFT-Review)).
 The coefficient $D_P$ has a double pole at $P_{(r,-s)}$. The blocks
 $\mathcal F_{P}$ have a simple pole at $P_{(r,s)}$, and we write
 
-\begin{align}
+$$\begin{align}
   \mathcal{F}_{P} = \frac{R_{r,s}}{P-P_{(r,s)}} \mathcal{F}_{P_{(r,-s)}} + \mathcal{F}^{\text{reg}}_{P_{(r,s)}} + O(P-P_{(r,s)}).
-\end{align}
+\end{align}$$
 
 Explicitly, using Zamolodchikov\'s recursion, $\mathcal F^{\text{reg}}$
 is written as
 
-\begin{align}
+$$\begin{align}
   \mathcal{F}^{\text{reg}}_{P_{(r,s)}} = (\text{prefactor}) H^{\text{reg}}_{P_{(r,s)}},
-\end{align}
+\end{align}$$
 
 where the prefactor is the prefactor in Zamolodchikov\'s recursion, and
 
-\begin{align}
+$$\begin{align}
   H^{\text{reg}}_{P_{(r,s)}} = 1 + \sum_{m,n} \left( \frac{1}{P^{2}_{(r,s)} - P^{2}_{(m,n)}} \right)^{\text{reg}} (16q)^{mn} R_{m,n} H_{P_{(m,-n)}}
-\end{align}
+\end{align}$$
 
 and
 
-\begin{align}
+$$\begin{align}
 \left(  \frac{(16q)^{P^{2}}}{P^{2}_{(r,s)} - P^{2}_{(m,n)}} \right)^{\text{reg}} =
 (16q)^{P^{2}} \times
 \begin{cases}
 \log 16q - \frac{1}{4P_{(r,s)}^{2}} \text{  if  } (m,n)=(r,s) \\
 \frac{1}{P^{2}_{(r,s)} - P^{2}_{(m,n)}}  \text{  otherwise}
 \end{cases}.
-\end{align}
+\end{align}$$
 
 Analysing the poles of this expression (there are double poles and
 simple ones), one arrives at the following expression for the
 logarithmic blocks: for $(r, s) \in \mathbb{N}^{*}$,
 
-\begin{align}\label{eq:log_block}
+$$\begin{align}
 \mathcal{G}_{(r,s)} = (\mathcal{F}_{P_{(r,s)}}^{\text{reg}} - R_{r,s}& \mathcal{F}^{'}_{P_{(r,-s)}}) \bar{\mathcal{F}}_{P_{(r,-s)}} + \frac{R_{r,s}}{\bar R_{r,s}} \mathcal{F}_{P_{(r,-s)}} (\bar{\mathcal{F}}_{P_{(r,s)}}^{\text{reg}} - \bar{R}_{r,s} \bar{\mathcal{F}}^{'}_{P_{(r,-s)}})\nonumber \\
 & +R_{r,s} \underbrace{\left( \frac{D^{'}_{P_{(r,s)}}}{D_{P_{(r,s)}}} - \lim_{P \to P_{(r,-s)}} \left[ \frac{2}{P-P_{(r,-s)}} + \frac{D_{P}^{'}}{D_{P}} \right] \right)}_{-\ell^{(1)-}_{(r,s)}}\left|\mathcal{F}_{P_{(r,-s)}}\right|^{2},
-\end{align}
+\end{align}$$
 
 see Liouville theory at central charge less than 1 ref \[13\].
 
 in which the primes denote derivatives with respect to the momentum $P$.
 The derivative of the block is
 
-\begin{align}
+$$\begin{align}
   \mathcal{F}_{P_{(r,-s)}}^{'} = (\text{prefactor}) H^{\text{der}}_{P_{(r,-s)}}, \quad \text{where} \quad H^{\text{der}}_{P} = 2P\log(16q) H_{P} + H_{P}^{'}.
-\end{align}
+\end{align}$$
 
 The term $\ell^{(1)-}_{(r,s)}$ can be computed as the order 1 term in
 the Taylor expansion of
 
-\begin{align}
+$$\begin{align}
   \log \left( \epsilon^{2} \frac{D_{P_{(r,-s)}+\epsilon}}{D_{P_{(r,s)+\epsilon}}} \right) = \sum_{n\geq 0} \ell^{(n)-}_{(r,s)} \epsilon^{n}.
-\end{align}
+\end{align}$$
 
 Explicitly,
 
-\begin{align}
+$$\begin{align}
  \beta\ell^{(1)-}_{(r,s)} = 4\sum_{j=1-s}^s &\Big\{ \psi(-2\beta^{-1}P_{(r,j)}) +\psi(2\beta^{-1}P_{( r,-j)}) \Big\}
  -4\pi \cot(\pi s \beta^{-2})
  \\
@@ -483,7 +472,7 @@ Explicitly,
  \psi\left(\tfrac12-\beta^{-1}(P_{( r,j)}\pm P_3\pm P_4)\right)
  + \psi\left(\tfrac12+\beta^{-1}(P_{( r,j)}\pm \bar P_3\pm \bar P_4)\right)
  \Big\}
-\end{align}
+\end{align}$$
 
 For $(r, s) \in \mathbb{N}^{*}$, $\mathcal G_{(r,s)}$ can actually be
 non-logarithmic, due to residues $R_{(r,s)}$ and $\bar R_{(r,s)}$
@@ -497,21 +486,21 @@ particular, the [expression](ref:eq:log_block) of the logarithmic block
 is also valid for the torus one-point block, if we replace $D_P$ by the
 corresponding structure constant on the torus, namely
 
-\begin{align}
+$$\begin{align}
   D_{P} \to \frac{C^{\text{ref}}_{P,P, P_1}}{B_{P}}
-\end{align}
+\end{align}$$
 
 where $P_1$ is the momentum of the external field.
 
-## Relation between sphere four-point blocks and torus one-point blocks {#relation-between-sphere-four-point-blocks-and-torus-one-point-blocks header-args:julia=":session test"}
+## Relation between sphere four-point blocks and torus one-point blocks
 
 The recursion formulas for torus one-point blocks and sphere four-point
 blocks imply that four point blocks on the sphere are related to
 one-point blocks on the torus through the relation
 
-\begin{align}
+$$\begin{align}
 H^{\text{torus}}_{P}(\tau, c | P_{1} | q^{2}) = H_{\sqrt{2}P}\left(c' \left|\left. P_{(0,\frac12)}, \frac{P_{1}}{\sqrt{2}}, P_{(0,\frac12)}, P_{(0,\frac12)} \right.\right| q \right)
-\end{align}
+\end{align}$$
 
 where
 
@@ -520,7 +509,7 @@ where
 
 Our code successfully reproduces this relation:
 
-``` {.julia results="silent"}
+``` julia
 import Pkg; Pkg.activate(".")
 using BootstrapVirasoro, BenchmarkTools, EllipticFunctions
 import BootstrapVirasoro.FourPointBlocksSphere.qfromx
@@ -556,7 +545,7 @@ h1 = BootstrapVirasoro.OnePointBlocksTorus.H(q^2, 5, block_torus, corr_torus, le
 h2 = BootstrapVirasoro.FourPointBlocksSphere.H(q, 5, block_sphere, corr_sphere, left)
 ```
 
-``` {.julia results="output raw"}
+``` julia
 println("torus block = $h1")
 println("sphere block = $h2")
 ```
@@ -1305,10 +1294,10 @@ channel field\'s dimension is shifted by $\epsilon$.
 
 This is given by (some expression)
 
-\begin{align}
+$$\begin{align}
 &\left(\delta_2-\delta_1\right)_\text{reg} = 2p_2 \\
 &\left((\delta_2-\delta_1)^2 -2\delta_{(r,s)}(\delta_1+\delta_2) + \delta_{(r,s)}^2\right)_\text{reg} = 8p_1p_2p_{(r,s)}
-\end{align}
+\end{align}$$
 
 ``` julia
 double_prod_in_Dmn(m, n, B) = prod(prod((r^2*B - s^2/B)^2 for s in 1:n-1) for r in 1:m-1)
@@ -1698,15 +1687,15 @@ end
 
 The nome $q$ is related to $x$ via
 
-\begin{align}
+$$\begin{align}
 q(x) = \exp(-\pi \frac{K(1-x)}{K(x)})
-\end{align}
+\end{align}$$
 
 where $K$ is the elliptic $K$ function. The inverse of this relation is
 
-\begin{align}
+$$\begin{align}
 x(q) = \left(\frac{\theta_{4}(q)}{\theta_{3}(q)}\right)^{2}
-\end{align}
+\end{align}$$
 
 ``` julia
 #===========================================================================================
@@ -1837,9 +1826,9 @@ end
 
 We compute $H^{\text{der}}_{P}$ as
 
-\begin{align}
+$$\begin{align}
 H_{P}^{\text{der}} &= 2P\log(16q) H_{P} + H_{P}'
-\end{align}
+\end{align}$$
 
 ``` julia
 #===========================================================================================

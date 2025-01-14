@@ -1,5 +1,5 @@
 series_argument(x, V::Union{FourFields, FourDimensions}) = 16*qfromx(x)
-series_argument(x, V::Union{OneField, OneDimension}) = exp(im*oftype(x, π)*x)
+series_argument(τ, V::Union{OneField, OneDimension}) = exp(2*im*oftype(τ, π)*τ)
 series_argument(x, b::BlockChiral) = series_argument(x, b.corr.dims)
 series_argument(x, b::BlockNonChiral) = series_argument(x, b.corr.fields)
 
@@ -17,13 +17,17 @@ function evaluate(b::BlockChiral, x; der=false)
     c = b.corr
     y = get_position(x, c.dims, b)
     q = series_argument(y, b)
+
+    
     d = b.channel_dimension
     p = blockprefactor_chiral(c.dims, b, y)
     h = evaluate_series(b, q)
 
+    println("q used: $q")
+    println("series value: $h")
+    
     # add the q-dependent parts
     if der
-        P = d.P
         hprime = evaluate_series(b, q, der=true)
         h = muladd(h, 2*d.P*log(q), hprime) # H_der = 2*P*log(q or 16q)*H + H'
     elseif d.isKac && d.r%1 == d.s%1 == 0 && d.r > 0 && d.s > 0
@@ -52,7 +56,7 @@ function evaluate(b::BlockNonChiral, x)
     else
         V      = b.channel_field
         r, s   = V.indices
-        Pp = ConformalDimension(V.c, Kac=true, r=r, s=s).P
+        Pp = ConformalDimension(V.c, r=r, s=s).P
         βm1Prs = (r+s/V.c.B)/2
         b_op   = Block(b.corr, b.channel, swap_lr(b.channel_field), b.Nmax)
         if s < 0

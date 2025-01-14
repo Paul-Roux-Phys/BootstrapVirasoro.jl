@@ -7,7 +7,11 @@ xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
 #===========================================================================================
 Get t- and u- channel blocks from s-channel block
 ===========================================================================================#
-"""Prefactor to get t- or u-channel blocks from the s-channel block"""
+"""
+    channelprefactor_chiral(d::FourDimensions, b, x)
+
+Prefactor to get t- or u-channel blocks from the s-channel block
+"""
 function channelprefactor_chiral(d::FourDimensions, b, x)
     b.channel === :u && return x^(2*d[1].Δ)
     return 1
@@ -34,6 +38,8 @@ end
 Block prefactor
 ===========================================================================================#
 """
+    blockprefactor_chiral(d::FourDimensions, b::BlockChiral, x)
+
 Prefactor for getting the chiral block F from H. 
 The argument `lr` indicates if we are working with a left or right moving block
 """

@@ -14,5 +14,7 @@ using Base.Threads
 # These files also document the exported methods
 include("BootstrapVirasoro/CFTData.jl")
 include("BootstrapVirasoro/ConformalBlocks.jl")
+include("BootstrapVirasoro/spectra.jl")
+include("BootstrapVirasoro/bootstrap_equations.jl")
 
 end
