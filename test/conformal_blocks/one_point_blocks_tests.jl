@@ -1,62 +1,163 @@
 using BootstrapVirasoro: series_argument
-@testset "Relation to sphere four-point blocks" begin
-    c_t = CentralCharge(β=1.2 + 0.1 * 1im)
-    c_s = CentralCharge(β=c_t.β / sqrt(2))
 
-    V_t = ConformalDimension(c_t, P=0.53 + 0.11im)
-    V1_t = ConformalDimension(c_t, P=0.71 + 1.03im)
-    d = (V1_t,)
+c = CentralCharge(β=big"1.2" + big"0.1" * 1im)
+c_s = CentralCharge(β=c.β / sqrt(big(2)))
 
-    V_s = ConformalDimension(c_s, P=sqrt(2) * V_t.P)
-    V1_s = ConformalDimension(c_s, P=V1_t.P / sqrt(2))
-    V_kac = ConformalDimension(c_s, r=0, s=1 // 2)
-    ds = (V_kac, V1_s, V_kac, V_kac)
+V = Field(c, P=0.53 + 0.11im, diagonal=true)
+V1 = Field(c, P=0.71 + 1.03im, diagonal=true)
+d = (V1,)
 
-    co_t = Correlation(V1_t, 1)
-    b_t = Block(co_t, :τ, V_t)
+Nmax = 26
+co = Correlation(V1, Nmax)
 
-    co_s = Correlation(ds..., 2)
-    b_s = Block(co_s, :s, V_s)
+@testset "Relation to sphere 4pt" begin
+    V_s = Field(c_s, P=sqrt(2) * V.P[:left])
+    V1_s = Field(c_s, P=V1.P[:left] / sqrt(big(2)))
+    V_kac = Field(c_s, r=0, s=1 // 2)
+    Vs = (V_kac, V1_s, V_kac, V_kac)
 
-    # Match the first residue
-    @test isapprox(
-        co_s._Rmn[:s][(2, 1)] * 2^7,
-        co_t._Rmn[:τ][(1, 1)]
-    )
+    co_s = Correlation(Vs..., Nmax)
 
-    @test isapprox(
-        co_s._CNmn[:s][(2, 2, 1)] * 2^7,
-        co_t._CNmn[:τ][(1, 1, 1)]
-    )
+    @testset "Chiral" begin
+        # Match the first residue
+        co_l = co[:left]
+        co_l_s = co_s[:left]
+        @test isapprox(
+            co_l_s._Rmn[:s][(2, 1)] * 2^7,
+            co_l._Rmn[:τ][(1, 1)]
+        )
 
-    τ = 0.3 + 2im # τ in H/PSL_2(Z)
-    q = exp(im * big(π) * τ)
-    x = xfromq(q)
+        @test isapprox(
+            co_l_s._CNmn[:s][(2, 2, 1)] * 2^7,
+            co_l._CNmn[:τ][(1, 1, 1)]
+        )
 
-    @test isapprox(qfromx(xfromq(q)), q)
-    @test isapprox(qfromx(x), q)
+        @test isapprox(
+            co_l_s._Rmn[:s][(4, 1)] * 2^15,
+            co_l._Rmn[:τ][(2, 1)]
+        )
 
-    y_s = BootstrapVirasoro.get_position(x, ds, b_s)
-    q_s = BootstrapVirasoro.series_argument(y_s, b_s)
-    @test isapprox(q_s, 16 * q)
+        @test isapprox(
+            co_l_s._Rmn[:s][(2, 2)] * 2^15,
+            co_l._Rmn[:τ][(1, 2)]
+        )
 
-    @test isapprox(
-        evaluate_series(b_t, q^2),
-        evaluate_series(b_s, q_s),
-        rtol = 1e-12
-    )
+        τ = 0.3 + 2im # τ in H/PSL_2(ZZ)
+        q = exp(im * big(π) * τ)
+        x = xfromq(q)
 
-    evaluate_series(b_t, q^2)
+        @test isapprox(qfromx(xfromq(q)), q)
+        @test isapprox(qfromx(x), q)
 
-    F_t = evaluate(b_t, τ)
+        y_s = BootstrapVirasoro.get_position(x, Vs, b_s)
+        q_s = BootstrapVirasoro.series_argument(y_s, b_s)
+        @test isapprox(q_s, 16 * q)
 
-    F_t/BootstrapVirasoro.blockprefactor_chiral(d, b_t, τ)
-    
-    F_s = evaluate(b_s, x)
+        b = Block(co, :τ, V, :left)
+        b_s = Block(co_s, :s, V_s, :left)
 
-    @test isapprox(
-        F_t / BootstrapVirasoro.blockprefactor_chiral(d, b_t, τ),
-        F_s / BootstrapVirasoro.blockprefactor_chiral(ds, b_s, x),
-        atol=1e-15
-    )
+        @test isapprox(
+            evaluate_series(b, q^2),
+            evaluate_series(b_s, q_s),
+            rtol=1e-14
+        )
+
+        F = evaluate(b, 2 * τ)
+        F_s = evaluate(b_s, x)
+
+        @test isapprox(
+            F / BootstrapVirasoro.blockprefactor_chiral(Tuple(D.dims[:left] for D in d), b, 2 * τ), # F^T(q^2)/prefactor
+            F_s / BootstrapVirasoro.blockprefactor_chiral(Tuple(v.dims[:left] for v in Vs), b_s, x),  # F^S(q)/prefactor
+            rtol=1e-16
+        )
+    end
+
+    @testset "Non Chiral" begin
+        V = Field(c, r=2, s=3)
+        x = big"0.3" + big"0.1" * im
+
+        @testset "Derivatives" begin
+            setprecision(BigFloat, 256)
+            ϵ = 1e-25
+
+            V0 = Field(c, :P, big"0.5", diagonal=true)
+            Vp = Field(c, :P, big"0.5" + ϵ, diagonal=true)
+            Vm = Field(c, :P, big"0.5" - ϵ, diagonal=true)
+
+            b = Block(co, :τ, V0, :left, 40, der=true)
+            b_noder = Block(co, :τ, V0, :left, 40)
+            b_p = Block(co, :τ, Vp, :left, 40)
+            b_m = Block(co, :τ, Vm, :left, 40)
+
+            @test isapprox(
+                evaluate(b, 0.3 + 0.4im),
+                evaluate(b_noder, 0.3 + 0.4im),
+                rtol=1e-15
+            )
+
+            function eval_series_der(τ)
+                q = exp(im * π * τ)
+                series_der = evaluate_series(b, q, der=true)
+                byhand = (evaluate_series(b_p, q) - evaluate_series(b_m, q)) / (2 * ϵ)
+                series_der - byhand
+            end
+
+            @test abs(eval_series_der(big"0.3" + big"0.4" * im)) < big"1e-45"
+            @test abs(eval_series_der(big"0.01")) < big"1e-35"
+            @test abs(eval_series_der(big"10" + big"0.01" * im)) < big"1e-35"
+
+            function eval_block_der(τ)
+                block_der = evaluate(b, τ, der=true)
+                byhand = (evaluate(b_p, τ) - evaluate(b_m, τ)) / (2 * ϵ)
+                block_der - byhand
+            end
+
+            import BootstrapVirasoro: etaDedekind
+
+            τ = big"0.3" + big"0.5" * im
+            q = exp(im * (π * τ))
+            byhand = (evaluate(b_p, τ) - evaluate(b_m, τ)) / (2 * ϵ)
+            h = evaluate_series(b, q)
+            hprime_byhand = (evaluate_series(b_p, q) - evaluate_series(b_m, q)) / (2 * ϵ)
+
+            @test isapprox(
+                hprime_byhand,
+                evaluate_series(b, q, der=true)
+            )
+
+            @test isapprox(
+                evaluate(b_p, τ) / evaluate_series(b_p, q),
+                q^(V0.δ[:left]) / etaDedekind(τ),
+                rtol=1e-14
+            )
+
+            evaluate(b_p, τ)
+            evaluate(b_m, τ)
+
+            @test isapprox(
+                evaluate(b, τ, der=true),
+                q^(V0.δ[:left]) / etaDedekind(τ) * (hprime_byhand + 2 * V0.P[:left] * log(q) * h),
+                rtol=1e-40
+            )
+
+            @test abs(eval_block_der(big"0.3" + big"0.4" * im)) < big"1e-25"
+            @test abs(eval_block_der(big"0.6" + big"1.2" * im)) < big"1e-25"
+            @test abs(eval_block_der(big"10" + big"0.01" * im)) < big"1e-25"
+        end
+
+        @testset "Logarithmic blocks" begin
+            setprecision(BigFloat, 256)
+            ϵ = 1e-25
+            V0 = Field(c, r=2, s=3)
+            b = Block(co, :τ, V0, 40)
+
+            import BootstrapVirasoro: ell
+            l = ell(b, 2, 1)
+
+            F = evaluate(b, 2 * τ)
+            F_s = evaluate(b_s, x)
+
+            @test true
+        end
+    end
 end

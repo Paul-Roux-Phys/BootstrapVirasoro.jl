@@ -1,5 +1,5 @@
 series_argument(x, V::Union{FourFields, FourDimensions}) = 16*qfromx(x)
-series_argument(τ, V::Union{OneField, OneDimension}) = exp(2*im*oftype(τ, π)*τ)
+series_argument(τ, V::Union{OneField, OneDimension}) = exp(im*oftype(τ, π)*τ)
 series_argument(x, b::BlockChiral) = series_argument(x, b.corr.dims)
 series_argument(x, b::BlockNonChiral) = series_argument(x, b.corr.fields)
 
@@ -17,15 +17,12 @@ function evaluate(b::BlockChiral, x; der=false)
     c = b.corr
     y = get_position(x, c.dims, b)
     q = series_argument(y, b)
-
     
     d = b.channel_dimension
     p = blockprefactor_chiral(c.dims, b, y)
+
     h = evaluate_series(b, q)
 
-    println("q used: $q")
-    println("series value: $h")
-    
     # add the q-dependent parts
     if der
         hprime = evaluate_series(b, q, der=true)

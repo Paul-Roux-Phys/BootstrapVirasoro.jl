@@ -3,8 +3,9 @@
 #+options: toc:3 num:2
 #+property: header_args: :eval never-export
 #+startup: folded
+#+bibliography: ~/Documents/Recherche/projet_these/PottsOn/inputs/992.bib
 
-* Table of contents :toc:noexport:
+* Table of contents :toc:
 - [[#overview][Overview]]
 - [[#conformal-bootstrap-in-2d][Conformal bootstrap in 2D]]
   - [[#notations-parametrisations][Notations, parametrisations]]
@@ -27,6 +28,7 @@
   - [[#development-tests][Development tests]]
 
 * Overview
+
 
 This document contains a program for performing conformal bootstrap computations in 2D loop models.
 
@@ -418,13 +420,11 @@ Explicitly,
 
 \begin{align}
  \beta\ell^{(1)-}_{(r,s)} = 4\sum_{j=1-s}^s &\Big\{ \psi(-2\beta^{-1}P_{(r,j)}) +\psi(2\beta^{-1}P_{( r,-j)}) \Big\}
- -4\pi \cot(\pi s \beta^{-2})
- \\
+ -4\pi \cot(\pi s \beta^{-2}) \\
  &-\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
  \psi\left(\tfrac12-\beta^{-1}(P_{( r,j)}\pm P_1\pm P_2)\right)
  + \psi\left(\tfrac12+\beta^{-1}(P_{( r,j)}\pm \bar P_1\pm \bar P_2)\right)
- \Big\}
- \\
+ \Big\} \\
  &-\sum_{j\overset{2}{=}1-s}^{s-1}\sum_{\pm,\pm}\Big\{
  \psi\left(\tfrac12-\beta^{-1}(P_{( r,j)}\pm P_3\pm P_4)\right)
  + \psi\left(\tfrac12+\beta^{-1}(P_{( r,j)}\pm \bar P_3\pm \bar P_4)\right)
