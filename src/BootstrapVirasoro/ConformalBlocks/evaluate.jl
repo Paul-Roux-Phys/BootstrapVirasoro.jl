@@ -3,7 +3,7 @@ series_argument(τ, V::Union{OneField, OneDimension}) = exp(im*oftype(τ, π)*τ
 series_argument(x, b::BlockChiral) = series_argument(x, b.corr.dims)
 series_argument(x, b::BlockNonChiral) = series_argument(x, b.corr.fields)
 
-function evaluate_series(b::Block, q; der=false)
+function evaluate_series(b::BlockChiral, q; der=false)
     der && return evalpoly(q, b._coefficients_der)
     evalpoly(q, b._coefficients)
 end
@@ -12,6 +12,11 @@ get_position(x, V::Union{FourFields, FourDimensions}, b::Block) = crossratio(b.c
 get_position(x, V::Union{OneField, OneDimension}, b::Block) = x
 get_position(x, c::CorrelationChiral, b::Block) = get_position(x, c.dims, b)
 get_position(x, c::Correlation, b::Block) = get_position(x, c.fields, b)
+
+conj_q(x, V::Union{FourFields, FourDimensions}, b::Block) = conj(x)
+conj_q(τ, V::Union{OneField, OneDimension}, b::Block) = complex(-real(τ), imag(τ))
+conj_q(x, c::CorrelationChiral, b::Block) = conj_q(x, c.dims, b)
+conj_q(x, b::Block) = conj_q(x, b.corr[:left], b)
 
 function evaluate(b::BlockChiral, x; der=false)
     c = b.corr
@@ -29,6 +34,7 @@ function evaluate(b::BlockChiral, x; der=false)
         h = muladd(h, 2*d.P*log(q), hprime) # H_der = 2*P*log(q or 16q)*H + H'
     elseif d.isKac && d.r%1 == d.s%1 == 0 && d.r > 0 && d.s > 0
         r, s = d.indices
+        # add log(q or 16q) * \sum C^N_rs (q or 16q)^N
         missingterm = [
             (N, r, s) in keys(b._CNmn) ? b._CNmn[(N, r, s)] : zero(x)
             for N in 0:c.Nmax
@@ -40,7 +46,7 @@ function evaluate(b::BlockChiral, x; der=false)
 end
 
 function evaluate(b::BlockNonChiral, x, lr; der=false)
-    xs = (x, conj(x))
+    xs = (x, conj_q(x, b))
     if der
         return evaluate(b.chiral_blocks_der[lr], xs[lr], der=der)
     end

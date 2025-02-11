@@ -54,9 +54,7 @@ end
     )
 end
 
-
 @testset "Non Chiral Blocks" begin
-
     c = CentralCharge(:β, big"0.8"+big"0.1"*im)
     V = Field(c, r=2, s=3)
     Nmax = 26
@@ -73,7 +71,6 @@ end
     x = big"0.3"+big"0.1"*im
     
     @testset "Limit as z->0, z->1" begin
-
         cor = Correlation(V1, V1, V2, V1, 12)
         block_s = Block(cor, :s, V1, 12)
         block_t = Block(cor, :t, V1, 12)
@@ -120,7 +117,6 @@ end
         @test abs(eval_block_der(big"10" + big"0.01" * im)) < big"1e-25"
     end
 
-
     @testset "Logarithmic prefactor ell" begin
         import BootstrapVirasoro: ell
 
@@ -136,9 +132,21 @@ end
 
     @testset "Regularised blocks" begin
         b = Block(co, :s, V, :left)
+        ϵ = 1e-40
+        dϵ = ConformalDimension(c, δ=V.δ[:left]+ϵ)
+        dminus = ConformalDimension(c, r=V.r, s=-V.dims[:left].s)
+        bϵ = Block(co[:left], :s, dϵ)
+        bminus = Block(co[:left], :s, dminus)
+
+        @test isapprox(
+            evaluate(bϵ, x),
+            co._Rmn[:left][:s][(V.r, V.s)] / ϵ * evaluate(bminus, x) +
+                evaluate(b, x),
+            rtol = 1e-32
+        )
+
         V12 = Field(c, r=1, s=2)
         b2 = Block(coΔ, :t, V12, :left, Nmax)
-
         @test isapprox(
             evaluate(b, x),
             big"0.51970140827959736684758007395822214" + 
@@ -180,27 +188,43 @@ end
 
     @testset "Accident. non-log from generic log" begin
         V1 = Field(c, r=0, s=1)
-        V2 = Field(c, r=0, s=1//2)
-        V3 = Field(c, r=2, s=1//2)
-        V_4(ϵ) = Field(c, r=2, s=3//2 + ϵ)
+        V2 = Field(c, r=0, s=1 // 2)
+        V3 = Field(c, r=2, s=1 // 2)
+        V_4 = Field(c, r=2, s=3 // 2)
+        ϵ = big"1" // big"10"^20
+        V_4ϵ = Field(c, r=2, s=3 // 2 + ϵ)
 
         V = Field(c, r=1, s=12)
+        Vop = Field(c, r=1, s=-V.s)
 
-        corr(ϵ) = Correlation(V1, V2, V3, V_4(ϵ), Nmax)
-        ϵ = big"1" // big"10"^20
+        correl = Correlation(V1, V2, V3, V_4, Nmax)
+        correlϵ = Correlation(V1, V2, V3, V_4ϵ, Nmax)
+        block(chan) = Block(correl, chan, V, Nmax)
+        blockϵ(chan) = Block(correlϵ, chan, V, Nmax)
+        block_op(chan) = Block(correl, chan, Vop, Nmax) 
+        block_op_ϵ(chan) = Block(correlϵ, chan, Vop, Nmax) 
 
-        block(chan, ϵ) = Block(corr(ϵ), chan, V, Nmax)
+        b = block(:t)
+        bϵ = blockϵ(:t)
+        b_op = block_op(:t)
+        b_op_ϵ = block_op_ϵ(:t)
+        evaluate(b[:left], x)
+        evaluate(b[:right], x)
+        evaluate(b_op[:left], x)
+        evaluate(b_op[:right], x)
+        evaluate(b_op_ϵ[:left], x)
+        evaluate(b_op_ϵ[:right], x)
 
         redirect_stderr(devnull) do
             @test isapprox(
-                evaluate(block(:s, 0), x),
-                evaluate(block(:s, ϵ), x),
+                evaluate(block(:s), x),
+                evaluate(blockϵ(:s), x),
                 rtol = 1e-18
             )
 
             @test isapprox(
-                evaluate(block(:t, 0), x),
-                evaluate(block(:t, ϵ), x),
+                evaluate(block(:t), x),
+                evaluate(blockϵ(:t), x),
                 rtol = 1e-18
             )
         end

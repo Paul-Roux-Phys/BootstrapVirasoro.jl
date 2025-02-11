@@ -1,6 +1,7 @@
-using Memoization,
-    EllipticFunctions
 import BarnesDoubleGamma: digamma_reg
+
+using EllipticFunctions
+using Memoization
 
 export Correlation,
     ExtFields,

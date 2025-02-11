@@ -74,7 +74,7 @@ function series_H_N(N, d::ConformalDimension, CNmn, der=false)
         der && return -2P / (P^2 - δrs(m, n, B))^2
         # for the regularised series
         d.isKac && (m, n) == (d.r, d.s) && return -inv(4*δrs(d.r, d.s, B))
-        # normal series
+        # vanilla series
         return inv(P^2 - δrs(m, n, B))
     end
     return sum(CNmn[(N, m, n)] * coeff(m, n) for (m, n) in ind)
@@ -120,6 +120,11 @@ function Base.getproperty(b::BlockNonChiral, s::Symbol)
     s === :fields && return getproperty(b, :corr).fields
     s === :channel && return getproperty(getfield(b, :chiral_blocks)[:left], s)
     return getfield(b, s)
+end
+
+function Base.getindex(b::BlockNonChiral, s::Symbol)
+    s in (:left, :right) && return getfield(b, :chiral_blocks)[s]
+    return error("invalid index")
 end
 
 function Base.show(io::IO, b::BlockNonChiral)

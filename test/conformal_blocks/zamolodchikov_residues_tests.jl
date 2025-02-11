@@ -60,7 +60,3 @@
         end
     end
 end
-
-@testset "One point correlations" begin
-    
-end

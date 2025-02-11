@@ -22,7 +22,6 @@ function ell(V::FourFields, chan, r, s)
         for (a, b) in ((1, 2), (3, 4))
         for lr in (:left, :right)
     )
-
     return res
 end
 

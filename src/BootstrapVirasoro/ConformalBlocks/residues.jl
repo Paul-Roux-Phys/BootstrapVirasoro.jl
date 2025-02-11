@@ -1,12 +1,12 @@
 #===========================================================================================
 Four-point case
 ===========================================================================================#
-double_prod_in_Dmn(m, n, B) = prod(prod((r^2*B - s^2/B)^2 for s in 1:n-1) for r in 1:m-1)
+double_prod_in_Dmn(m, n, B) = prod(prod((r^2 * B - s^2 / B)^2 for s in 1:n-1) for r in 1:m-1)
 
 function Dmn(m::Int, n::Int, B::Number)
     # treat cases m = 1, n=1 separately
     m == 1 && n == 1 && return 1
-    m == 1 && return n * prod(s^2/B * (s^2/B - m^2*B) for s in 1:n-1)
+    m == 1 && return n * prod(s^2 / B * (s^2 / B - m^2 * B) for s in 1:n-1)
     n == 1 && return m * prod(r^2 * B * (r^2 * B - n^2 / B) for r in 1:m-1)
     f1 = prod(r^2 * B * (r^2 * B - n^2 / B) for r in 1:m-1)
     f2 = prod(s^2 / B * (s^2 / B - m^2 * B) for s in 1:n-1)
@@ -17,8 +17,8 @@ end
 function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
     !(d[j].isKac && d[j].isKac) && return false
 
-    rs=[d[i].r for i in 1:4]
-    ss=[d[i].s for i in 1:4]
+    rs = [d[i].r for i in 1:4]
+    ss = [d[i].s for i in 1:4]
 
 
     #= The term r, s in Rmn is zero if r1 \pm r2 + r or r3 \pm r4 + r is 0, and
@@ -28,7 +28,7 @@ function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
         if (d[i].isKac && d[j].isKac
             && (rs[i] + pm * rs[j] + pm2 * r == 0)
             && (ss[i] + pm * ss[j] + pm2 * s == 0))
-            
+
             return true
         end
     end
@@ -37,8 +37,8 @@ function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
 end
 
 function reg_signs(r, s, i, j, d::FourDimensions)
-    rs=[d[i].r for i in 1:4]
-    ss=[d[i].s for i in 1:4]
+    rs = [d[i].r for i in 1:4]
+    ss = [d[i].s for i in 1:4]
 
     for pm in (-1, 1), pm2 in (-1, 1)
         if (rs[i] + pm * rs[j] + pm2 * r == 0) &&
@@ -55,8 +55,8 @@ function Rmn_zero_order(m, n, d::FourDimensions)
         return 0
     end
 
-    r=[d[i].r for i in 1:4]
-    s=[d[i].s for i in 1:4]
+    r = [d[i].r for i in 1:4]
+    s = [d[i].s for i in 1:4]
 
     #= Rmn is zero if r1 \pm r2 or r3 \pm r4 is an integer in 1-m:2:m-1, and
     s1 \pm s2 or s3 \pm s4 is an integer in 1-n:2:n-1.
@@ -67,7 +67,7 @@ function Rmn_zero_order(m, n, d::FourDimensions)
         if (d[i].isKac && d[j].isKac
             && (abs(r[i] + pm * r[j]) <= m - 1 && (r[i] + pm * r[j] - (m - 1)) % 2 == 0)
             && (abs(s[i] + pm * s[j]) <= n - 1 && (s[i] + pm * s[j] - (n - 1)) % 2 == 0))
-            
+
             order += 1
         end
     end
@@ -79,8 +79,8 @@ function Rmn_term_nonzero(r, s, i, j, d::FourDimensions)
     B = d[1].c.B
     δ = [d[i].δ for i in 1:4]
     (r != 0 || s != 0) && return (δ[j] - δ[i])^2 - 2 *
-                                 δrs(r, s, B) * (δ[i] + δ[j]) + δrs(r, s, B)^2
-    return (δ[j] - δ[i]) * (-1)^(j/2)
+                                                   δrs(r, s, B) * (δ[i] + δ[j]) + δrs(r, s, B)^2
+    return (δ[j] - δ[i]) * (-1)^(j / 2)
 end
 
 function Rmn_term_reg(r, s, i, j, d::FourDimensions)
@@ -90,7 +90,7 @@ function Rmn_term_reg(r, s, i, j, d::FourDimensions)
         P = ConformalDimension(d[1].c, r=r0, s=s0).P
         return 8 * signs[1] * signs[2] * d[i].P * d[j].P * P
     end
-    return 2 * d[j].P
+    return 2d[j].P
 end
 
 function Rmn_term(r, s, i, j, d::FourDimensions)
@@ -119,7 +119,7 @@ function computeRmn(m, n, d::FourDimensions{T}) where {T}
         end
     end
 
-    return res/(2*Dmn(m, n, d[1].c.B)) 
+    return res / (2Dmn(m, n, d[1].c.B))
 end
 
 #===========================================================================================
@@ -127,8 +127,8 @@ One-point case
 ===========================================================================================#
 function Rmn_term_vanishes(r, s, D::OneDimension)
     d = D[1]
-    # The term r, s in Rmn is zero if r + i = 0 and s + j = 0
-    if (d.isKac && d.r + r == 0) && d.r + s == 0
+    # The term r, s in Rmn is zero if m + r = 0 and n + s = 0
+    if d.isKac && d.r + r == 0 && d.s + s == 0
         return true
     end
 
@@ -137,7 +137,7 @@ end
 
 function Rmn_zero_order(m, n, D::OneDimension)
     d = D[1]
-    if d.isKac && d.r%2==1 && d.s%2==1 && abs(d.r) <= 2*m-1 && abs(d.s) <= 2*n-1
+    if d.isKac && d.r % 2 == 1 && d.s % 2 == 1 && abs(d.r) <= 2 * m - 1 && abs(d.s) <= 2 * n - 1
         return 1
     end
     return 0
@@ -146,10 +146,10 @@ end
 function Rmn_term_nonzero(r, s, d::OneDimension)
     B = d[1].c.B
     δ1 = d[1].δ
-    return δrs(r, s, B) - δ1 
+    return δrs(r, s, B) - δ1
 end
 
-Rmn_term_reg(r, s, d::OneDimension) = -2*d[1].P
+Rmn_term_reg(r, s, d::OneDimension) = -2 * d[1].P
 
 function Rmn_term(r, s, d::OneDimension)
     Rmn_term_vanishes(r, s, d) && return Rmn_term_reg(r, s, d)
@@ -167,8 +167,8 @@ Coefficients CNmn
 ===========================================================================================#
 @memoize function computeCNmn(N, m, n, c, Rmn)
     B = c.B
-    (!((m, n) in keys(Rmn)) || m*n > N) && return 0
-    m*n == N && return Rmn[(m, n)]
+    (!((m, n) in keys(Rmn)) || m * n > N) && return 0
+    m * n == N && return Rmn[(m, n)]
     res = sum(sum(computeCNmn(N - m * n, mp, np, c, Rmn) / (δrs(m, -n, B) - δrs(mp, np, B))
                   for mp in 1:N-m*n if mp * np <= N - m * n)
               for np in 1:N-m*n)

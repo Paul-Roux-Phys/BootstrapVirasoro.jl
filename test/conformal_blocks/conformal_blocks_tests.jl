@@ -1,4 +1,4 @@
-@testset "Zamolodchikov Residues" begin
+@testset "Residues" begin
     include("zamolodchikov_residues_tests.jl")
 end
 
@@ -6,6 +6,6 @@ end
     include("four_point_blocks_tests.jl")
 end
 
-@testset "OnePointBlocks" begin
+@testset "One point blocks" begin
     include("one_point_blocks_tests.jl")
 end
