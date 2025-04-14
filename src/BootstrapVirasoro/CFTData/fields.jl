@@ -12,9 +12,7 @@ julia> c = CentralCharge(B = 0.5)
 c = 27.999999999999996 + 0.0im, β = 0.0 - 0.7071067811865476im
 
 julia> V = Field(c, r=0, s=2//3)
-Non-diagonal Field{ComplexF64}
-left: ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = 2//3
-right: ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = -2//3
+Diagonal Field{ComplexF64} with ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = 2//3
 
 julia> V.r
 0//1
