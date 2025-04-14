@@ -39,7 +39,6 @@ Diagonal Field{ComplexF64} with ConformalDimension{ComplexF64} with
 struct Field{T}
 
     dims::LeftRight{ConformalDimension{T}}
-    isdegenerate::Bool
 
 end
 
@@ -72,9 +71,7 @@ julia> setprecision(BigFloat, 20, base=10);
 julia> c = CentralCharge(β = big"0.5");
 
 julia> V = Field(c, r=0, s=1)
-Non-diagonal Field{Complex{BigFloat}}
-left: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = 1
-right: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = -1
+Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = 1
 
 julia> V.Δ
 (0.4375 + 0.0im, 0.4375 + 0.0im)
@@ -88,9 +85,6 @@ julia> V.p[:right]
 julia> V2 = Field(c, :P, 0.42, diagonal=true)
 Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with
 Δ = -0.3861000000000000130545 + 0.0im, P = 0.4199999999999999844569
-
-julia> V3 = Field(c, degenerate=true, r=4, s=3//4)
-Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with Kac indices r = 4//1, s = 3//4
 ```
 """
 function Field(
@@ -118,7 +112,7 @@ function Field(
         dim_right = ConformalDimension(c, sym, dim_left, r=r, s=-s)
     end
 
-    Field{T}(LeftRight((dim_left, dim_right)), degenerate)
+    Field{T}(LeftRight((dim_left, dim_right)))
 end
 
 function Field(
