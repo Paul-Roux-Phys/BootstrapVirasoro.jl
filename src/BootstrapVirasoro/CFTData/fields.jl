@@ -177,7 +177,7 @@ function spin(V::Field)::Rational
 end
 
 function swap_lr(V::Field{T}) where {T}
-    return Field{T}((V.dims[:right], V.dims[:left]), V.isdegenerate)
+    return Field{T}((V.dims[:right], V.dims[:left]))
 end
 
 function Base.show(io::IO, V::Field)

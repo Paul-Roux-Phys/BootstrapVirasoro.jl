@@ -19,14 +19,10 @@ end
     V1 = Field(c1, r=3, s=4, diagonal=true)
     @test V1.δ[:left] == V1.δ[:right]
 
-    #ensure degenerate and diagonal work well together
-    V1 = Field(c1, degenerate=true, r=2, s=5, diagonal=true)
+    V1 = Field(c1, r=2, s=5, diagonal=true)
     @test V1.δ[:left] == V1.δ[:right]
-    # and independently
-    V2 = Field(c1, degenerate=true, r=2, s=5)
+    V2 = Field(c1, diagonal=true, r=2, s=5)
     @test V2 == V1
-    V3 = Field(c1, diagonal=true, r=2, s=5)
-    @test V3 == V1
 
     # test shift()
     @test shift(V1, 2, :r).r == 4

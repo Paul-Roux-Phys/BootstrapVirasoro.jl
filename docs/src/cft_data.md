@@ -74,7 +74,7 @@ Field(
     sym::Symbol,
     dim;
     Kac=false, r=0, s=0,
-    degenerate=false, diagonal=false
+    diagonal=false
 )
 ```
 
