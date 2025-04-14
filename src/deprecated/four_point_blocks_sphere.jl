@@ -104,7 +104,7 @@ end
 Set prefactors, relate the cross-ratio x and the elliptic nome q
 ===========================================================================================#
 """Nome `q` from the cross-ratio `x`"""
-qfromx(x) = exp(-oftype(x, π)*ellipticK(1-x)/ellipticK(x))
+qfromx(x) = exp(-(π*ellipticK(1-x)/ellipticK(x)))
 
 """Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
@@ -135,7 +135,7 @@ function ell(corr, r, s)
 
     term1(j) = digamma_reg(-2*βm1P(B, r, j)) + digamma_reg(2*βm1P(B, r, -j))
 
-    res = -big(4)*oftype(B, π)/tan(oftype(B, π)*s/B)
+    res = -big(4)*(π/tan((π/B)*s))
 
     term3(j, lr, pm1, pm2, a, b) = digamma_reg(1/2 + (lr == left ? -1 : 1)*βm1P(B, r, j) + pm1*βm1P_ext[lr][a] + pm2*βm1P_ext[lr][b])
 

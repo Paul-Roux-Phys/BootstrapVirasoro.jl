@@ -120,6 +120,8 @@ include("ConformalBlocks/logarithmic.jl")
 include("ConformalBlocks/evaluate.jl")
 include("ConformalBlocks/InterchiralBlocks.jl")
 
+Block(c::Correlation, chan::Symbol, d::ConformalDimension, Nmax::Int) =
+    BlockChiral(c, chan, d, Nmax)
 Block(c::Correlation, chan::Symbol, V::Field, Nmax::Int) =
     BlockNonChiral(c, chan, V, Nmax)
 Block(c::Correlation, chan, V::Field, lr::Symbol, Nmax; der=false) = 

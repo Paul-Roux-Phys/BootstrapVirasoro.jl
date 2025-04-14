@@ -153,11 +153,19 @@ function Base.:+(d1::ConformalDimension, d2::ConformalDimension)
     ConformalDimension(d1.c, :Δ, d1.Δ + d2.Δ)
 end
 
-function shift(d::ConformalDimension, shift)
+function shift(d::ConformalDimension, shift, index=:s)
     c = d.c
-    if d.isKac
-        return ConformalDimension(c, r=d.r, s=d.s + shift)
+    if index === :r
+        if d.isKac
+            return ConformalDimension(c, r=d.r + shift, s=d.s)
+        else
+            return ConformalDimension(c, P=d.P + shift / 2 * c.β)
+        end
     else
-        return ConformalDimension(c, P=d.P + shift / c.β)
+        if d.isKac
+            return ConformalDimension(c, r=d.r, s=d.s + shift)
+        else
+            return ConformalDimension(c, P=d.P + shift / 2 / c.β)
+        end
     end
 end

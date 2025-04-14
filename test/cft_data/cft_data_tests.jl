@@ -27,4 +27,9 @@ end
     @test V2 == V1
     V3 = Field(c1, diagonal=true, r=2, s=5)
     @test V3 == V1
+
+    # test shift()
+    @test shift(V1, 2, :r).r == 4
+    V1 = Field(c1, P=0.5, diagonal=true)
+    @test shift(V1, 1).dim.P - V1.dim.P == 1/c1.β/2
 end

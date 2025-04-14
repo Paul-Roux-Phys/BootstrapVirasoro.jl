@@ -27,7 +27,7 @@
             Rmn_zero_order,
             Rmn_term_vanishes,
             Dmn
-        setprecision(BigFloat, 50, base=10)
+        setprecision(BigFloat, 256)
         c = CentralCharge(:β, big"0.8" + big"0.1"*im)
         ϵ = 1 // big"10"^20
         

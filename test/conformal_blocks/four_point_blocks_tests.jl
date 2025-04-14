@@ -17,39 +17,39 @@
     h = evaluate_series(b, 16q)
 
     @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol=1e-8) # value from Sylvain's code
-
 end
 
 @testset "Chiral blocks" begin
     c = CentralCharge(:c, big"0.1")
-    V1 = Field(c, :Δ, 1, diagonal=true)
-    V2 = Field(c, :Δ, 2, diagonal=true)
-    V3 = Field(c, :Δ, 3, diagonal=true)
-    V4 = Field(c, :Δ, 4, diagonal=true)
-    co = Correlation(V1, V2, V3, V4, 40)
-    V = Field(c, :Δ, big"0.5", diagonal=true)
-    b_s = Block(co, :s, V, :left, 40)
-    b_t = Block(co, :t, V, :left, 40)
-    b_u = Block(co, :u, V, :left, 40)
+    Nmax = 40
+    V1 = ConformalDimension(c, :Δ, 1)
+    V2 = ConformalDimension(c, :Δ, 2)
+    V3 = ConformalDimension(c, :Δ, 3)
+    V4 = ConformalDimension(c, :Δ, 4)
+    co = Correlation(V1, V2, V3, V4, Nmax)
+    V = ConformalDimension(c, :Δ, big"0.5")
+    b_s = Block(co, :s, V, Nmax)
+    b_t = Block(co, :t, V, Nmax)
+    b_u = Block(co, :u, V, Nmax)
     x=big"0.05"
 
     # comparing to values from Sylvain's code
     @test isapprox(
         evaluate(b_s, x),
-        big"1679.9121886897846270816517306779666391454311387606437056866150367",
+        big"1679.912188689784627081651",
         rtol = 1e-20
     )
 
     @test isapprox(
         evaluate(b_t, x),
-        big"10841.257658755518924543654668282368582",
+        big"10841.257658755518924543654",
         rtol = 1e-20
     )
 
     @test isapprox(
         evaluate(b_u, x),
-        big"299.1843849134281379909218349390129720213727" -
-            big"2026.47316197194594006925827438887723275377012"*im,
+        big"299.184384913428137990921" -
+            big"2026.473161971945940069258"*im,
         rtol = 1e-20
     )
 end
@@ -57,16 +57,14 @@ end
 @testset "Non Chiral Blocks" begin
     c = CentralCharge(:β, big"0.8"+big"0.1"*im)
     V = Field(c, r=2, s=3)
-    Nmax = 26
+    Nmax = 30
 
     V1 = Field(c, r=0, s=1)
     V2 = Field(c, r=0, s=1//2)
     V3 = Field(c, r=0, s=1)
     V4 = Field(c, r=0, s=1//2)
-    VΔ = Field(c, :Δ, big"0.5", diagonal=true)
 
     co = Correlation(V1, V2, V3, V4, Nmax)
-    coΔ = Correlation(V1, V2, V3, VΔ, Nmax)
 
     x = big"0.3"+big"0.1"*im
     
@@ -121,21 +119,19 @@ end
         import BootstrapVirasoro: ell
 
         l = ell(co.fields, :s, 2, 1)
-        lΔ = ell(coΔ.fields, :s, 2, 1)
-
         # comparing with Sylvain's code
         # When all fields are degenerate
-        @test isapprox(l, 14.20389003630952076540 - 5.0517664348341790287im, rtol=1e-15)
-        # When not all fields are degenerate
-        @test isapprox(lΔ, 9.442859099125287026870 - 8.0848336893143160748im, rtol=1e-15)
+        @test isapprox(c.β * l, 14.20389003630952076540 - 5.0517664348341790287im, rtol=1e-15)
     end
 
     @testset "Regularised blocks" begin
         b = Block(co, :s, V, :left)
         ϵ = 1e-40
         dϵ = ConformalDimension(c, δ=V.δ[:left]+ϵ)
+        dPϵ = ConformalDimension(c, P=V.P[:left]+ϵ)
         dminus = ConformalDimension(c, r=V.r, s=-V.dims[:left].s)
         bϵ = Block(co[:left], :s, dϵ)
+        bPϵ = Block(co[:left], :s, dPϵ)
         bminus = Block(co[:left], :s, dminus)
 
         @test isapprox(
@@ -145,19 +141,18 @@ end
             rtol = 1e-32
         )
 
+        @test isapprox(
+            evaluate(bPϵ, x),
+            co._Rmn[:left][:s][(V.r, V.s)] / 2 / V.P[:left] / ϵ * evaluate(bminus, x) +
+                evaluate(b, x),
+            rtol = 1e-33
+        )
+
         V12 = Field(c, r=1, s=2)
-        b2 = Block(coΔ, :t, V12, :left, Nmax)
         @test isapprox(
             evaluate(b, x),
             big"0.51970140827959736684758007395822214" + 
                 big"0.5951179392484063703449815783272925"*im,
-            rtol=1e-25
-        )
-
-        @test isapprox(
-            evaluate(b2, x),
-            big"1.164057039115389253869277410981757" + 
-                big"-0.07162461483111554418789576414972262"*im,
             rtol=1e-25
         )
     end

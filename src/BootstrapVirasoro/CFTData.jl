@@ -9,8 +9,8 @@ Nivesvivat
 ===========================================================================================#
 
 export LeftRight,
-    CentralCharge,
-    ConformalDimension,
+    CentralCharge, CC,
+    ConformalDimension, CD,
     Field, spin, swap_lr,
     shift
 
@@ -25,3 +25,7 @@ end
 include("CFTData/central_charges.jl")
 include("CFTData/conformal_dimensions.jl")
 include("CFTData/fields.jl")
+
+# convenience aliases
+const CC = CentralCharge
+const CD = ConformalDimension

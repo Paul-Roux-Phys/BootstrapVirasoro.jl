@@ -7,9 +7,6 @@ Nivesvivat
 
 module BootstrapVirasoro
 
-using Base.Threads
-# using Latexify
-
 # The exported methods and types are found in the following included files.
 # These files also document the exported methods
 include("BootstrapVirasoro/CFTData.jl")

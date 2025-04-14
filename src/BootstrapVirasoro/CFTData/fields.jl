@@ -39,7 +39,6 @@ Diagonal Field{ComplexF64} with ConformalDimension{ComplexF64} with
 struct Field{T}
 
     dims::LeftRight{ConformalDimension{T}}
-    isdiagonal::Bool
     isdegenerate::Bool
 
 end
@@ -119,7 +118,7 @@ function Field(
         dim_right = ConformalDimension(c, sym, dim_left, r=r, s=-s)
     end
 
-    Field{T}(LeftRight((dim_left, dim_right)), diagonal, degenerate)
+    Field{T}(LeftRight((dim_left, dim_right)), degenerate)
 end
 
 function Field(
@@ -147,7 +146,7 @@ function Field(ds::LeftRight{ConformalDimension})
     if ds[:left].isKac && ds[:right].isKac 
         degenerate=true
     end
-    return Field(ds, diagonal, degenerate)
+    return Field(ds, degenerate)
 end
 Field(d_left::ConformalDimension, d_right::ConformalDimension) = Field((d_left, d_right))
 Field(d::ConformalDimension) = Field(d, d)
@@ -159,11 +158,11 @@ function Base.getproperty(V::Field, s::Symbol)
     s === :Δ && return LeftRight((ds[:left].Δ, ds[:right].Δ))
     s === :p && return LeftRight((ds[:left].p, ds[:right].p))
     s === :δ && return LeftRight((ds[:left].δ, ds[:right].δ))
-    s in (:r, :s) && return getfield(ds[:left], s) # by convention V_(r,s) denotes the field
+    (s === :r || s === :s) && return getproperty(ds[:left], s) # by convention V_(r,s) denotes the field
                                              # with left right dimension P_(r, s), P_(r, -s)
     s === :isKac && return (V.dims[:left].isKac && V.dims[:right].isKac)
     s === :indices && return ds[:left].indices
-    getfield(V, :isdiagonal) && s === :dim && return ds[:left]
+    s === :dim && getproperty(V, :r) == 0 && return ds[:left]
 
     return getfield(V, s)
 end
@@ -175,7 +174,7 @@ end
 
 """Compute the spin Δleft - Δright of a field."""
 function spin(V::Field)::Rational
-    if V.isdiagonal
+    if V.r == 0
         return 0
     elseif V.isKac
         return V.r*V.s
@@ -186,11 +185,11 @@ function spin(V::Field)::Rational
 end
 
 function swap_lr(V::Field{T}) where {T}
-    return Field{T}((V.dims[:right], V.dims[:left]), V.isdiagonal, V.isdegenerate)
+    return Field{T}((V.dims[:right], V.dims[:left]), V.isdegenerate)
 end
 
 function Base.show(io::IO, V::Field)
-    if V.isdiagonal
+    if V.r == 0
         print(io, "Diagonal $(typeof(V)) with ")
         show(io, V.dims[:left])
     else
@@ -202,10 +201,10 @@ function Base.show(io::IO, V::Field)
     end
 end
 
-function shift(V::Field, s_shift)
-    if V.isdiagonal
-        Field(V.dim)
+function shift(V::Field, i, index=:s)
+    if V.r == 0
+        Field(shift(V.dim, i, index))
     else
-        Field(shift(V.dims[:left], s_shift), shift(V.dims[:right], -s_shift))
+        Field(shift(V.dims[:left], i, index), shift(V.dims[:right], -i, index))
     end
 end

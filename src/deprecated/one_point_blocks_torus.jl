@@ -5,7 +5,7 @@ struct OnePointBlockTorus{T}
     channelfield::Field{T}
 end
 
-qfromtau(τ) = exp(2im*oftype(τ, π)*τ)
+qfromtau(τ) = exp(2im*(π*τ))
 δrs(r, s, B) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 
 #===========================================================================================

@@ -53,14 +53,13 @@ function evaluate(b::BlockNonChiral, x, lr; der=false)
     evaluate(b.chiral_blocks[lr], xs[lr])
 end
 
-function evaluate(b::BlockNonChiral, x)
+function evaluate(b::BlockNonChiral, x; debug=false)
     if !(isaccidentallynonlogarithmic(b) || islogarithmic(b))
         return prod(evaluate(b, x, lr) for lr in (:left, :right))
     else
         V      = b.channel_field
         r, s   = V.indices
-        Pp = ConformalDimension(V.c, r=r, s=s).P
-        βm1Prs = (r+s/V.c.B)/2
+        Prs = ConformalDimension(V.c, r=r, s=s).P
         b_op   = Block(b.corr, b.channel, swap_lr(b.channel_field), b.Nmax)
         if s < 0
             b_op, b = b, b_op # b has left, right dims (P_(r, s>0), P_(r, -s<0))
@@ -85,11 +84,17 @@ function evaluate(b::BlockNonChiral, x)
             R = b.corr._Rmn[:left][b.channel][(r, s)]
             Rbar = b.corr._Rmn[:right][b.channel][(r, s)]
 
-            return (
-                (Freg - R / 2 / Pp * Fder) * Fbar +
-                R / Rbar * F * (Fregbar - Rbar / 2 / Pp * Fderbar) -
-                R * ell(b, r, s) / V.c.B / 2 / βm1Prs * F * Fbar
+            terms = (
+                (Freg - R / 2 / Prs * Fder) * Fbar,
+                R / Rbar * F * (Fregbar - Rbar / 2 / Prs * Fderbar),
+                + R / 2 / Prs * ell(b) * F * Fbar
             )
+
+            if debug
+                return terms
+            else
+                return sum(terms)
+            end
         end
     end
 end
