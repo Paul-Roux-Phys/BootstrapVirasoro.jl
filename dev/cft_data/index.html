@@ -48,9 +48,7 @@ ConformalDimension{ComplexF64} with Kac indices r = 3//2, s = 2//3</code></pre><
 c = 27.999999999999996 + 0.0im, β = 0.0 - 0.7071067811865476im
 
 julia&gt; V = Field(c, r=0, s=2//3)
-Non-diagonal Field{ComplexF64}
-left: ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = 2//3
-right: ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = -2//3
+Diagonal Field{ComplexF64} with ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = 2//3
 
 julia&gt; V.r
 0//1
@@ -78,9 +76,7 @@ Diagonal Field{ComplexF64} with ConformalDimension{ComplexF64} with
 julia&gt; c = CentralCharge(β = big&quot;0.5&quot;);
 
 julia&gt; V = Field(c, r=0, s=1)
-Non-diagonal Field{Complex{BigFloat}}
-left: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = 1
-right: ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = -1
+Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = 1
 
 julia&gt; V.Δ
 (0.4375 + 0.0im, 0.4375 + 0.0im)
@@ -93,7 +89,4 @@ julia&gt; V.p[:right]
 
 julia&gt; V2 = Field(c, :P, 0.42, diagonal=true)
 Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with
-Δ = -0.3861000000000000130545 + 0.0im, P = 0.4199999999999999844569
-
-julia&gt; V3 = Field(c, degenerate=true, r=4, s=3//4)
-Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with Kac indices r = 4//1, s = 3//4</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl">source</a></section></article><h2 id="Spectra"><a class="docs-heading-anchor" href="#Spectra">Spectra</a><a id="Spectra-1"></a><a class="docs-heading-anchor-permalink" href="#Spectra" title="Permalink"></a></h2><p>TODO</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../installation/">« Installation</a><a class="docs-footer-nextpage" href="../conformal_blocks/">Correlation functions and conformal blocks »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Tuesday 14 January 2025 17:34">Tuesday 14 January 2025</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+Δ = -0.3861000000000000130545 + 0.0im, P = 0.4199999999999999844569</code></pre></div><a class="docs-sourcelink" target="_blank" href="https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl">source</a></section></article><h2 id="Spectra"><a class="docs-heading-anchor" href="#Spectra">Spectra</a><a id="Spectra-1"></a><a class="docs-heading-anchor-permalink" href="#Spectra" title="Permalink"></a></h2><p>TODO</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../installation/">« Installation</a><a class="docs-footer-nextpage" href="../conformal_blocks/">Correlation functions and conformal blocks »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.10.1 on <span class="colophon-date" title="Monday 14 April 2025 19:51">Monday 14 April 2025</span>. Using Julia version 1.11.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
