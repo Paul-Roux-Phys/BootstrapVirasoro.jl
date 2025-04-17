@@ -1,5 +1,6 @@
 export Spectrum,
-    BulkSpectrum
+    BulkSpectrum,
+    blocks
 
 """
     Spectrum{T}
@@ -10,79 +11,81 @@ abstract type Spectrum{T} end
 
 mutable struct BulkSpectrum{T} <: Spectrum{T}
     
-    channel::Symbol
-    maxdim::ConformalDimension{T}
     fields::Vector{Field{T}}
-    blocks::Dict{Field{T}, GeneralizedBlock{T}}
+    blocks::Vector{Block{T}}
 
 end
 
-function add!(s::BulkSpectrum, V::Field; interchiral=false)
+function blocks(co::Correlation, chan, Vs::Vector{Field{T}}; kwargs...) where {T}
+    [Block(co, chan, V; kwargs...) for V in Vs]
+end
+
+function Spectrum(co, chan, Vs::Vector{Field{T}}; kwargs...) where {T}
+    bs = blocks(co, chan, Vs; kwargs...)
+    BulkSpectrum{T}(Vs, bs)
+end
+
+function Base.getproperty(s::Spectrum, p::Symbol)
+    p === :chan && return getfield(s, blocks)[1].channel
+    getfield(s, p)
+end
+
+function add!(s::BulkSpectrum, V::Field)
     if !(V in s.fields)
         push!(s.fields, V)
-        s.blocks[V] = GeneralizedBlock(c, channel, field, Δmax, interchiral=interchiral)
     end
 end
 
-function add!(s::BulkSpectrum, fields::Vector{Field}; interchiral=false)
+function add!(s::BulkSpectrum, fields::Vector{Field})
     for V in fields
-        add!(s, V, interchiral=interchiral)
+        add!(s, V)
     end
 end
 
-function add!(s::BulkSpectrum, Vs::Field...; interchiral=false)
+function add!(s::BulkSpectrum, Vs::Field...)
     for V in Vs
-        add!(s, V, interchiral=interchiral)
+        add!(s, V)
     end
 end
 
-function BulkSpectrum(
-    c::Correlation{T},
-    channel::Symbol,
-    Δmax::ConformalDimension,
-    fields;
-    interchiral=false
-) where {T}
-    res = BulkSpectrum{T}(channel, Δmax, [], Dict())
-
-    for field in fields
-        res.blocks[field] = GeneralizedBlock(c, channel, field, Δmax, interchiral=interchiral)
-    end
-    res.fields = fields
-
-    res
-end
+Base.length(s::Spectrum) = length(s.fields)
+Base.size(s::Spectrum) = size(s.fields)
+nb_blocks(s::Spectrum) = sum(length(b) for b in s.blocks)
 
 function Base.show(io::IO, s::BulkSpectrum)
     nondiags = sort(
-        [V.indices for V in s.fields if !V.isdiagonal],
+        [V.indices for V in s.fields if V.r != 0],
         by = x -> (x[1], x[2])
     )
     diags = sort(
-        [V for V in s.fields if V.isdiagonal],
+        [V for V in s.fields if V.r == 0],
         by = abs
     )
-    println(io, "Diagonal part:")
-    for V in diags
-        println(io, V)
-    end
-    println(io, "Non-diagonal-part:")
-    r = -Inf
-    for rs in nondiags
-        if rs[1] != r
-            println(io, "")
-        else
-            print(io, ", ")
+    if !isempty(diags)
+        println(io, "Diagonal part:")
+        for V in diags
+            println(io, V)
         end
-        r = rs[1]
-        print(io, rs)
+    end
+    if !isempty(nondiags)
+        print(io, "Non-diagonal part indices:")
+        r = -Inf
+        for rs in nondiags
+            if rs[1] != r
+                println(io, "")
+            else
+                print(io, ", ")
+            end
+            r = rs[1]
+            print(io, rs)
+        end
     end
 end
 
-function generate_pairs(r_range, s_range, condition)
-    [(r, s) for r in r_range for s in -1:1//r:1 if condition(r, s)]
+function generate_pairs(r_range, condition=(r, s)->(r*s%1==0))
+    [(r, s) for r in r_range for s in -1+1//r:1//r:1 if condition(r, s)]
 end
 
-condition = (r, s) -> (r%1 == 0 && r*s%1 == 0)
+# condition = (r, s) -> (r%1 == 0 && r*s%1 == 0)
 
-generate_pairs(1//2:1//2:3, -3:1//2:3, (r, s) -> ((r*s)%1 == 0 && r%1 == 0))
+# generate_pairs(1//2:1//2:3, -3:1//2:3, (r, s) -> ((r*s)%1 == 0 && r%1 == 0))

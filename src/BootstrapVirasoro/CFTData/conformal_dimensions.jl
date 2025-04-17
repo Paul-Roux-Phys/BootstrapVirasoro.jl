@@ -61,7 +61,7 @@ struct ConformalDimension{T}
 end
 
 Prs(r, s, β::Number) = 1/2 * (β*r - s/β)
-Prs(r, s, c::CentralCharge) = Prs(r, s, c.β)
+P_rs(r, s, c::CentralCharge) = P_rs(r, s, c.β)
 δrs(r, s, B::Number) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 δrs(r, s, c::CentralCharge) = -1/4 * (c.B*r^2 + 2*r*s + s^2/c.B)
 
@@ -120,11 +120,13 @@ function get_indices(d::ConformalDimension)
     if d.isKac
         r = getfield(d, :r)
         s = getfield(d, :s)
-        if r % 1 == s % 1 == 0
-            return Int.((r, s))
-        else
-            return r, s
+        if r % 1 == 0
+            r = Int(r)
         end
+        if s % 1 == 0
+            s = Int(s)
+        end
+        return r, s
     else
         return 0, 2 * d.c.β * d.P
     end
@@ -141,11 +143,19 @@ function Base.getproperty(d::ConformalDimension, s::Symbol)
     return getfield(d, s)
 end
 
-function Base.show(io::IO, d::ConformalDimension{T}) where {T}
+function Base.show(io::IO, ::MIME"text/plain", d::ConformalDimension{T}) where {T}
     if d.isKac
         print(io, "ConformalDimension{$T} with Kac indices r = $(d.r), s = $(d.s)")
     else
         print(io, "ConformalDimension{$T} with\nΔ = $(d.Δ), P = $(d.P)")
+    end
+end
+
+function Base.show(io::IO, d::ConformalDimension{T}) where {T}
+    if d.isKac
+        print(io, "Δ_{$(d.r), $(d.s)}")
+    else
+        print(io, "Δ_{P=$(d.P)}")
     end
 end
 

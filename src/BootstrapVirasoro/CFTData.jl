@@ -12,7 +12,8 @@ export LeftRight,
     CentralCharge, CC,
     ConformalDimension, CD,
     Field, spin, swap_lr,
-    shift
+    shift,
+    scaling_dim
 
 const LeftRight{T} = Tuple{T,T} # left and right pairs of things
 

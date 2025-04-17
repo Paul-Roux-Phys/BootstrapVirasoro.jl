@@ -180,7 +180,7 @@ function swap_lr(V::Field{T}) where {T}
     return Field{T}((V.dims[:right], V.dims[:left]))
 end
 
-function Base.show(io::IO, V::Field)
+function Base.show(io::IO, ::MIME"text/plain", V::Field)
     if V.r == 0
         print(io, "Diagonal $(typeof(V)) with ")
         show(io, V.dims[:left])
@@ -193,6 +193,14 @@ function Base.show(io::IO, V::Field)
     end
 end
 
+function Base.show(io::IO, V::Field)
+    if V.r == 0
+        print(io, "V_{P=$(V.P[:left])}")
+    else
+        print(io, "V_{$(V.indices)}")
+    end
+end
+
 function shift(V::Field, i, index=:s)
     if V.r == 0
         Field(shift(V.dim, i, index))
@@ -200,3 +208,5 @@ function shift(V::Field, i, index=:s)
         Field(shift(V.dims[:left], i, index), shift(V.dims[:right], -i, index))
     end
 end
+
+scaling_dim(V::Field) = V.Δ[:left] + V.Δ[:right]

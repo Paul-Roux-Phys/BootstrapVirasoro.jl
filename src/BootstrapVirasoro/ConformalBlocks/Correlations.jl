@@ -13,11 +13,22 @@ struct CorrelationChiral{T} <: Correlation{T}
 
 end
 
-function Base.show(io::IO, corr::CorrelationChiral)
-    print(io, "Chiral correlation function with external dimensions\n")
-    for d in corr.dims
-        print(io, d, '\n')
+function Base.getproperty(co::CorrelationChiral, s::Symbol)
+    s === :fields && return co.dims
+    getfield(co, s)
+end
+
+
+function Base.show(io::IO, ::MIME"text/plain", co::CorrelationChiral{T}) where {T}
+    print(io, "CorrelationChiral{$T} with external dimensions\n$(co.dims)")
+end
+
+function Base.show(io::IO, co::CorrelationChiral)
+    print(io, "< ")
+    for d in co.dims
+        print(io, d, " ")
     end
+    print(io, ">")
 end
 
 function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
@@ -79,11 +90,17 @@ struct CorrelationNonChiral{T} <: Correlation{T}
 
 end
 
-function Base.show(io::IO, corr::CorrelationNonChiral)
-    print(io, "CorrelationNonChiral with external fields\n")
-    for v in corr.fields
-        print(io, v, '\n')
+function Base.show(io::IO, ::MIME"text/plain", co::CorrelationNonChiral{T}) where {T}
+    println(io, "CorrelationNonChiral{$T} with external fields")
+    print(io, co.fields)
+end
+
+function Base.show(io::IO, co::CorrelationNonChiral)
+    print(io, "< ")
+    for V in co.fields
+        print(io, V, " ")
     end
+    print(io, ">")
 end
 
 function permute_dimensions(ds::FourDimensions, chan::Symbol)

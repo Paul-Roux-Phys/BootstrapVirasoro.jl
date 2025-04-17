@@ -196,19 +196,9 @@ end
         correlϵ = Correlation(V1, V2, V3, V_4ϵ, Nmax)
         block(chan) = Block(correl, chan, V, Nmax)
         blockϵ(chan) = Block(correlϵ, chan, V, Nmax)
-        block_op(chan) = Block(correl, chan, Vop, Nmax) 
-        block_op_ϵ(chan) = Block(correlϵ, chan, Vop, Nmax) 
 
         b = block(:t)
         bϵ = blockϵ(:t)
-        b_op = block_op(:t)
-        b_op_ϵ = block_op_ϵ(:t)
-        evaluate(b[:left], x)
-        evaluate(b[:right], x)
-        evaluate(b_op[:left], x)
-        evaluate(b_op[:right], x)
-        evaluate(b_op_ϵ[:left], x)
-        evaluate(b_op_ϵ[:right], x)
 
         redirect_stderr(devnull) do
             @test isapprox(

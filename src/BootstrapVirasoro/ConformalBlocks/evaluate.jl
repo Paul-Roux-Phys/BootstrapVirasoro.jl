@@ -45,56 +45,59 @@ function evaluate(b::BlockChiral, x; der=false)
     p * h
 end
 
-function evaluate(b::BlockNonChiral, x, lr; der=false)
+function evaluate(b::BlockFactorized, x, lr)
     xs = (x, conj_q(x, b))
-    if der
-        return evaluate(b.chiral_blocks_der[lr], xs[lr], der=der)
-    end
     evaluate(b.chiral_blocks[lr], xs[lr])
 end
 
-function evaluate(b::BlockNonChiral, x; debug=false)
-    if !(isaccidentallynonlogarithmic(b) || islogarithmic(b))
-        return prod(evaluate(b, x, lr) for lr in (:left, :right))
-    else
-        V      = b.channel_field
-        r, s   = V.indices
-        Prs = ConformalDimension(V.c, r=r, s=s).P
-        b_op   = Block(b.corr, b.channel, swap_lr(b.channel_field), b.Nmax)
-        if s < 0
-            b_op, b = b, b_op # b has left, right dims (P_(r, s>0), P_(r, -s<0))
-                              # b_op  has dims (P_(r, -s<0), P_(r, s>0))
-        end
+function evaluate(b::BlockLogarithmic, x, lr; der=false, op=false)
+    xs = (x, conj_q(x, b))
+    der && return evaluate(b.chiral_blocks_der[lr], xs[lr], der=der)
+    op && return evaluate(b.chiral_blocks_op[lr], xs[lr])
+    evaluate(b.chiral_blocks[lr], xs[lr])
+end
 
-        Freg    = evaluate(b, x, :left)
-        Fbar    = evaluate(b, x, :right)
-        F       = evaluate(b_op, x, :left)
-        Fregbar = evaluate(b_op, x, :right)
+function evaluate(b::BlockFactorized, x)
+    prod(evaluate(b, x, lr) for lr in (:left, :right))
+end
 
-        if isaccidentallynonlogarithmic(b)
-            Rreg = b.corr._Rmn_reg[:left][b.channel][(r, s)]
-            Rregbar = b.corr._Rmn_reg[:right][b.channel][(r, s)]
-            nbzeros = Rmn_zero_order(r, s, b.chiral_blocks[:left].dims)
-            return Freg*Fbar + (-1)^nbzeros * Rreg/Rregbar * F*Fregbar
+function evaluate(b::BlockLogarithmic, x; debug=false)
+    V = b.channel_field
+    r, s = V.indices
+    s < 0 && return 0 # by convention G_(r, s<0) = 0
+    P_rs = Prs(r, s, V.c)
 
-        elseif islogarithmic(b)
-            Fder = evaluate(b_op, x, :left, der=true)
-            Fderbar = evaluate(b, x, :right, der=true)
+    Freg = evaluate(b, x, :left)
+    Fbar = evaluate(b, x, :right)
+    F = evaluate(b, x, :left, op=true)
+    Fregbar = evaluate(b, x, :right, op=true)
 
-            R = b.corr._Rmn[:left][b.channel][(r, s)]
-            Rbar = b.corr._Rmn[:right][b.channel][(r, s)]
+    if isaccidentallynonlogarithmic(b)
+        Rreg = b.corr._Rmn_reg[:left][b.channel][(r, s)]
+        Rregbar = b.corr._Rmn_reg[:right][b.channel][(r, s)]
+        nbzeros = Rmn_zero_order(r, s, b.chiral_blocks[:left].dims)
+        return Freg * Fbar + (-1)^nbzeros * Rreg / Rregbar * F * Fregbar
 
-            terms = (
-                (Freg - R / 2 / Prs * Fder) * Fbar,
-                R / Rbar * F * (Fregbar - Rbar / 2 / Prs * Fderbar),
-                + R / 2 / Prs * ell(b) * F * Fbar
-            )
+    elseif islogarithmic(b)
+        Fder = evaluate(b, x, :left, der=true)
+        Fderbar = evaluate(b, x, :right, der=true)
 
-            if debug
-                return terms
-            else
-                return sum(terms)
-            end
-        end
+        R = b.corr._Rmn[:left][b.channel][(r, s)]
+        Rbar = b.corr._Rmn[:right][b.channel][(r, s)]
+
+        terms = (
+            (Freg - R / 2 / P_rs * Fder) * Fbar,
+            R / Rbar * F * (Fregbar - Rbar / 2 / P_rs * Fderbar),
+            +R / 2 / P_rs * ell(b) * F * Fbar
+        )
+
+        return if debug terms else sum(terms) end
     end
+end
+
+function evaluate(b::BlockInterchiral, x)
+    sum(
+        b.shifts[i] * evaluate((b.blocks)[i], x)
+        for i in 1:length(b.blocks)
+    )
 end

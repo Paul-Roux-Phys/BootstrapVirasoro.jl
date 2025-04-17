@@ -156,32 +156,24 @@ end
 
     @testset "Freg" begin
         V0 = Field(c, r=2, s=1)
-        V0_minus = Field(c, r=V0.r, s=-V0.s)
         ϵ = 1e-40
         δ0ϵ = V0.δ[:left] + ϵ
         V0ϵ = Field(c, diagonal=true, δ=δ0ϵ)
         V0_s = Field(c_s, r=2 * V0.r, s=V0.s)
-        V0_s_minus = Field(c_s, r=2 * V0.r, s=-V0.s)
         δ0_sϵ = V0_s.δ[:left] + ϵ
         V0_sϵ = Field(c_s, diagonal=true, δ=δ0_sϵ)
         b = Block(co, :τ, V0, Nmax)
         bϵ = Block(co, :τ, V0ϵ, Nmax)
-        b_minus = Block(co, :τ, V0_minus, Nmax)
         b_s = Block(co_s, :s, V0_s, Nmax)
         b_sϵ = Block(co_s, :s, V0ϵ, Nmax)
-        b_sminus = Block(co_s, :s, V0_s_minus, Nmax)
 
         @test isapprox(
             evaluate(bϵ, 2τ, :left),
-            co._Rmn[:left][:τ][(2, 1)] / ϵ * evaluate(b_minus, 2τ, :left) + evaluate(b, 2τ, :left),
+            co._Rmn[:left][:τ][(V0.r, V0.s)] / ϵ * evaluate(b, 2τ, :left, op=true) + evaluate(b, 2τ, :left),
             rtol=1e-40
         ) # F_{Prs + ϵ} = R/ϵ F_{Pr,-s} + F^reg
 
         import BootstrapVirasoro: ell, etaDedekind, conj_q
-        l = ell(b, 2, 1)
-        F = evaluate(b, 2τ)
-        F_s = evaluate(b_s, x)
-
         import BootstrapVirasoro.blockprefactor_chiral as prefac
         import BootstrapVirasoro: evaluate_series
 
@@ -193,10 +185,10 @@ end
 
         Freg = evaluate(b, 2τ, :left)
         Rrs = co._Rmn[:left][:τ][(V0.r, V0.s)]
-        Fminus = evaluate(b_minus, 2τ, :left)
+        Fminus = evaluate(b, 2τ, :left, op=true)
         Freg_s = evaluate(b_s, x, :left)
         Rrs_s = co_s._Rmn[:left][:s][(V0_s.r, V0_s.s)]
-        Fminus_s = evaluate(b_sminus, x, :left)
+        Fminus_s = evaluate(b_s, x, :left, op=true)
 
         @test isapprox(
             Freg_s / prefac(b_s[:left], x),

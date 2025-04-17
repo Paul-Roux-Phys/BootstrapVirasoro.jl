@@ -92,8 +92,12 @@ function CentralCharge(; β=missing, c=missing, B=missing, b=missing)
     return CentralCharge(:c, 1)
 end
 
-function Base.show(io::IO, c::CentralCharge)
+function Base.show(io::IO, ::MIME"text/plain", c::CentralCharge)
     print(io, "c = $(c.c), β = $(c.β)")
+end
+
+function Base.show(io::IO, c::CentralCharge)
+    print(io, "c = $(c.c)")
 end
 
 function Base.isequal(c1::CentralCharge, c2::CentralCharge)

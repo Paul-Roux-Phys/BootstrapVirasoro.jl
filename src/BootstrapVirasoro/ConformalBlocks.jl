@@ -1,4 +1,4 @@
-import BarnesDoubleGamma: digamma_reg
+import BarnesDoubleGamma: digamma_reg, gamma
 
 using EllipticFunctions
 using Memoization
@@ -10,7 +10,7 @@ export Correlation,
     Block,
     BlockChiral,
     BlockNonChiral,
-    GeneralizedBlock,
+    BlockInterchiral,
     qfromx,
     xfromq,
     evaluate_series,
@@ -107,44 +107,53 @@ ConformalDimension{ComplexF64} with Kac indices r = 2//1, s = 3//2
 ```
 """
 abstract type Correlation{T} end
+# alias
+const Corr = Correlation
 
-abstract type GeneralizedBlock{T} end # generalised block, can be interchiral or conformal
-abstract type Block{T} <: GeneralizedBlock{T} end # conformal block
-abstract type BlockInterchiral{T} <: GeneralizedBlock{T} end # interchiral block (chiral or not)
+abstract type Block{T} end # general conformal block. Can be interchiral, non-chiral or chiral
 
 include("ConformalBlocks/residues.jl")
 include("ConformalBlocks/Correlations.jl")
-include("ConformalBlocks/BlocksSeries.jl")
+include("ConformalBlocks/BlockChiral.jl")
+include("ConformalBlocks/BlockNonChiral.jl")
+include("ConformalBlocks/BlockLogarithmic.jl")
+include("ConformalBlocks/BlockInterchiral.jl")
 include("ConformalBlocks/prefactors.jl")
-include("ConformalBlocks/logarithmic.jl")
 include("ConformalBlocks/evaluate.jl")
-include("ConformalBlocks/InterchiralBlocks.jl")
 
-Block(c::Correlation, chan::Symbol, d::ConformalDimension, Nmax::Int) =
-    BlockChiral(c, chan, d, Nmax)
-Block(c::Correlation, chan::Symbol, V::Field, Nmax::Int) =
-    BlockNonChiral(c, chan, V, Nmax)
-Block(c::Correlation, chan, V::Field, lr::Symbol, Nmax; der=false) = 
-    BlockChiral(c, chan, V.dims[lr], lr, Nmax, der=der)
-Block(c, chan, d::ConformalDimension, lr, Nmax; der=false) =
-    BlockChiral(c, chan, d, lr, Nmax, der=der)
-Block(c, chan, V::Field, lr::Symbol) = Block(c, chan, V, lr, c.Nmax)
-Block(c, chan, d::ConformalDimension) = BlockChiral(c, chan, d, c.Nmax)
-Block(c, chan, V::Field) = Block(c, chan, V, c.Nmax)
+Block(co::Corr, chan::Symbol, d::CD, Nmax::Int) = BlockChiral(co, chan, d, Nmax)
+Block(co::Corr, chan::Symbol, V::Field, Nmax::Int) = BlockNonChiral(co, chan, V, Nmax)
+Block(co::Corr, chan, V::Field, lr::Symbol, Nmax; der=false) = 
+    BlockChiral(co, chan, V.dims[lr], lr, Nmax, der=der)
+Block(co, chan, d::CD, lr, Nmax; der=false) =
+    BlockChiral(co, chan, d, lr, Nmax, der=der)
 
-Nmax(Δmax::ConformalDimension, V::Field) =
-    ceil(Int, Δmax.Δ - minimum(abs(V.dims[lr].Δ) for lr in (:left, :right)))
+N_max(d::CD, Δmax::CD) = max(0, ceil(Int, real(Δmax.Δ - d.Δ)))
+N_max(V::Field, Δmax::CD) = max(0, ceil(Int, real(Δmax.Δ - scaling_dim(V))))
 
-Block(c, chan, V::Field, Δmax::ConformalDimension) = Block(c, chan, V, Nmax(Δmax, V))
-Block(c, chan, V::Field, lr::Symbol, Δmax::ConformalDimension; der=false) =
-    Block(c, chan, V, Nmax(Δmax, V))
-Block(c, chan, d::ConformalDimension, lr, Δmax::ConformalDimension; der=false) =
-    BlockChiral(c, chan, d, lr, Nmax(Δmax, V), der=der)
-
-function GeneralizedBlock(c, chan, V::Field, Δmax::ConformalDimension; interchiral=true)
+function Block(
+    co, chan, d, lr=nothing;
+    Nmax::Union{Int, Nothing}=nothing,
+    Δmax::Union{CD, Nothing}=nothing,
+    interchiral=false,
+    s_shift=2
+)
+    # compute Nmax for this block
+    if Nmax === nothing && Δmax === nothing
+        Nmax = co.Nmax
+    elseif Nmax === nothing && Δmax !== nothing
+        Nmax = N_max(d, Δmax)
+    end
+    # don't exceed the N for which we computed the residues
+    Nmax = min(Nmax, co.Nmax)
     if interchiral
-        BlockInterchiralNonChiral(c, chan, V, Δmax)
+        @assert Δmax !== nothing "must provide Δmax for interchiral block"
+        BlockInterchiral(co, chan, d, Δmax, s_shift)
     else
-        Block(c, chan, V, Δmax)
+        if lr === nothing
+            Block(co, chan, d, Nmax)
+        else
+            Block(co, chan, d, lr, Nmax)
+        end
     end
 end
