@@ -13,11 +13,25 @@ using BootstrapVirasoro,
     # Documenter.doctest(BootstrapVirasoro)
 
     @testset "CFTData.jl" begin
-        include("cft_data/cft_data_tests.jl")
+        include("cft_data_tests.jl")
     end
 
     @testset "Conformal blocks" begin
-        include("conformal_blocks/conformal_blocks_tests.jl")
+        @testset "Residues" begin
+            include("conformal_blocks/zamolodchikov_residues_tests.jl")
+        end
+
+        @testset "Four point blocks" begin
+            include("conformal_blocks/four_point_blocks_tests.jl")
+        end
+
+        @testset "One point blocks" begin
+            include("conformal_blocks/one_point_blocks_tests.jl")
+        end
     end
+
+    # @testset "Bootstrap equations" begin
+    #     include("bootstrap_equations.jl")
+    # end
 
 end

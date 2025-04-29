@@ -262,3 +262,5 @@ Correlation(V::Field, lr, Nmax::Int) = CorrelationChiral((V.dims[lr],), Nmax)
 
 Correlation(co_left::CorrelationChiral, co_right::CorrelationChiral) =
     CorrelationNonChiral((co_left, co_right))
+
+Correlation(args...; Δmax::CD=CD(Δ=10.)) = Correlation(args..., N_max(CD(), Δmax))

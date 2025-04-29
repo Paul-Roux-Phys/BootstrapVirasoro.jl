@@ -15,6 +15,7 @@
     b = Block(corr, :s, V_chan, :left, 12)
 
     h = evaluate_series(b, 16q)
+    BootstrapVirasoro.evalpoly_buf(q, b._coefficients)
 
     @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol=1e-8) # value from Sylvain's code
 end
@@ -31,27 +32,47 @@ end
     b_s = Block(co, :s, V, Nmax)
     b_t = Block(co, :t, V, Nmax)
     b_u = Block(co, :u, V, Nmax)
-    x=big"0.05"
+    x=big"0.05" + big"0"*im
 
+    @testset "prefactors" begin
+        import BootstrapVirasoro: blockprefactor_chiral
+        @test isapprox(
+            blockprefactor_chiral(b_s, x),
+            big"1813.32806084410414587456604",
+            rtol = 1e-20
+        )
+        @test isapprox(
+            blockprefactor_chiral(b_t, 1-x),
+            big"0.07933043122650460823164",
+            rtol = 1e-20
+        )
+        @test isapprox(
+            blockprefactor_chiral(b_u, 1/big"1.5" + 0im),
+            big"3.425385476422140172584631280130419",
+            rtol = 1e-20
+        )
+    end
+    
     # comparing to values from Sylvain's code
-    @test isapprox(
-        evaluate(b_s, x),
-        big"1679.912188689784627081651",
-        rtol = 1e-20
-    )
+    @testset "block values" begin
+        @test isapprox(
+            evaluate(b_s, complex(x)),
+            big"1679.912188689784627081651",
+            rtol=1e-20
+        )
 
-    @test isapprox(
-        evaluate(b_t, x),
-        big"10841.257658755518924543654",
-        rtol = 1e-20
-    )
+        @test isapprox(
+            evaluate(b_t, complex(x)),
+            big"10841.257658755518924543654",
+            rtol=1e-20
+        )
 
-    @test isapprox(
-        evaluate(b_u, x),
-        big"299.184384913428137990921" -
-            big"2026.473161971945940069258"*im,
-        rtol = 1e-20
-    )
+        @test isapprox(
+            evaluate(b_u, big"1.5" + 0im),
+            big"67.6043205801146820843104",
+            rtol=1e-20
+        )
+    end
 end
 
 @testset "Non Chiral Blocks" begin
@@ -94,7 +115,7 @@ end
         b_m = Block(co, :s, Vm, :left, 40)
 
         function eval_series_der(x)
-            q = 16qfromx(x)
+            q = 16qfromx(complex(x))
             series_der = evaluate_series(b, q, der=true)
             byhand = (evaluate_series(b_p, q) - evaluate_series(b_m, q)) / (2 * ϵ)
             series_der - byhand
@@ -111,7 +132,7 @@ end
         end
 
         @test abs(eval_block_der(big"0.3" + big"0.4" * im)) < big"1e-25"
-        @test abs(eval_block_der(big"0.01")) < big"1e-25"
+        @test abs(eval_block_der(big"0.01" + 0im)) < big"1e-25"
         @test abs(eval_block_der(big"10" + big"0.01" * im)) < big"1e-25"
     end
 

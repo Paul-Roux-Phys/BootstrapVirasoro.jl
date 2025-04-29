@@ -9,9 +9,9 @@ module BootstrapVirasoro
 
 # The exported methods and types are found in the following included files.
 # These files also document the exported methods
-include("BootstrapVirasoro/CFTData.jl")
-include("BootstrapVirasoro/ConformalBlocks.jl")
-include("BootstrapVirasoro/spectra.jl")
-include("BootstrapVirasoro/bootstrap_equations.jl")
+include("CFTData.jl")
+include("ConformalBlocks.jl")
+include("spectra.jl")
+include("bootstrap_equations.jl")
 
 end

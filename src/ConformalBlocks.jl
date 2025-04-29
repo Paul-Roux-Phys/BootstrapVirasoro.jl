@@ -24,6 +24,22 @@ const ExtFields{T} = Tuple{Vararg{Field{T}}} # tuples of fields
 const FourFields{T} = NTuple{4, Field{T}}
 const OneField{T} = Tuple{Field{T}}
 
+const DISTRIBUTED_MODE = Ref(false)  # mutable
+
+function enable_distributed()
+    DISTRIBUTED_MODE[] = true
+end
+
+function disable_distributed()
+    DISTRIBUTED_MODE[] = false
+end
+
+function use_distributed()
+    return DISTRIBUTED_MODE[]
+end
+
+using Distributed
+
 """
     Correlation{T}
 
@@ -110,7 +126,13 @@ abstract type Correlation{T} end
 # alias
 const Corr = Correlation
 
+"""
+TODO: write documentation for Block type and constructors
+"""
 abstract type Block{T} end # general conformal block. Can be interchiral, non-chiral or chiral
+
+N_max(d::CD, Δmax::CD) = max(0, ceil(Int, real(Δmax.Δ - d.Δ)))
+N_max(V::Field, Δmax::CD) = max(0, ceil(Int, real(Δmax.Δ - total_dimension(V))))
 
 include("ConformalBlocks/residues.jl")
 include("ConformalBlocks/Correlations.jl")
@@ -119,6 +141,7 @@ include("ConformalBlocks/BlockNonChiral.jl")
 include("ConformalBlocks/BlockLogarithmic.jl")
 include("ConformalBlocks/BlockInterchiral.jl")
 include("ConformalBlocks/prefactors.jl")
+include("ConformalBlocks/buffered_evalpoly.jl")
 include("ConformalBlocks/evaluate.jl")
 
 Block(co::Corr, chan::Symbol, d::CD, Nmax::Int) = BlockChiral(co, chan, d, Nmax)
@@ -127,9 +150,6 @@ Block(co::Corr, chan, V::Field, lr::Symbol, Nmax; der=false) =
     BlockChiral(co, chan, V.dims[lr], lr, Nmax, der=der)
 Block(co, chan, d::CD, lr, Nmax; der=false) =
     BlockChiral(co, chan, d, lr, Nmax, der=der)
-
-N_max(d::CD, Δmax::CD) = max(0, ceil(Int, real(Δmax.Δ - d.Δ)))
-N_max(V::Field, Δmax::CD) = max(0, ceil(Int, real(Δmax.Δ - scaling_dim(V))))
 
 function Block(
     co, chan, d, lr=nothing;
@@ -156,4 +176,9 @@ function Block(
             Block(co, chan, d, lr, Nmax)
         end
     end
+end
+
+""" Evaluate blocks with b(z) """
+function (b::Block)(args...)
+    evaluate(b, args...)
 end

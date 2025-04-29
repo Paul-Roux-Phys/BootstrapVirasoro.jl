@@ -10,10 +10,10 @@ Nivesvivat
 
 export LeftRight,
     CentralCharge, CC,
-    ConformalDimension, CD,
+    ConformalDimension, CD, P_rs,
     Field, spin, swap_lr,
     shift,
-    scaling_dim
+    total_dimension
 
 const LeftRight{T} = Tuple{T,T} # left and right pairs of things
 

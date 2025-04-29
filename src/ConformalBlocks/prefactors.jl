@@ -3,7 +3,7 @@ Sphere prefactor
 ===========================================================================================#
 
 """Nome `q` from the cross-ratio `x`"""
-qfromx(x) = exp(-oftype(x, π) * ellipticK(1 - x) / ellipticK(x))
+@memoize qfromx(x) = exp(- (π * ellipticK(1 - x) / ellipticK(x)))
 
 """Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
@@ -13,8 +13,8 @@ xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
 
 Prefactor to get t- or u-channel blocks from the s-channel block
 """
-function channelprefactor_chiral(d::FourDimensions, b, x)
-    b.channel === :u && return x^(2*d[1].Δ)
+function channelprefactor_chiral(d::FourDimensions, chan, x)
+    chan === :u && return x^(2*d[1].Δ)
     return 1
 end
 
@@ -25,10 +25,10 @@ function channel_sign(b::Block, x)
 end
 
 """Cross-ratio at which to evaluate the s-channel block to get t- or u-channel block"""
-function crossratio(chan, x)
+@memoize function crossratio(chan, x)
     chan === :s && return x
-    chan === :t && return 1-x
-    chan === :u && return 1/x
+    chan === :t && return 1 .- x
+    chan === :u && return 1 ./ x
     error(
         """Incorrect channel specification in crossratio(channel, x):
         must be in $channels"""
@@ -41,24 +41,33 @@ end
 Prefactor for getting the chiral block F from H. 
 The argument `lr` indicates if we are working with a left or right moving block
 """
-function blockprefactor_chiral(d::FourDimensions, b::BlockChiral, x)
-    ds = permute_dimensions(d, b.channel)
+@memoize function prefactor_chiral(d::FourDimensions, chan::Symbol, x)
+    ds = permute_dimensions(d, chan)
+    c = d[1].c.c
 
-    a = (d[1].c.c-1)/24
+    a = (c-1)/24
     e0 = -ds[1].δ - ds[2].δ - a
     e1 = -ds[1].δ - ds[4].δ - a
     e2 = sum(ds[i].δ for i in 1:4) + a
+
     q = qfromx(x)
     
-    return channelprefactor_chiral(d, b, x) *
-        x^e0 * (1 - x)^e1 * jtheta3(0, q)^(-4 * e2) * (16 * q)^b.channel_dimension.δ
+    return channelprefactor_chiral(d, chan, x) *
+        x^e0 * (1 - x)^e1 * jtheta3(0, q)^(-4 * e2), q
+end
+
+function blockprefactor_chiral(d::FourDimensions, b, x)
+    q = qfromx(x)
+    pref = prefactor_chiral(d, b.channel, x)
+    q = pref[2]
+    pref[1] * (16 * q)^b.channel_dimension.δ
 end
 
 
 #===========================================================================================
 Torus prefactor
 ===========================================================================================#
-qfromτ(τ) = exp(im*oftype(τ, π)*τ)
+@memoize qfromτ(τ) = exp(im*(π*τ))
 
 function blockprefactor_chiral(d::OneDimension, b::BlockChiral, τ)
     q = qfromτ(τ)

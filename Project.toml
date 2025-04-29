@@ -4,18 +4,20 @@ authors = ["Paul_Roux"]
 version = "0.0.0-DEV"
 
 [deps]
-ArbNumerics = "7e558dbc-694d-5a72-987c-6f4ebed21442"
 BarnesDoubleGamma = "8c4ec0a7-3a81-41b6-9d5f-01f75984e8d3"
+Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 EllipticFunctions = "6a4e32cb-b31a-4929-85af-fb29d9a80738"
 Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
+MutableArithmetics = "d8a4904e-b15c-11e9-3269-09a3773c0cb0"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
-ArbNumerics = "1"
 BarnesDoubleGamma = "1"
 BenchmarkTools = "1.6.0"
+Distributed = "1.11.0"
 EllipticFunctions = "2"
 Memoization = "0"
+MutableArithmetics = "1.6.4"
 SpecialFunctions = "2"
 julia = "1"
 

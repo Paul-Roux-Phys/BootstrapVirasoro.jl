@@ -60,7 +60,7 @@ struct ConformalDimension{T}
 
 end
 
-Prs(r, s, β::Number) = 1/2 * (β*r - s/β)
+P_rs(r, s, β::Number) = 1/2 * (β*r - s/β)
 P_rs(r, s, c::CentralCharge) = P_rs(r, s, c.β)
 δrs(r, s, B::Number) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 δrs(r, s, c::CentralCharge) = -1/4 * (c.B*r^2 + 2*r*s + s^2/c.B)

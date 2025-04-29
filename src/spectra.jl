@@ -1,6 +1,8 @@
-export Spectrum,
+export Spectra,
+    Spectrum,
     BulkSpectrum,
-    blocks
+    blocks, nb_blocks,
+    generate_pairs
 
 """
     Spectrum{T}
@@ -8,6 +10,8 @@ export Spectrum,
 Abstract type for representing a CFT spectrum.
 """
 abstract type Spectrum{T} end
+
+const Spectra{T} = Dict{Symbol, Spectrum{T}}
 
 mutable struct BulkSpectrum{T} <: Spectrum{T}
     
@@ -82,8 +86,8 @@ function Base.show(io::IO, s::BulkSpectrum)
     end
 end
 
-function generate_pairs(r_range, condition=(r, s)->(r*s%1==0))
-    [(r, s) for r in r_range for s in -1+1//r:1//r:1 if condition(r, s)]
+function generate_pairs(r_range, conditions=(r, s)->(r*s%1==0))
+    [(r, s) for r in r_range for s in -1+1//r:1//r:1 if conditions(r, s)]
 end
 
 # condition = (r, s) -> (r%1 == 0 && r*s%1 == 0)

@@ -1,7 +1,7 @@
 using BootstrapVirasoro: series_argument, blockprefactor_chiral, islogarithmic
 
 setprecision(BigFloat, 256)
-c = CentralCharge(β=big"1.2" + big"0.1" * 1im)
+c = CentralCharge(β=big"1.2" + big"0.1" * im)
 c_s = CentralCharge(β=c.β / sqrt(big(2)))
 
 V = Field(c, P=0.53 + 0.11im, diagonal=true)
@@ -264,15 +264,27 @@ end
             rtol=1e-40
         )
 
-        logterm1 = evaluate(b, 2τ, debug=true)[1]
+        Prs = V.P[:left]
+
+        Freg = evaluate(b, 2τ, :left)
+        Fbar = evaluate(b, 2τ, :right)
+        Fder = evaluate(b, 2τ, :left, der=true)
+        R = b.corr._Rmn[:left][b.channel][(V.r, V.s)]
+        logterm1 = (Freg - R / 2 / Prs * Fder) * Fbar
+
+        Prs_s = V_s.P[:left]
+        Freg_s = evaluate(b_s, x, :left)
+        Fbar_s = evaluate(b_s, x, :right)
+        Fder_s = evaluate(b_s, x, :left, der=true)
+        R_s = b_s.corr._Rmn[:left][b_s.channel][(V_s.r, V_s.s)]
+        logterm1_s = (Freg_s - R_s / 2 / Prs_s * Fder_s) * Fbar_s
+
         pref = prefac(b[:left], 2τ) * prefac(b[:right], conj_q(2τ, b))
-        logterm1_s = evaluate(b_s, x, debug=true)[1]
         R2rs_s = co_s._Rmn[:left][:s][(V_s.r, V_s.s)]
         pref_s = prefac(b_s[:left], x) * prefac(b_s[:right], conj_q(x, b_s))
         F2rms_s = evaluate(b_s, x, :right)
         F2Rmsbar_s = evaluate(b_s, conj_q(x, b_s), :right)
         modF2sq = F2rms_s * F2Rmsbar_s
-        Prs = V.P[:left]
 
         @test isapprox(
             logterm1 / pref,
@@ -298,10 +310,6 @@ end
     pref2 = prefac(b2[:left], 2τ) * prefac(b2[:right], conj_q(2τ, b))
     pref2_s = prefac(b2_s[:left], x) * prefac(b2_s[:right], conj_q(x, b_s))
 
-    setprecision(BigFloat, 256)
-    println(ell(b2) / sqrt(big"2") + 16 * log(big"2") * inv(c_s.β) * V2.s)
-    println(ell(b2_s))
-
     @testset "ell" begin
         @test isapprox(
             ell(b) / sqrt(big"2") + 16 * log(big"2") * inv(c_s.β) * V.s, ell(b_s)
@@ -321,4 +329,33 @@ end
             evaluate(b2, 2τ) / pref2, evaluate(b2_s, x) / pref2_s
         )
     end
+
+end
+
+@testset "Interchiral" begin
+    import BootstrapVirasoro: shift_D, shift_C123, shift_C122, shift_B
+    import BootstrapVirasoro.blockprefactor_chiral as prefac
+    import BootstrapVirasoro.conj_q
+
+    P = big"0.53" + big"0.11" * im
+    V = Field(c, P=P, diagonal=true)
+    V_s = Field(c_s, P=sqrt(big"2") * P, diagonal=true)
+
+    s = shift_D(co.fields, V)
+    s_s = shift_D(co_s.fields, V_s)
+
+    @test isapprox(
+        s_s / s / 16^(8 / c.β * V.P[:left]), 1
+    ) # shift(D^S2) = shift(D) * 16^(-8β^-1 P)
+
+    b = Block(co, :τ, V, interchiral=true, Δmax=CD(c, Δ=10.0))
+    pref = prefac(b.blocks[1][:left], 2τ) * prefac(b.blocks[1][:right], conj_q(2τ, b.blocks[1]))
+    b_s = Block(co_s, :s, V_s, interchiral=true, Δmax=CD(c_s, Δ=10.0))
+    pref_s = prefac(b_s.blocks[1][:left], x) * prefac(b_s.blocks[1][:right], conj_q(x, b_s.blocks[1]))
+
+    evaluate(b.blocks[1], 2τ) / pref
+    evaluate(b_s.blocks[1], x) / pref_s
+    # @test isapprox(
+    #     evaluate(b, 2τ) / pref, evaluate(b_s, x) / pref_s
+    # )
 end

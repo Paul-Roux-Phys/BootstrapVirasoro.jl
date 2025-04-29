@@ -209,4 +209,4 @@ function shift(V::Field, i, index=:s)
     end
 end
 
-scaling_dim(V::Field) = V.Δ[:left] + V.Δ[:right]
+total_dimension(V::Field) = V.Δ[:left] + V.Δ[:right]
