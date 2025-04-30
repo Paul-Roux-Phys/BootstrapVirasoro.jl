@@ -13,11 +13,11 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 BarnesDoubleGamma = "1"
-BenchmarkTools = "1.6.0"
-Distributed = "1.11.0"
+BenchmarkTools = "1"
+Distributed = "1"
 EllipticFunctions = "2"
 Memoization = "0"
-MutableArithmetics = "1.6.4"
+MutableArithmetics = "1"
 SpecialFunctions = "2"
 julia = "1"
 
