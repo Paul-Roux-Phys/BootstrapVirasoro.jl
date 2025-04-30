@@ -58,7 +58,7 @@ function evaluate(b::BlockLogarithmic, x::T, lr; der=false, op=false)::T where {
 end
 
 function evaluate(b::BlockFactorized, x::T)::T where {T}
-    evaluate(b[:left], x) .* evaluate(b[:right], x)
+    evaluate(b, x, :left) .* evaluate(b, x, :right)
 end
 
 function evaluate(b::BlockLogarithmic, x::T)::T where {T}
@@ -67,8 +67,8 @@ function evaluate(b::BlockLogarithmic, x::T)::T where {T}
     s < 0 && return x isa AbstractArray ? zeros(eltype(x), size(x)) : zero(x) # by convention G_(r, s<0) = 0
     Prs = V.P[:left]
 
-    Freg = evaluate(b[:left], x)
-    Fbar = evaluate(b[:right], x)
+    Freg = evaluate(b, x, :left)
+    Fbar = evaluate(b, x, :right)
     F = evaluate(b, x, :left, op=true)
     Fregbar = evaluate(b, x, :right, op=true)
 
