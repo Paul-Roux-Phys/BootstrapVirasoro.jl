@@ -4,8 +4,8 @@ const dimension_parameter_list = (:Δ, :δ, :P, :p, :w)
 
 """Get P from any given parameter"""
 function Pfrom(s::Symbol, x, c::CentralCharge)
-    s === :Δ && return realify(sqrt(complex(x - (c.c-1)/24)))
-    s === :δ && return realify(sqrt(complex(x)))
+    s === :Δ && return sqrt(complex(x - (c.c-1)/24))
+    s === :δ && return sqrt(complex(x))
     s === :P && return x
     s === :p && return im*x
 end

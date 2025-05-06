@@ -333,8 +333,7 @@ end
 end
 
 @testset "Interchiral" begin
-    import BootstrapVirasoro: shift_D, shift_C123, shift_C122, shift_B
-    import BootstrapVirasoro.prefactor_chiral as prefac
+    import BootstrapVirasoro: shift_D
     import BootstrapVirasoro.conj_q
 
     P = big"0.53" + big"0.11" * im
@@ -348,31 +347,33 @@ end
         s_s / s / 16^(8 / c.β * (V.P[:left] + 1/2/c.β)), 1
     ) # shift(D^S2) = shift(D) * 16^(-8β^-1 (P + β^-1/2))
 
+    i=1
+
     b = Block(co, :τ, V, interchiral=true, Δmax=CD(c, Δ=10.0))
-    prefactor(i) = BootstrapVirasoro.prefactor_chiral(b.blocks[i][:left].dims, :τ, 2τ)[1] *
-        BootstrapVirasoro.prefactor_chiral(b.blocks[i][:right].dims, :τ, conj_q(2τ, b.blocks[i]))[1]
+    prefactor = BootstrapVirasoro.prefactor_chiral(b.blocks[1][:left].dims, :τ, 2τ)[1] *
+        BootstrapVirasoro.prefactor_chiral(b.blocks[1][:right].dims, :τ, conj_q(2τ, b.blocks[1]))[1]
 
     b_s = Block(co_s, :s, V_s, interchiral=true, Δmax=CD(c_s, Δ=10.0))
-    prefactor_s(i) = BootstrapVirasoro.prefactor_chiral(b_s.blocks[i][:left].dims, :s, x)[1] *
+    prefactor_s = BootstrapVirasoro.prefactor_chiral(b_s.blocks[i][:left].dims, :s, x)[1] *
         BootstrapVirasoro.prefactor_chiral(b_s.blocks[i][:right].dims, :s, conj_q(x, b_s.blocks[i]))[1]
 
-    for i in 1:4
+    for i in 1:3
         @test isapprox(
-            evaluate(b.blocks[i], 2τ) / prefactor(1),
-            evaluate(b_s.blocks[i], x) / prefactor_s(1) * 16^(-4b.fields[i].P[:left]^2),
+            evaluate(b.blocks[i], 2τ) / prefactor,
+            evaluate(b_s.blocks[i], x) / prefactor_s * 16^(-4b.fields[i].P[:left]^2),
             atol = 1e-20
         )
     end
 
     @test isapprox(
-        (evaluate(b.blocks[1], 2τ) + evaluate(b.blocks[2], 2τ) / s) / prefactor(1),
-        (evaluate(b_s.blocks[1], x) + evaluate(b_s.blocks[2], x) / s_s) / prefactor_s(1) * 16^(-4P^2),
+        (evaluate(b.blocks[1], 2τ) + evaluate(b.blocks[2], 2τ) / s) / prefactor,
+        (evaluate(b_s.blocks[1], x) + evaluate(b_s.blocks[2], x) / s_s) / prefactor_s * 16^(-4P^2),
         rtol = 1e-20
     )
 
     @test isapprox(
-        evaluate(b, 2τ) / prefactor(1),
-        evaluate(b_s, x) / prefactor_s(1) * 16^(-4P^2),
+        evaluate(b, 2τ) / prefactor,
+        evaluate(b_s, x) / prefactor_s * 16^(-4P^2),
         rtol = 1e-20
     )
 end

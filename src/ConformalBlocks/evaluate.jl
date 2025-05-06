@@ -94,7 +94,7 @@ end
 
 function evaluate(b::BlockInterchiral, x::T)::T where {T}
     sum(
-        b.shifts[i] .* evaluate((b.blocks)[i], x)
+        evaluate((b.blocks)[i], x) .* b.shifts[i]
         for i in eachindex(b.blocks)
     )
 end
