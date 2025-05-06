@@ -20,6 +20,9 @@ julia> c.n
 """
 struct CentralCharge{T}
     β::T
+    B::T
+    b::T
+    c::T
 end
 
 function Bfrom(s::Symbol, x)
@@ -39,26 +42,26 @@ end
 
 function Bto(s::Symbol, x)
     rx = sqrt(complex(x))
-    s === :β && return -im*rx
+    s === :β && return im*rx
     s === :c && return 13+6*x+6/x
-    s === :b && return -rx
+    s === :b && return rx
     s === :B && return x
 end
 
 
 function Base.getproperty(c::CentralCharge, s::Symbol)
-    β = Bto(:β, Bfrom(:β, getfield(c, :β)))
-    s === :β && return β
-    s === :c && return 13 - 6*β^2 - 6/β^2
-    s === :B && return -β^2
-    s === :b && return -im*β
-    s === :n && return -2*cos(oftype(β, π)*β^2)
+    β = getfield(c, :β)
+    s in (:β, :c, :B, :b) && return getfield(c, s)
+    s === :n && return -2*cos(π*β^2)
     error("$s is not a supported parametrisation of the central charge")
 end
 
 function CentralCharge(s::Symbol, x)
-    β = Bto(:β, Bfrom(s, x))
-    CentralCharge(β)
+    B = complex(Bfrom(s, x))
+    β = Bto(:β, B)
+    b = Bto(:b, B)
+    c = Bto(:c, B)
+    CentralCharge(β, B, b, c)
 end
 
 """

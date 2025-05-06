@@ -18,11 +18,14 @@ function BlockInterchiral(
     end
     Vshift = V0
     D = 1
+    if s_shift == 1
+        error("Interchiral blocks with shifts s->s+1 not implemented")
+    end
     while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax.Δ)
         push!(fields, Vshift)
         push!(shifts, D)
-        Vshift = shift(Vshift, s_shift)
         D /= shift_D(co.fields, Vshift)
+        Vshift = shift(Vshift, s_shift)
     end
     Vshift = shift(V0, -s_shift)
     D = shift_D(co.fields, Vshift)
@@ -39,7 +42,7 @@ end
 """"
         shift_C(V1, V2, V3)
 
-Ratio ``C_{123^-}/C_{123^+}``.
+Ratio ``C_{123}/C_{123^++}``.
 See arXiv:2411.17262 (4.13a).
 """
 function shift_C123(V1, V2, V3)
@@ -47,6 +50,7 @@ function shift_C123(V1, V2, V3)
     r1, s1 = V1.indices
     r2, s2 = V2.indices
     r3, s3 = V3.indices
+    s3 += 1
 
     res = (-1)^(Int(2r2 + max(2r1, 2r2, 2r3, r1 + r2 + r3)))
     res *= (β+0im)^(-4inv(β)^2 * s3)
@@ -62,12 +66,13 @@ end
 """
         shift_C122(V1, V2)
 
-Ratio ``C_{12^-2^-}/C_{12^+2^+}``.
+Ratio ``C_{122}/C_{12^++2^++}``.
 """
 function shift_C122(V1, V2)
     β = V1.c.β
     r1, s1 = V1.indices
     r2, s2 = V2.indices
+    s2 += 1
 
     res = (-1)^(2r2)
     res *= β^(-8inv(β)^2 * s2)
@@ -83,12 +88,13 @@ end
 """"
         shift_B(V)
 
-Ratio ``B_{V^-}/B_{V^+}``.
+Ratio ``B_{V}/B_{V^++}``.
 See arXiv:2411.17262 (4.13b).
 """
 function shift_B(V)
     β = V.c.β
     r, s = V.indices
+    s += 1
     res = (-1)^(2r)
     res *= β^(-8inv(β)^2 * s)
     res *= prod(
@@ -97,12 +103,12 @@ function shift_B(V)
     )
 end
 
-"""ratio ``D_{V^-}/D_{V^+}`` for four-point structure constants"""
+"""ratio ``D_{V}/D_{V^++}`` for four-point structure constants"""
 function shift_D(Vs::FourFields, V)
     shift_C123(Vs[1], Vs[2], V)*shift_C123(Vs[3], Vs[4], V) / shift_B(V)
 end
 
-""" ratio ``D_{V^-}/D_{V^+}`` for torus one-point structure constants"""
+""" ratio ``D_{V}/D_{V^++}`` for torus one-point structure constants"""
 function shift_D(Vs::OneField, V)
     shift_C122(Vs[1], V) / shift_B(V)
 end

@@ -58,9 +58,8 @@ end
 
 function blockprefactor_chiral(d::FourDimensions, b, x)
     q = qfromx(x)
-    pref = prefactor_chiral(d, b.channel, x)
-    q = pref[2]
-    pref[1] * (16 * q)^b.channel_dimension.δ
+    pref, q = prefactor_chiral(d, b.channel, x)
+    pref * (16 * q)^b.channel_dimension.δ
 end
 
 
@@ -69,9 +68,14 @@ Torus prefactor
 ===========================================================================================#
 @memoize qfromτ(τ) = exp(im*(π*τ))
 
-function blockprefactor_chiral(d::OneDimension, b::BlockChiral, τ)
+@memoize function prefactor_chiral(d::OneDimension, chan::Symbol, τ)
     q = qfromτ(τ)
-    q^b.channel_dimension.δ / etaDedekind(complex(τ))
+    1 / etaDedekind(complex(τ)), q
+end
+
+function blockprefactor_chiral(d::OneDimension, b, τ)
+    pref, q = prefactor_chiral(d, b.channel, τ)
+    pref * q^b.channel_dimension.δ 
 end
 
 blockprefactor_chiral(b::BlockChiral, x) = blockprefactor_chiral(b.corr.dims, b, x)

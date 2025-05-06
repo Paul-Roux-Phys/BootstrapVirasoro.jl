@@ -9,23 +9,23 @@ end
 
 @testset "Fields" begin
     #ensure the relation between p and P does not change
-    c1 = CentralCharge(:c, -1.1 + 0.2im)
+    c1 = CentralCharge(c = -1.1 + 0.2im)
     V1 = Field(c1, :P, 0.5, diagonal=true)
     p = V1.P[:left]
     V2 = Field(c1, :P, p, diagonal=true)
-    @test V1.P == V2.P
+    @test all(isapprox.(V1.P, V2.P))
 
     #ensure the keyword diagonal also works for fields given from Kac indices
     V1 = Field(c1, r=3, s=4, diagonal=true)
-    @test V1.δ[:left] == V1.δ[:right]
+    @test isapprox(V1.δ[:left], V1.δ[:right])
 
     V1 = Field(c1, r=2, s=5, diagonal=true)
-    @test V1.δ[:left] == V1.δ[:right]
+    @test isapprox(V1.δ[:left], V1.δ[:right])
     V2 = Field(c1, diagonal=true, r=2, s=5)
     @test V2 == V1
 
     # test shift()
     @test shift(V1, 2, :r).r == 4
     V1 = Field(c1, P=0.5, diagonal=true)
-    @test shift(V1, 1).dim.P - V1.dim.P == 1/c1.β/2
+    @test isapprox(shift(V1, 1).dim.P - V1.dim.P, 1/c1.β/2)
 end
