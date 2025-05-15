@@ -46,12 +46,12 @@ function evaluate(b::BlockChiral, x::T; der=false)::T where {T}
 end
 
 function evaluate(b::BlockFactorized, x::T, lr)::T where {T}
-    xs = (x, conj_q(x, b))
+    xs = (x, conj_q(x, b))::LeftRight
     evaluate(b.chiral_blocks[lr], xs[lr])
 end
 
 function evaluate(b::BlockLogarithmic, x::T, lr; der=false, op=false)::T where {T}
-    xs = (x, conj_q(x, b))
+    xs = (x, conj_q(x, b))::LeftRight
     der && return evaluate(b.chiral_blocks_der[lr], xs[lr], der=der)
     op && return evaluate(b.chiral_blocks_op[lr], xs[lr])
     evaluate(b.chiral_blocks[lr], xs[lr])

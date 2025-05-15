@@ -1,8 +1,7 @@
-export Spectra,
-    Spectrum,
-    BulkSpectrum,
-    blocks, nb_blocks,
-    generate_pairs
+export Spectrum,
+    ChannelSpectrum,
+    add!, remove!,
+    nb_blocks
 
 """
     Spectrum{T}
@@ -11,72 +10,128 @@ Abstract type for representing a CFT spectrum.
 """
 abstract type Spectrum{T} end
 
-const Spectra{T} = Dict{Symbol, Spectrum{T}}
-
 mutable struct BulkSpectrum{T} <: Spectrum{T}
-    
+    Δmax::T
+    interchiral::Bool
     fields::Vector{Field{T}}
+end
+
+"""
+        Holds all the data for evaluating blocks in a channel.
+"""
+mutable struct ChannelSpectrum{T}
+    Δmax::T
+    corr::Correlation{T}
+    channel::Symbol
+    interchiral::Bool
     blocks::Vector{Block{T}}
-
 end
 
-function blocks(co::Correlation, chan, Vs::Vector{Field{T}}; kwargs...) where {T}
-    [Block(co, chan, V; kwargs...) for V in Vs]
-end
-
-function Spectrum(co, chan, Vs::Vector{Field{T}}; kwargs...) where {T}
-    bs = blocks(co, chan, Vs; kwargs...)
-    BulkSpectrum{T}(Vs, bs)
-end
-
-function Base.getproperty(s::Spectrum, p::Symbol)
-    p === :chan && return getfield(s, blocks)[1].channel
-    getfield(s, p)
-end
-
-function add!(s::BulkSpectrum, V::Field)
-    if !(V in s.fields)
+function _add_one!(s::Spectrum, V)
+    if !(V in s.fields) && real(total_dimension(V)) < real(s.Δmax)
         push!(s.fields, V)
     end
 end
 
-function add!(s::BulkSpectrum, fields::Vector{Field})
-    for V in fields
-        add!(s, V)
+function _add_one!(s::ChannelSpectrum, V)
+    if !(V in s.fields) && real(total_dimension(V)) < real(s.Δmax)
+        push!(s.blocks, Block(s.corr, s.channel, V; interchiral=s.interchiral, Δmax=s.Δmax))
     end
 end
 
-function add!(s::BulkSpectrum, Vs::Field...)
-    for V in Vs
-        add!(s, V)
+add!(s::Union{Spectrum, ChannelSpectrum}, V) = _add_one!(s, V)
+add!(s::Union{Spectrum, ChannelSpectrum}, fields::Vector) = foreach(V -> _add_one!(s, V), fields)
+add!(s::Union{Spectrum, ChannelSpectrum}, fields...) = foreach(V -> _add_one!(s, V), fields)
+
+function Spectrum(fields::Vector{Field{T}}, Δmax; interchiral=false) where {T}
+    s = BulkSpectrum{T}(Δmax, interchiral, [])
+    foreach(V -> add!(s, V), fields)
+    return s
+end
+
+function ChannelSpectrum(co::Correlation, s::Spectrum{T}, chan) where {T}
+    schan = ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, [])
+    foreach(V -> add!(schan, V), s.fields)
+    return schan
+end
+
+function ChannelSpectra(co, s::Spectrum{T}; signature=Dict(:s => 0, :t => 0, :u => 0)) where {T}
+    schan = Dict(
+        chan => ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, [])
+        for chan in (:s, :t, :u)
+    )
+    for V in s.fields
+        for chan in (:s, :t, :u)
+            if isdegenerate(V) || V.r >= signature[chan]
+                add!(schan[chan], V)
+            end
+        end
+    end
+    return schan
+end
+
+function Spectrum(s::ChannelSpectrum{T}) where {T}
+    return Spectrum(Vector{Field{T}}(s.fields), s.Δmax)
+end
+
+function Base.getproperty(s::ChannelSpectrum, p::Symbol)
+    p === :fields && return [b.channel_field for b in s.blocks]
+    getfield(s, p)
+end
+
+function _remove_one!(s::Spectrum, V)
+    idx = findfirst(==(V), s.fields)
+    if idx !== nothing
+        deleteat!(s.fields, idx)
     end
 end
 
-Base.length(s::Spectrum) = length(s.fields)
-Base.size(s::Spectrum) = size(s.fields)
-nb_blocks(s::Spectrum) = sum(length(b) for b in s.blocks)
+function _remove_one!(s::ChannelSpectrum, V)
+    idx = findfirst(==(V), s.fields)
+    if idx !== nothing
+        deleteat!(s.blocks, idx)
+    end
+end
+
+remove!(s::Union{Spectrum, ChannelSpectrum}, V) = _remove_one!(s, V)
+remove!(s::Union{Spectrum, ChannelSpectrum}, fields::Vector) = foreach(V -> _remove_one!(s, V), fields)
+remove!(s::Union{Spectrum, ChannelSpectrum}, fields...) = foreach(V -> _remove_one!(s, V), fields)
+
+Base.length(s::Union{Spectrum, ChannelSpectrum}) = length(s.fields)
+Base.size(s::Union{Spectrum, ChannelSpectrum}) = size(s.fields)
+nb_blocks(s::ChannelSpectrum) = sum(length(b) for b in s.blocks)
 
 function Base.show(io::IO, s::BulkSpectrum)
     nondiags = sort(
-        [V.indices for V in s.fields if V.r != 0],
+        [V.indices for V in s.fields if !isdiagonal(V)],
         by = x -> (x[1], x[2])
     )
     diags = sort(
-        [V for V in s.fields if V.r == 0],
-        by = abs
+        [V for V in s.fields if isdiagonal(V) && !isdegenerate(V)],
+        by = V -> real(total_dimension(V))
     )
+    degs =  sort(
+        [V for V in s.fields if isdegenerate(V)],
+        by = V -> real(total_dimension(V))
+    )
+    if !isempty(degs)
+        println(io, "Degenerate:")
+        for V in degs
+            println(io, V)
+        end
+    end
     if !isempty(diags)
-        println(io, "Diagonal part:")
+        println(io, "Diagonal:")
         for V in diags
             println(io, V)
         end
     end
     if !isempty(nondiags)
-        print(io, "Non-diagonal part indices:")
+        print(io, "Non-diagonal:")
         r = -Inf
         for rs in nondiags
             if rs[1] != r
-                println(io, "")
+                print(io, "\n")
             else
                 print(io, ", ")
             end
@@ -86,10 +141,7 @@ function Base.show(io::IO, s::BulkSpectrum)
     end
 end
 
-function generate_pairs(r_range, conditions=(r, s)->(r*s%1==0))
-    [(r, s) for r in r_range for s in -1+1//r:1//r:1 if conditions(r, s)]
+function Base.show(io::IO, s::ChannelSpectrum)
+    println(io, "channel $(s.channel), Δmax = $(s.Δmax)")
+    show(io, Spectrum(s))
 end
-
-# condition = (r, s) -> (r%1 == 0 && r*s%1 == 0)
-
-# generate_pairs(1//2:1//2:3, -3:1//2:3, (r, s) -> ((r*s)%1 == 0 && r%1 == 0))

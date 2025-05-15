@@ -154,7 +154,7 @@ function Base.getproperty(V::Field, s::Symbol)
                                              # with left right dimension P_(r, s), P_(r, -s)
     s === :isKac && return (V.dims[:left].isKac && V.dims[:right].isKac)
     s === :indices && return ds[:left].indices
-    s === :dim && getproperty(V, :r) == 0 && return ds[:left]
+    s === :dim && isdiagonal(V) && return ds[:left]
 
     return getfield(V, s)
 end
@@ -164,9 +164,17 @@ function Base.:(==)(V1::Field, V2::Field)
     return V1.Δ == V2.Δ
 end
 
+function isdiagonal(V::Field)
+    return V.r == 0 || (V.s != 0 && V.dims[:left] == V.dims[:right])
+end
+
+function isdegenerate(V::Field)
+    return V.r % 1 == 0 && V.s % 1 == 0 && isdiagonal(V)
+end
+
 """Compute the spin Δleft - Δright of a field."""
 function spin(V::Field)::Rational
-    if V.r == 0
+    if isdiagonal(V)
         return 0
     elseif V.isKac
         return V.r*V.s
@@ -181,8 +189,8 @@ function swap_lr(V::Field{T}) where {T}
 end
 
 function Base.show(io::IO, ::MIME"text/plain", V::Field)
-    if V.r == 0
-        print(io, "Diagonal $(typeof(V)) with ")
+    if isdiagonal(V)
+        print(io, "Diagonal $(typeof(V)). dim = ")
         show(io, V.dims[:left])
     else
         print(io, "Non-diagonal $(typeof(V))\n")
@@ -194,15 +202,23 @@ function Base.show(io::IO, ::MIME"text/plain", V::Field)
 end
 
 function Base.show(io::IO, V::Field)
-    if V.r == 0
-        print(io, "V_{P=$(V.P[:left])}")
+    if isdiagonal(V)
+        if V.isKac
+            if V.r % 1 == 0 && V.s % 1 == 0
+                print(io, "<$(V.r), $(V.s)>")
+            else
+                print(io, "($(V.r), $(V.s))")
+            end
+        else
+            print(io, "V_{P=$(V.P[:left])}")
+        end
     else
         print(io, "V_{$(V.indices)}")
     end
 end
 
 function shift(V::Field, i, index=:s)
-    if V.r == 0
+    if isdiagonal(V)
         Field(shift(V.dim, i, index))
     else
         Field(shift(V.dims[:left], i, index), shift(V.dims[:right], -i, index))
@@ -210,3 +226,7 @@ function shift(V::Field, i, index=:s)
 end
 
 total_dimension(V::Field) = V.Δ[:left] + V.Δ[:right]
+
+function Base.hash(V::Field, h::UInt)
+    return hash(V.dims, h)
+end

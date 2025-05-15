@@ -13,5 +13,6 @@ include("CFTData.jl")
 include("ConformalBlocks.jl")
 include("spectra.jl")
 include("bootstrap_equations.jl")
+include("linear_solver.jl")
 
 end

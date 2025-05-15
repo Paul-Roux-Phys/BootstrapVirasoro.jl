@@ -131,14 +131,13 @@ TODO: write documentation for Block type and constructors
 """
 abstract type Block{T} end # general conformal block. Can be interchiral, non-chiral or chiral
 
-N_max(d::CD, Δmax::CD) = max(0, ceil(Int, real(Δmax.Δ - d.Δ)))
-N_max(V::Field, Δmax::CD) = max(0, ceil(Int, real(Δmax.Δ - total_dimension(V))))
+N_max(d::CD, Δmax) = max(0, ceil(Int, real(Δmax - d.Δ)))
+N_max(V::Field, Δmax) = max(0, ceil(Int, real(Δmax - total_dimension(V))))
 
 include("ConformalBlocks/residues.jl")
 include("ConformalBlocks/Correlations.jl")
 include("ConformalBlocks/BlockChiral.jl")
 include("ConformalBlocks/BlockNonChiral.jl")
-include("ConformalBlocks/BlockLogarithmic.jl")
 include("ConformalBlocks/BlockInterchiral.jl")
 include("ConformalBlocks/prefactors.jl")
 include("ConformalBlocks/buffered_evalpoly.jl")
@@ -154,7 +153,7 @@ Block(co, chan, d::CD, lr, Nmax; der=false) =
 function Block(
     co, chan, d, lr=nothing;
     Nmax::Union{Int, Nothing}=nothing,
-    Δmax::Union{CD, Nothing}=nothing,
+    Δmax=nothing,
     interchiral=false,
     s_shift=2
 )

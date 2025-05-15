@@ -238,7 +238,7 @@ end
 
     @testset "Interchiral" begin
         V = Field(c, r=2, s=1//2)
-        b = Block(co, :s, V, interchiral=true, Δmax=CD(c, Δ=30))
+        b = Block(co, :s, V, interchiral=true, Δmax=30)
         @test b.shifts[1] == 1
         @test isapprox(
             b.shifts[3], big"5.464439142274867e-17" + big"1.7406391176219884e-17" * im,

@@ -179,3 +179,9 @@ function shift(d::ConformalDimension, shift, index=:s)
         end
     end
 end
+
+total_dimension(d::ConformalDimension) = d.Δ
+
+function Base.hash(d::ConformalDimension, h::UInt)
+    return hash((d.c, d.P, d.isKac), h)
+end

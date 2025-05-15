@@ -29,7 +29,7 @@ end
 
 function islogarithmic(V::Field)
     r, s = V.indices
-    r*s != 0 && r%1 == s%1 == 0
+    !isdiagonal(V) && r*s != 0 && r%1 == s%1 == 0
 end
 
 islogarithmic(b::Block) = islogarithmic(b.channel_field)

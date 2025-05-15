@@ -3,10 +3,10 @@ using Distributed, BenchmarkTools
 
 c = CC(β = 1/(big"0.8" + big"0.1"*im))
 V1 = Field(c, r=1//2, s=0)
-Δmax = ConformalDimension(c, Δ=15.)
+Δmax = 15.
 # setprecision(BigFloat, 13, base=10)
-co = Correlation(V1, V1, V1, V1, Δmax=CD(c, Δ=15.))
-conditions(r, s) = r*s%1==0 && real(total_dimension(Field(c, r=r, s=s))) <= real(Δmax.Δ)
+co = Correlation(V1, V1, V1, V1, Δmax=Δmax)
+conditions(r, s) = r*s%1==0 && real(total_dimension(Field(c, r=r, s=s))) <= Δmax
 indices = generate_pairs(1//2:1//2:30, conditions)
 vs = [Field(c, r=r, s=s) for (r, s) in indices]
 S = Dict(

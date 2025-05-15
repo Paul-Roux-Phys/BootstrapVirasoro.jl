@@ -11,7 +11,7 @@ function BlockInterchiral(
     @assert real(V.c.β^2) > 0 "interchiral blocks are defined for Re(β^2) > 0"
     fields = []
     shifts = []
-    if V.r == 0
+    if isdiagonal(V)
         V0 = V
     else
         V0 = Field(V.c, r=V.r, s=mod(V.s, s_shift))
@@ -21,7 +21,7 @@ function BlockInterchiral(
     if s_shift == 1
         error("Interchiral blocks with shifts s->s+1 not implemented")
     end
-    while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax.Δ)
+    while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax)
         push!(fields, Vshift)
         push!(shifts, D)
         D /= shift_D(co.fields, Vshift)
@@ -29,7 +29,7 @@ function BlockInterchiral(
     end
     Vshift = shift(V0, -s_shift)
     D = shift_D(co.fields, Vshift)
-    while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax.Δ)
+    while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax)
         push!(fields, Vshift)
         push!(shifts, D)
         Vshift = shift(Vshift, -s_shift)
@@ -116,7 +116,7 @@ end
 function Base.getproperty(b::BlockInterchiral, s::Symbol)
     s === :fields && return [block.channel_field for block in getfield(b, :blocks)]
     s === :indices && return [block.channel_field.indices for block in getfield(b, :blocks)]
-    s in (:r, :s, :channel) && return getproperty(getfield(b, :blocks)[1], s)
+    s in (:r, :s, :channel, :channel_field) && return getproperty(getfield(b, :blocks)[1], s)
     s === :shift && return length(b.blocks) > 1 ?
         Int(abs(getfield(b, :blocks)[2].s - getfield(b, :blocks)[1].s)) : 2
     getfield(b, s)
@@ -133,7 +133,7 @@ function Base.show(io::IO, ::MIME"text/plain", b::BlockInterchiral)
     shift_range = Int(minimum(ns)):b.shift:Int(maximum(ns))
     if isempty(b.fields)
         print(io, "Empty interchiral block")
-    elseif b.fields[1].r == 0
+    elseif isdiagonal(b.fields[1]) == 0
         println(io, "Interchiral block with channel $(b.channel) and fields")
         print(io, "V_{P = $(V.P[:left]) + n/β}, n ∈ $(shift_range)}")
     else

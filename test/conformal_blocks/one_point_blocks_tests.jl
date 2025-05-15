@@ -349,11 +349,11 @@ end
 
     i=1
 
-    b = Block(co, :τ, V, interchiral=true, Δmax=CD(c, Δ=10.0))
+    b = Block(co, :τ, V, interchiral=true, Δmax=10)
     prefactor = BootstrapVirasoro.prefactor_chiral(b.blocks[1][:left].dims, :τ, 2τ)[1] *
         BootstrapVirasoro.prefactor_chiral(b.blocks[1][:right].dims, :τ, conj_q(2τ, b.blocks[1]))[1]
 
-    b_s = Block(co_s, :s, V_s, interchiral=true, Δmax=CD(c_s, Δ=10.0))
+    b_s = Block(co_s, :s, V_s, interchiral=true, Δmax=10.0)
     prefactor_s = BootstrapVirasoro.prefactor_chiral(b_s.blocks[i][:left].dims, :s, x)[1] *
         BootstrapVirasoro.prefactor_chiral(b_s.blocks[i][:right].dims, :s, conj_q(x, b_s.blocks[i]))[1]
 
