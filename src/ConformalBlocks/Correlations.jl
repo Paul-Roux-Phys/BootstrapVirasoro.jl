@@ -69,17 +69,6 @@ end
 
 CorrelationChiral(d1, d2, d3, d4, Nmax) = CorrelationChiral((d1, d2, d3, d4), Nmax)
 
-"""
-TODO
-    CorrelationNonChiral{T}
-
-Struct for holding data common to all conformal blocks appearing in a given correlation
-function:
-* External fields
-* Residues ``R_{m,n}`` in all channels
-* Regularised residues ``R_{m,n}`` when some ``R_{m,n}`` are zero
-* Coefficients ``C^N_{mn}`` in all channels
-"""
 struct CorrelationNonChiral{T} <: Correlation{T}
 
     fields::ExtFields{T}

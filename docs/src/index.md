@@ -4,6 +4,7 @@
 CurrentModule = BootstrapVirasoro
 DocTestSetup = quote
     using BootstrapVirasoro
+	setprecision(BigFloat, 256)
 end
 ```
 
