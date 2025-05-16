@@ -6,6 +6,14 @@ function StructureConstants(S::Dict{Symbol,U}) where {T,U<:ChannelSpectrum{T}}
     return StructureConstants{T}(constants, errors)
 end
 
+function Base.getproperty(c::StructureConstants, s::Symbol)
+    s === :fields && begin
+        consts = getfield(c, :constants)
+        return vcat([[V for V in keys(consts[chan])] for chan in keys(consts)]...)
+    end
+    getfield(c, s)
+end
+
 function Base.show(io::IO, c::StructureConstants)
     for (chan, vals) in c.constants
         println(io, "Channel $chan:")
