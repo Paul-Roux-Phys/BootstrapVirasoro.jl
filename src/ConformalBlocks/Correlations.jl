@@ -174,73 +174,13 @@ function CorrelationNonChiral(corr_chiral::LeftRight{CorrelationChiral{T}}) wher
     CorrelationNonChiral(fields, Nmax, Rmn, Rmnreg, CNmn)
 end
 
-
-"""
-    Correlation(ds::ExtDimensions, Nmax::Int)::CorrelationChiral
-    Correlation(V::ExtFields, Nmax::Int)::CorrelationNonChiral
-    Correlation(Vs::ExtFields, lr::Symbol, Nmax::Int)::CorrelationNonChiral
-    Correlation(d1::ConformalDimension, d2, d3, d4, Nmax::Int)::CorrelationChiral
-    Correlation(V1::Field, V2, V3, V4, Nmax::Int)::CorrelationNonChiral
-    Correlation(V1::Field, V2, V3, V4, lr::Symbol, Nmax::Int)::CorrelationChiral
-    Correlation(d::ConformalDimension, Nmax::Int)::CorrelationChiral
-    Correlation(V::Field, Nmax::Int)::CorrelationNonChiral
-    Correlation(V::Field, lr::Symbol, Nmax::Int)::CorrelationChiral
-    Correlation(co_left::CorrelationChiral, co_right::CorrelationChiral)::CorrelationNonChiral
-
-Constructor function for the Correlation abstract type.
-Construct a correlation from various combinations of parameters. Depending on the arguments,
-the output can be a `CorrelationChiral` or `CorrelationNonChiral` object, as indicated above.
-
-# Examples
-
-```jldoctest
-julia> c = CentralCharge(c = 0.5)
-c = 0.5 + 0.0im, β = -0.8660254037844386 - 0.0im
-
-julia> V1 = Field(c, r=1, s=0);
-
-julia> V2 = Field(c, r=2, s=1);
-
-julia> co = Correlation(V1, V2, V2, V1, 10)
-CorrelationNonChiral with external fields
-Non-diagonal Field{ComplexF64}
-left: ConformalDimension{ComplexF64} with Kac indices r = 1, s = 0
-right: ConformalDimension{ComplexF64} with Kac indices r = 1, s = 0
-Non-diagonal Field{ComplexF64}
-left: ConformalDimension{ComplexF64} with Kac indices r = 2, s = 1
-right: ConformalDimension{ComplexF64} with Kac indices r = 2, s = -1
-Non-diagonal Field{ComplexF64}
-left: ConformalDimension{ComplexF64} with Kac indices r = 2, s = 1
-right: ConformalDimension{ComplexF64} with Kac indices r = 2, s = -1
-Non-diagonal Field{ComplexF64}
-left: ConformalDimension{ComplexF64} with Kac indices r = 1, s = 0
-right: ConformalDimension{ComplexF64} with Kac indices r = 1, s = 0
-
-
-julia> co_chiral = Correlation(V1, V2, V2, V1, :left, 6)
-Chiral correlation function with external dimensions
-ConformalDimension{ComplexF64} with Kac indices r = 1, s = 0
-ConformalDimension{ComplexF64} with Kac indices r = 2, s = 1
-ConformalDimension{ComplexF64} with Kac indices r = 2, s = 1
-ConformalDimension{ComplexF64} with Kac indices r = 1, s = 0
-
-julia> d1 = V1.dims[:right]; d2 = V2.dims[:right]; co_chiral2 = Correlation(d1, d2, d2, d1, 8)
-Chiral correlation function with external dimensions
-ConformalDimension{ComplexF64} with Kac indices r = 1, s = 0
-ConformalDimension{ComplexF64} with Kac indices r = 2, s = -1
-ConformalDimension{ComplexF64} with Kac indices r = 2, s = -1
-ConformalDimension{ComplexF64} with Kac indices r = 1, s = 0
-
-
-```
-"""
 function Correlation()
     CorrelationNonChiral(Field(), 0)
 end
 
 Correlation(ds::ExtDimensions, Nmax::Int) = CorrelationChiral(ds, Nmax)
 
-Correlation(V::ExtFields, Nmax::Int) = CorrelationNonChiral(Vs, Nmax)
+Correlation(Vs::ExtFields, Nmax::Int) = CorrelationNonChiral(Vs, Nmax)
 
 Correlation(Vs::ExtFields, lr::Symbol, Nmax::Int) = CorrelationChiral(
     Tuple(v.dims[lr] for v in Vs), Nmax

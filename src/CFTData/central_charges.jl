@@ -1,21 +1,23 @@
-"""
-    CentralCharge{T}
 
-Type representing a central charge.
-T is expected to be a real or complex number, of standard or arbitrary precision.
-The supported parameters are `c`, `β`, `b`, `B`.
+"""
+    CentralCharge(param = value)
+
+Type representing a central charge, with precision given by the type of `value`.
+The supported `param` are `c`, `β`, `b`, `B`.
 
 # Examples
 
 ```jldoctest
-julia> c = CentralCharge(c = 0.7)
-c = 0.7000000000000011 + 0.0im, β = -0.894427190999916 - 0.0im
+julia> c = CentralCharge(β=big"0.1"+big"0.2"*im)
+c = 85.18000000000000000000000000000000000000000000000000000000000000000000000000093 + 95.76000000000000000000000000000000000000000000000000000000000000000000000000208im, β = 0.1000000000000000000000000000000000000000000000000000000000000000000000000000013 + 0.1999999999999999999999999999999999999999999999999999999999999999999999999999983im
 
-julia> c.b
--0.0 + 0.894427190999916im
+julia> c = CentralCharge(c = 0.7);
 
-julia> c.n
-1.6180339887498953 + 0.0im
+julia> c.b ≈ -0.0 + 0.894427190999916im
+true
+
+julia> c.n ≈ 1.6180339887498953 + 0.0im
+true
 ```
 """
 struct CentralCharge{T}
@@ -65,27 +67,6 @@ function CentralCharge(s::Symbol, x)
 end
 
 """
-    CentralCharge(parameter = value)
-
-Constructor function for the CentralCharge type.
-
-Given one of the four parameters `c`, `b`, `β`, `B` and its value,
-creates an object CentralCharge{T}.
-
-# Example
-
-```jldoctest
-julia> setprecision(BigFloat, 20, base=10);
-
-julia> CentralCharge(B = 0.5)
-c = 27.999999999999996 + 0.0im, β = 0.0 - 0.7071067811865476im
-
-julia> CentralCharge(β = 0.7)
-c = -2.184897959183676 + 0.0im, β = -0.7 - 0.0im
-
-julia> CentralCharge(c = big"0.1" + 0.2im)
-c = 0.09999999999999999991326 + 0.2000000000000000111158im, β = -0.8237591041762989640376 - 0.01729590504934815486866im
-```
 """
 function CentralCharge(; β=missing, c=missing, B=missing, b=missing)
     β !== missing && return CentralCharge(:β, β)

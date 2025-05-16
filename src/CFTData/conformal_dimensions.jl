@@ -2,7 +2,6 @@ realify(x) = isreal(x) ? real(x) : x
 
 const dimension_parameter_list = (:Δ, :δ, :P, :p, :w)
 
-"""Get P from any given parameter"""
 function Pfrom(s::Symbol, x, c::CentralCharge)
     s === :Δ && return sqrt(complex(x - (c.c-1)/24))
     s === :δ && return sqrt(complex(x))
@@ -10,7 +9,6 @@ function Pfrom(s::Symbol, x, c::CentralCharge)
     s === :p && return im*x
 end
 
-"""Get all parameters from P"""
 function Pto(s::Symbol, x, c::CentralCharge)
     s === :Δ && return x^2 + (c.c-1)/24
     s === :δ && return x^2
@@ -20,34 +18,22 @@ function Pto(s::Symbol, x, c::CentralCharge)
 end
 
 """
-    ConformalDimension{T}
-
-Type for encoding a conformal dimension.
-The supported parameters are `Δ`, `δ`, `P`, `p`, `w`, or the Kac indices `r` and `s`.
+    ConformalDimension(c; param=value, r=0, s=0)
+    
+Type representing a conformal dimension, with precision given by the central charge.
+The supported parameters are `Δ`, `δ`, `P`, `p`, or the Kac indices `r, s`.
 
 # Examples
+
 ```jldoctest
-julia> c = CentralCharge(:c, 0.5);
+julia> c = CentralCharge(β = 0.3im);
 
-julia> d1 = ConformalDimension(c, P = 1.2+0.1im)
+julia> d1 = ConformalDimension(c, δ=0.5)
 ConformalDimension{ComplexF64} with
-Δ = 1.4091666666666667 + 0.24im, P = 1.2 + 0.1im
+Δ = 3.800277777777777 + 0.0im, P = 0.7071067811865476
 
-julia> d2 = ConformalDimension(c, r=2, s=3//2)
-ConformalDimension{ComplexF64} with Kac indices r = 2//1, s = 3//2
-
-julia> d1.P
-1.2 + 0.1im
-
-julia> d2.Δ
--0.020833333333333332 + 0.0im
-
-julia> d1 + d2
-ConformalDimension{ComplexF64} with
-Δ = 1.3883333333333332 + 0.24im, P = 1.1913489935345947 + 0.10072615216131914im
-
-julia> d1.w
-2.05874441299789 - 0.06772184182090507im
+julia> d2 = ConformalDimension(c, r=3//2, s=2//3)
+ConformalDimension{ComplexF64} with Kac indices r = 3//2, s = 2//3
 ```
 """
 struct ConformalDimension{T}
@@ -60,7 +46,14 @@ struct ConformalDimension{T}
 
 end
 
+
 P_rs(r, s, β::Number) = 1/2 * (β*r - s/β)
+"""
+        P_rs(r, s, β)
+        P_rs(r, s, c)
+
+``P_{(r, s)} = 1/2 * (β r - s / β)``.
+"""
 P_rs(r, s, c::CentralCharge) = P_rs(r, s, c.β)
 δrs(r, s, B::Number) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
 δrs(r, s, c::CentralCharge) = -1/4 * (c.B*r^2 + 2*r*s + s^2/c.B)
@@ -81,25 +74,6 @@ function ConformalDimension(
     ConformalDimension{T}(c, P, isKac, r, s)
 end
 
-"""
-    ConformalDimension(c, parameter, value; Kac=false, r=0, s=0)
-    
-Constructor function for the `ConformalDimension` type.
-
-# Examples
-
-```jldoctest
-julia> c = CentralCharge(β = 0.3im)
-c = 80.20666666666665 + 0.0im, β = 0.0 - 0.3im
-
-julia> d1 = ConformalDimension(c, δ = 0.5)
-ConformalDimension{ComplexF64} with
-Δ = 3.800277777777777 + 0.0im, P = 0.7071067811865476
-
-julia> d2 = ConformalDimension(c, r=3//2, s=2//3)
-ConformalDimension{ComplexF64} with Kac indices r = 3//2, s = 2//3
-```
-"""
 function ConformalDimension(
     c::CentralCharge;
     r=missing, s=missing,

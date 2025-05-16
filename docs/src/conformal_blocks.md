@@ -128,7 +128,6 @@ together external parameters of blocks.
 
 ```@docs
 Correlation
-Correlation()
 ```
 
 ### Regularisation of blocks

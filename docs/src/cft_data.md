@@ -24,7 +24,6 @@ of these four parameters, and to retrieve the value of any parameter:
 
 ```@docs
 CentralCharge
-CentralCharge(; β=missing, c=missing, B=missing, b=missing)
 ```
 
 ## Conformal Dimensions
@@ -52,11 +51,6 @@ parametrisations:
 
 ```@docs
 ConformalDimension
-ConformalDimension(
-    c::CentralCharge;
-    Kac=missing, r=missing, s=missing,
-    Δ=missing, δ=missing, P=missing, p=missing
-)
 ```
 
 ## Fields
@@ -69,13 +63,6 @@ The program exposes a `Field` struct and convenient constructors:
 
 ```@docs
 Field
-Field(
-    c::CentralCharge,
-    sym::Symbol,
-    dim;
-    Kac=false, r=0, s=0,
-    diagonal=false
-)
 ```
 
 ## Spectra

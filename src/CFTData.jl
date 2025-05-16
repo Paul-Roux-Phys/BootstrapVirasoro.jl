@@ -16,6 +16,11 @@ export LeftRight,
     total_dimension,
     isdiagonal, isdegenerate
 
+"""
+        LeftRight{T}
+Left and right pairs of objects. Can be accessed with
+`obj[:left]` and `obj[:right]`.
+"""
 const LeftRight{T} = Tuple{T,T} # left and right pairs of things
 
 function Base.getindex(x::LeftRight, s::Symbol)

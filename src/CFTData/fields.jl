@@ -1,75 +1,22 @@
 """
-    Field{T}
-Object representing a conformal field.
-Contains the conformal dimensions, and flags saying whether the field has rational Kac
-indices and/or is diagonal. The user can access different parametrisations of the left and 
-right conformal dimensions, and Kac indices.
+    Field(c, parameter=value; r, s, diagonal=false)
 
-# Examples
-
-```jldoctest
-julia> c = CentralCharge(B = 0.5)
-c = 27.999999999999996 + 0.0im, β = 0.0 - 0.7071067811865476im
-
-julia> V = Field(c, r=0, s=2//3)
-Diagonal Field{ComplexF64} with ConformalDimension{ComplexF64} with Kac indices r = 0//1, s = 2//3
-
-julia> V.r
-0//1
-
-julia> V.s
-2//3
-
-julia> V.δ
-(-0.22222222222222215 - 0.0im, -0.22222222222222215 + 0.0im)
-
-julia> V.δ[:left]
--0.22222222222222215 - 0.0im
-
-julia> V.p[:right]
-0.4714045207910316 + 0.0im
-
-julia> V2 = Field(c, δ = 0.5, diagonal=true)
-Diagonal Field{ComplexF64} with ConformalDimension{ComplexF64} with
-Δ = 1.625 + 0.0im, P = 0.7071067811865476
-```
-"""
-struct Field{T}
-
-    dims::LeftRight{ConformalDimension{T}}
-
-end
-
-"""
-```julia
-    Field(charge, parameter = value; kwargs)
-    Field(charge, r = r, s = s)
-    Field((dim_left, dim_right))
-    Field(dim_left, dim_right)
-    Field(dim) # diagonal field
-```
-
-Constructor function for the Field type.
-
-Given a charge `charge`, one of the four parameters `Δ`, `δ`, `P`, `p` and two values,
-create an object `Field{T}` (where T is the type of the values in `charge`) that represents
-a field of left and right dimensions given by leftvalue and rightvalue in the chosen
-parametrisation.
+Type for representing a non-chiral field.
 
 # keyword arguments:
 
-- `r::Rational`,`s::Rational`: used in conjunction to `Kac=true`, must be given rational
-values. By convention ``V_(r,s)`` has left and right momenta ``(P_(r,s), P_(r,-s))``.
+- `r::Rational`,`s::Rational`. By convention ``V_(r,s)`` has left and right momenta ``(P_{(r,s)}, P_{(r,-s)})``.
 - `diagonal::Bool`: set to `true` to get a diagonal field;
 
 # Examples
+
 ```jldoctest
 julia> setprecision(BigFloat, 20, base=10);
 
 julia> c = CentralCharge(β = big"0.5");
 
 julia> V = Field(c, r=0, s=1)
-Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with Kac indices r = 0, s = 1
+Diagonal Field{Complex{BigFloat}}. dim = Δ_{0, 1}
 
 julia> V.Δ
 (0.4375 + 0.0im, 0.4375 + 0.0im)
@@ -80,10 +27,17 @@ julia> V.P[:left]
 julia> V.p[:right]
 -0.0 + 1.0im
 
-julia> V2 = Field(c, :P, 0.42, diagonal=true)
-Diagonal Field{Complex{BigFloat}} with ConformalDimension{Complex{BigFloat}} with
-Δ = -0.3861000000000000130545 + 0.0im, P = 0.4199999999999999844569
+julia> V2 = Field(c, :P, 0.42, diagonal=true); isdiagonal(V2)
+true
 ```
+"""
+struct Field{T}
+
+    dims::LeftRight{ConformalDimension{T}}
+
+end
+
+"""
 """
 function Field(
     c::CentralCharge{T},
@@ -164,15 +118,23 @@ function Base.:(==)(V1::Field, V2::Field)
     return V1.Δ == V2.Δ
 end
 
+"""
+        isdiagonal(V)::Bool
+Whether V is a diagonal field.
+"""
 function isdiagonal(V::Field)
     return V.r == 0 || (V.s != 0 && V.dims[:left] == V.dims[:right])
 end
 
+"""
+        isdegenerate(V)::Bool
+Whether V is a degenerate field.
+"""
 function isdegenerate(V::Field)
     return V.r % 1 == 0 && V.s % 1 == 0 && isdiagonal(V)
 end
 
-"""Compute the spin Δleft - Δright of a field."""
+"""Spin(V::Field) = Δleft - Δright."""
 function spin(V::Field)::Rational
     if isdiagonal(V)
         return 0
@@ -184,6 +146,10 @@ function spin(V::Field)::Rational
     end
 end
 
+"""
+        swap_lr(V)
+Return a field with left and right dimensions swapped.
+"""
 function swap_lr(V::Field{T}) where {T}
     return Field{T}((V.dims[:right], V.dims[:left]))
 end
@@ -217,6 +183,13 @@ function Base.show(io::IO, V::Field)
     end
 end
 
+"""
+        shift(V, i)
+
+Shift the field:
+- s -> s+i if !isdiagonal(V)
+- P -> P+i/(2β) if isdiagonal(V)
+"""
 function shift(V::Field, i, index=:s)
     if isdiagonal(V)
         Field(shift(V.dim, i, index))
@@ -225,6 +198,10 @@ function shift(V::Field, i, index=:s)
     end
 end
 
+"""
+        total_dimension(V)
+Return ``Δ + \barΔ``.
+"""
 total_dimension(V::Field) = V.Δ[:left] + V.Δ[:right]
 
 function Base.hash(V::Field, h::UInt)
