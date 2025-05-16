@@ -1,4 +1,3 @@
-
 """
     CentralCharge(param = value)
 
