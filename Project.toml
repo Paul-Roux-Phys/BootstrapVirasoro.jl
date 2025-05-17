@@ -18,7 +18,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 [compat]
 BarnesDoubleGamma = "1"
 Distributed = "1"
-DoubleFloats = "1.4.3"
+DoubleFloats = "1"
 EllipticFunctions = "2"
 GenericLinearAlgebra = "0"
 LinearAlgebra = "1"

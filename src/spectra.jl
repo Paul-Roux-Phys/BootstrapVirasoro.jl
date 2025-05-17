@@ -4,9 +4,32 @@ export Spectrum,
     nb_blocks
 
 """
-    Spectrum{T}
+    Spectrum(fields, Δmax; interchiral=false)
 
 Abstract type for representing a CFT spectrum.
+
+# examples
+
+```jldoctest
+julia> c = CentralCharge(β=1/(big"0.8"+big"0.1"*im));
+
+julia> V1 = Field(c, r=2, s=0);
+
+julia> co = Correlation(V1, Δmax=10.);
+
+julia> fields = [Field(c, r=r, s=s) for r in 2:30 for s in -1+1//r:1//r:1 if r*s% 1 == 0];
+
+julia> s = Spectrum(fields, 10.0)
+Non-diagonal:
+(2, -1//2), (2, 0), (2, 1//2), (2, 1)
+(3, -2//3), (3, -1//3), (3, 0), (3, 1//3), (3, 2//3), (3, 1)
+
+julia> add!(s, Field(c, r=1, s=0)); s
+Non-diagonal:
+(1, 0)
+(2, -1//2), (2, 0), (2, 1//2), (2, 1)
+(3, -2//3), (3, -1//3), (3, 0), (3, 1//3), (3, 2//3), (3, 1)
+```
 """
 abstract type Spectrum{T} end
 
@@ -14,6 +37,12 @@ mutable struct BulkSpectrum{T} <: Spectrum{T}
     Δmax::T
     interchiral::Bool
     fields::Vector{Field{T}}
+end
+
+mutable struct BoundarySpectrum{T} <: Spectrum{T}
+    Δmax::T
+    interchiral::Bool
+    fields::Vector{ConformalDimension{T}}
 end
 
 """
@@ -39,12 +68,24 @@ function _add_one!(s::ChannelSpectrum, V)
     end
 end
 
-add!(s::Union{Spectrum, ChannelSpectrum}, V) = _add_one!(s, V)
-add!(s::Union{Spectrum, ChannelSpectrum}, fields::Vector) = foreach(V -> _add_one!(s, V), fields)
-add!(s::Union{Spectrum, ChannelSpectrum}, fields...) = foreach(V -> _add_one!(s, V), fields)
+_add!(s::Union{Spectrum, ChannelSpectrum}, V) = _add_one!(s, V)
+_add!(s::Union{Spectrum, ChannelSpectrum}, fields::Vector) = foreach(V -> _add_one!(s, V), fields)
+_add!(s::Union{Spectrum, ChannelSpectrum}, fields...) = foreach(V -> _add_one!(s, V), fields)
+
+"""
+        add!(s, fields)
+add one or several fields to the `Spectrum` or `ChannelSpectrum` s.
+"""
+add!(s, fields) = _add!(s, fields)
 
 function Spectrum(fields::Vector{Field{T}}, Δmax; interchiral=false) where {T}
     s = BulkSpectrum{T}(Δmax, interchiral, [])
+    foreach(V -> add!(s, V), fields)
+    return s
+end
+
+function Spectrum(fields::Vector{ConformalDimension{T}}, Δmax; interchiral=false) where {T}
+    s = BoundarySpectrum{T}(Δmax, interchiral, [])
     foreach(V -> add!(s, V), fields)
     return s
 end
@@ -93,9 +134,15 @@ function _remove_one!(s::ChannelSpectrum, V)
     end
 end
 
-remove!(s::Union{Spectrum, ChannelSpectrum}, V) = _remove_one!(s, V)
-remove!(s::Union{Spectrum, ChannelSpectrum}, fields::Vector) = foreach(V -> _remove_one!(s, V), fields)
-remove!(s::Union{Spectrum, ChannelSpectrum}, fields...) = foreach(V -> _remove_one!(s, V), fields)
+_remove!(s::Union{Spectrum, ChannelSpectrum}, V) = _remove_one!(s, V)
+_remove!(s::Union{Spectrum, ChannelSpectrum}, fields::Vector) = foreach(V -> _remove_one!(s, V), fields)
+_remove!(s::Union{Spectrum, ChannelSpectrum}, fields...) = foreach(V -> _remove_one!(s, V), fields)
+
+"""
+        remove!(s, V)
+remove one or several fields from the `Spectrum` or `ChannelSpectrum` s.
+"""
+remove!(s, V) = _remove!(s, V)
 
 Base.length(s::Union{Spectrum, ChannelSpectrum}) = length(s.fields)
 Base.size(s::Union{Spectrum, ChannelSpectrum}) = size(s.fields)

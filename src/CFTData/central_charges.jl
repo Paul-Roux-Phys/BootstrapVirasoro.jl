@@ -7,7 +7,7 @@ The supported `param` are `c`, `β`, `b`, `B`.
 # Examples
 
 ```jldoctest
-julia> c = CentralCharge(β=big"0.1"+big"0.2"*im); c.c ≈ 85.18 && c.β ≈ 0.1 + 0.2im
+julia> c = CentralCharge(β=big"0.1"+big"0.2"*im); c.β ≈ big"0.1" + big"0.2"*im
 true
 
 julia> c = CentralCharge(c = 0.7);

@@ -20,8 +20,7 @@ function BootstrapMatrix{T}(chans) where {T}
 end
 
 """
-Structure constants associated to a correlation function
-Obtained by solving bootstrap equations.
+TODO
 """
 mutable struct StructureConstants{T}
     constants::Dict{Symbol,Dict{Field{T},T}}

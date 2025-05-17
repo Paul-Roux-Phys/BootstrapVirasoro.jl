@@ -5,7 +5,7 @@ Type for representing a non-chiral field.
 
 # keyword arguments:
 
-- `r::Rational`,`s::Rational`. By convention ``V_(r,s)`` has left and right momenta ``(P_{(r,s)}, P_{(r,-s)})``.
+- `r::Rational`,`s::Rational`. By convention ``V_{(r,s)}`` has left and right momenta ``(P_{(r,s)}, P_{(r,-s)})``.
 - `diagonal::Bool`: set to `true` to get a diagonal field;
 
 # Examples
@@ -34,11 +34,10 @@ true
 struct Field{T}
 
     dims::LeftRight{ConformalDimension{T}}
+    diagonal::Bool
 
 end
 
-"""
-"""
 function Field(
     c::CentralCharge{T},
     sym::Symbol,
@@ -64,7 +63,7 @@ function Field(
         dim_right = ConformalDimension(c, sym, dim_left, r=r, s=-s)
     end
 
-    Field{T}(LeftRight((dim_left, dim_right)))
+    Field{T}(LeftRight((dim_left, dim_right)), diagonal)
 end
 
 function Field(
@@ -122,16 +121,16 @@ end
         isdiagonal(V)::Bool
 Whether V is a diagonal field.
 """
-function isdiagonal(V::Field)
-    return V.r == 0 || (V.s != 0 && V.dims[:left] == V.dims[:right])
-end
+isdiagonal(V::Field) = V.diagonal
 
 """
         isdegenerate(V)::Bool
 Whether V is a degenerate field.
 """
 function isdegenerate(V::Field)
-    return V.r % 1 == 0 && V.s % 1 == 0 && isdiagonal(V)
+    return V.r % 1 == 0 && real(V.s) % 1 == 0 &&
+        imag(V.s) == 0 &&
+        V.r > 0 && V.s > 0 && isdiagonal(V) 
 end
 
 """Spin(V::Field) = Δleft - Δright."""
@@ -170,7 +169,7 @@ end
 function Base.show(io::IO, V::Field)
     if isdiagonal(V)
         if V.isKac
-            if V.r % 1 == 0 && V.s % 1 == 0
+            if isdegenerate(V)
                 print(io, "<$(V.r), $(V.s)>")
             else
                 print(io, "($(V.r), $(V.s))")

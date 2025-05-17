@@ -76,9 +76,9 @@ abstract type Correlation{T} end
 const Corr = Correlation
 
 """
-        Block(co, chan, d or V; Δmax=10., interchiral=false)
+        Block(co, chan, d or V; Δmax=10., interchiral=false, der=false)
 
-Object representing a block in a channel. Can be a chiral, non-chiral, or interchiral block, depending on the types of the input correlation and channel dimension `d` or channel field `V`. Can be evaluated at a position with [`evaluate`](@ref).
+Object representing a block in a channel. Can be a chiral, derivative, non-chiral, or interchiral block, depending on the types of the input correlation and channel dimension `d` or channel field `V`. Can be evaluated at a position with [`evaluate`](@ref).
 
 # Example
 

@@ -24,6 +24,7 @@ makedocs(
         "installation.md",
         "cft_data.md",
         "conformal_blocks.md",
+        "bootstrap_equations.md",
         "reference.md"
     ],
     checkdocs=:export

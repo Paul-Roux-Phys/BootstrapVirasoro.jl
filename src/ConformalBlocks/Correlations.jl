@@ -193,3 +193,4 @@ Correlation(co_left::CorrelationChiral, co_right::CorrelationChiral) =
     CorrelationNonChiral((co_left, co_right))
 
 Correlation(args...; Δmax=10.) = Correlation(args..., N_max(CD(), Δmax))
+
