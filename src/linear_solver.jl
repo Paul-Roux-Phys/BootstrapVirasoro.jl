@@ -22,8 +22,8 @@ function Base.show(io::IO, c::StructureConstants)
 end
 
 function format_complex(z::Complex{<:Real}; digits=5)
-    real_str = @sprintf("%.*f", digits, real(z))
-    imag_str = @sprintf("%.*f", digits, abs(imag(z)))
+    real_str = @sprintf("%.8e", digits, real(z))
+    imag_str = @sprintf("%.8e", digits, abs(imag(z)))
     sign = imag(z) < 0 ? "-" : "+"
     buf = real(z) > 0 ? " " : ""
     return "$buf$real_str $sign $(imag_str)im"
