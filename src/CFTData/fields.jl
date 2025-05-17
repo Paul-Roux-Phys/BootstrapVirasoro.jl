@@ -11,8 +11,6 @@ Type for representing a non-chiral field.
 # Examples
 
 ```jldoctest
-julia> setprecision(BigFloat, 20, base=10);
-
 julia> c = CentralCharge(β = big"0.5");
 
 julia> V = Field(c, r=0, s=1)
