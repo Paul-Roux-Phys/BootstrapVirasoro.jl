@@ -20,6 +20,6 @@ julia> ]add BootstrapVirasoro
 
 in a Julia REPL.
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Paul-Roux-Phys.github.io/BootstrapVirasoro.jl/stable/)
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://Paul-Roux-Phys.github.io/BootstrapVirasoro.jl/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://Paul-Roux-Phys.github.io/BootstrapVirasoro.jl/dev/)
 [![Build Status](https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl/actions/workflows/CI.yml?query=branch%3Amain)
