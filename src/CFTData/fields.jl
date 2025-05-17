@@ -16,16 +16,16 @@ julia> setprecision(BigFloat, 20, base=10);
 julia> c = CentralCharge(β = big"0.5");
 
 julia> V = Field(c, r=0, s=1)
-Diagonal Field{Complex{BigFloat}}. dim = Δ_{0, 1}
+Diagonal Field{Complex{BigFloat}}, dim = Δ_{0, 1}
 
 julia> V.Δ
 (0.4375 + 0.0im, 0.4375 + 0.0im)
 
-julia> V.P[:left]
-1.0
+julia> V.P[:left] ≈ 1
+true
 
-julia> V.p[:right]
--0.0 + 1.0im
+julia> V.p[:right] ≈ -im
+true
 
 julia> V2 = Field(c, :P, 0.42, diagonal=true); isdiagonal(V2)
 true
@@ -52,7 +52,8 @@ function Field(
         diagonal = true
     end
     dim_left = ConformalDimension(c, sym, dim, r=r, s=s)
-    if diagonal
+    if diagonal || r == 0
+        diagonal = true
         dim_right = dim_left
     else
         @assert (r !== missing && s !== missing) "
@@ -82,19 +83,11 @@ function Field(
 end
 
 Field() = Field(CentralCharge())
-function Field(ds::LeftRight{ConformalDimension})
-    diagonal = false
-    degenerate = false
-    if ds[:left] == ds[:right]
-        diagonal = true
-    end
-    if ds[:left].isKac && ds[:right].isKac 
-        degenerate=true
-    end
-    return Field(ds, degenerate)
+function Field(ds::LeftRight{ConformalDimension}; diagonal=false)
+    return Field(ds, diagonal)
 end
-Field(d_left::ConformalDimension, d_right::ConformalDimension) = Field((d_left, d_right))
-Field(d::ConformalDimension) = Field(d, d)
+Field(d_left::ConformalDimension, d_right::ConformalDimension; diagonal=false) = Field((d_left, d_right); diagonal=diagonal)
+Field(d::ConformalDimension; diagonal=true) = Field(d, d, diagonal=diagonal)
 
 function Base.getproperty(V::Field, s::Symbol)
     ds = getfield(V, :dims)
@@ -153,9 +146,34 @@ function swap_lr(V::Field{T}) where {T}
     return Field{T}((V.dims[:right], V.dims[:left]))
 end
 
+"""
+        shift(V, i)
+
+Shift the field:
+- s -> s+i if !isdiagonal(V)
+- P -> P+i/(2β) if isdiagonal(V)
+"""
+function shift(V::Field, i, index=:s)
+    if isdiagonal(V)
+        Field(shift(V.dim, i, index), diagonal=true)
+    else
+        Field(shift(V.dims[:left], i, index), shift(V.dims[:right], -i, index))
+    end
+end
+
+"""
+        total_dimension(V)
+Return ``Δ + \barΔ``.
+"""
+total_dimension(V::Field) = V.Δ[:left] + V.Δ[:right]
+
+function Base.hash(V::Field, h::UInt)
+    return hash(V.dims, h)
+end
+
 function Base.show(io::IO, ::MIME"text/plain", V::Field)
     if isdiagonal(V)
-        print(io, "Diagonal $(typeof(V)). dim = ")
+        print(io, "Diagonal $(typeof(V)), dim = ")
         show(io, V.dims[:left])
     else
         print(io, "Non-diagonal $(typeof(V))\n")
@@ -180,29 +198,4 @@ function Base.show(io::IO, V::Field)
     else
         print(io, "V_{$(V.indices)}")
     end
-end
-
-"""
-        shift(V, i)
-
-Shift the field:
-- s -> s+i if !isdiagonal(V)
-- P -> P+i/(2β) if isdiagonal(V)
-"""
-function shift(V::Field, i, index=:s)
-    if isdiagonal(V)
-        Field(shift(V.dim, i, index))
-    else
-        Field(shift(V.dims[:left], i, index), shift(V.dims[:right], -i, index))
-    end
-end
-
-"""
-        total_dimension(V)
-Return ``Δ + \barΔ``.
-"""
-total_dimension(V::Field) = V.Δ[:left] + V.Δ[:right]
-
-function Base.hash(V::Field, h::UInt)
-    return hash(V.dims, h)
 end

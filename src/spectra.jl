@@ -1,8 +1,3 @@
-export Spectrum,
-    ChannelSpectrum,
-    add!, remove!,
-    nb_blocks
-
 """
     Spectrum(fields, Δmax; interchiral=false)
 

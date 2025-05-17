@@ -1,21 +1,3 @@
-#===========================================================================================
-
-CFTData.jl provides types representing
-central charges and fields in 2D CFTs with Virasoro symmetry.
-
-Written by Paul Roux, adapting a Python code written by Sylvain Ribault & Rongvoram
-Nivesvivat
-
-===========================================================================================#
-
-export LeftRight,
-    CentralCharge, CC,
-    ConformalDimension, CD, P_rs,
-    Field, spin, isdiagonal, swap_lr,
-    shift,
-    total_dimension,
-    isdiagonal, isdegenerate
-
 """
         LeftRight{T}
 Left and right pairs of objects. Can be accessed with

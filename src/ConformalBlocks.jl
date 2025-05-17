@@ -1,14 +1,5 @@
 import BarnesDoubleGamma: digamma_reg, gamma
 
-using EllipticFunctions
-using Memoization
-
-export Correlation,
-    Block,
-    qfromx, xfromq,
-    evaluate_series,
-    evaluate
-
 const ExtDimensions{T} = Tuple{Vararg{ConformalDimension{T}}} # tuples of dimensions
 const FourDimensions{T} = NTuple{4, ConformalDimension{T}}
 const OneDimension{T} = Tuple{ConformalDimension{T}}
@@ -91,7 +82,7 @@ julia> co = Correlation(V1, V1, V1, V1, 10);
 
 julia> V = Field(c, r=2, s=1//2); b = Block(co, :s, V)
 Non chiral factorised block for the correlation
-< (2, 3//2) (2, 3//2) (2, 3//2) (2, 3//2) >
+< V_{(2, 3//2)} V_{(2, 3//2)} V_{(2, 3//2)} V_{(2, 3//2)} >
 channel: s, V_{(2, 1//2)}
 
 julia> b = Block(co[:left], :s, V.dims[:left])

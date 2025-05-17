@@ -1,5 +1,3 @@
-using Printf
-
 function StructureConstants(S::Dict{Symbol,U}) where {T,U<:ChannelSpectrum{T}}
     constants = Dict(chan => Dict{Field{T},T}() for chan in keys(S))
     errors = Dict(chan => Dict{Field{T},T}() for chan in keys(S))

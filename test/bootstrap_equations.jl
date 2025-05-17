@@ -1,5 +1,4 @@
-using Distributed, BenchmarkTools
-@everywhere using BootstrapVirasoro
+using BootstrapVirasoro
 
 c = CC(β = 1/(big"0.8" + big"0.1"*im))
 V1 = Field(c, r=1//2, s=0)

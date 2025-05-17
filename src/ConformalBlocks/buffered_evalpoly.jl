@@ -88,9 +88,9 @@ function evalpoly_buf(qs::Vector, polys::Vector{<:AbstractVector})
     T = promote_type(eltype(qs), eltype(first(polys)))
     qsT = convert(Vector{T}, qs)
     polysT = [convert(Vector{T}, a) for a in polys]
-    if use_distributed()
-        return pmap(a -> evalpoly_buf(qsT, a), polysT)
-    else
+    # if use_distributed()
+    #     return pmap(a -> evalpoly_buf(qsT, a), polysT)
+    # else
         return [evalpoly_buf(qsT, a) for a in polysT]
-    end
+    # end
 end

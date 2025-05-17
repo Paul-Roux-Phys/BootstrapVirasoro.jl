@@ -11,20 +11,20 @@ DocMeta.setdocmeta!(
 Documenter.doctest(BootstrapVirasoro)
 
 @testset "CFTData.jl" begin
-    include("cft_data_tests.jl")
+    include("cft_data.jl")
 end
 
 @testset "Conformal blocks" begin
     @testset "Residues" begin
-        include("conformal_blocks/zamolodchikov_residues_tests.jl")
+        include("conformal_blocks/residues.jl")
     end
 
     @testset "Four point blocks" begin
-        include("conformal_blocks/four_point_blocks_tests.jl")
+        include("conformal_blocks/four_point.jl")
     end
 
     @testset "One point blocks" begin
-        include("conformal_blocks/one_point_blocks_tests.jl")
+        include("conformal_blocks/one_point.jl")
     end
 end
 
