@@ -57,7 +57,7 @@ P_rs
 `ConformalDimension`s can be shifted by units of $\beta^{-1}/2$:
 
 ```@docs
-shift
+shift(::ConformalDimension, i)
 ```
 
 ## Fields
@@ -72,7 +72,7 @@ The program exposes a `Field` struct and convenient constructors:
 Field
 isdiagonal
 isdegenerate
-shift
+shift(V::Field, i)
 ```
 
 ## Spectra

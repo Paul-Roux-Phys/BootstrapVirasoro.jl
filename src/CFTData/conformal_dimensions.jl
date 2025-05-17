@@ -137,6 +137,10 @@ function Base.:+(d1::ConformalDimension, d2::ConformalDimension)
     ConformalDimension(d1.c, :Δ, d1.Δ + d2.Δ)
 end
 
+"""
+        shift(d, i)
+Shift a conformal dimension by s -> s+i or P -> P + i/β
+"""
 function shift(d::ConformalDimension, shift, index=:s)
     c = d.c
     if index === :r
