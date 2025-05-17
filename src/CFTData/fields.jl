@@ -141,7 +141,7 @@ end
 Return a field with left and right dimensions swapped.
 """
 function swap_lr(V::Field{T}) where {T}
-    return Field{T}((V.dims[:right], V.dims[:left]))
+    return Field{T}((V.dims[:right], V.dims[:left]), V.diagonal)
 end
 
 """
