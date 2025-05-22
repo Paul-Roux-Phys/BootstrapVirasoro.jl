@@ -140,6 +140,6 @@ function Block(
 end
 
 # Evaluate blocks with b(z)
-function (b::Block)(args...)
+@memoize function (b::Block)(args...)
     evaluate(b, args...)
 end

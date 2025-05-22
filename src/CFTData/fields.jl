@@ -170,7 +170,10 @@ function Base.hash(V::Field, h::UInt)
 end
 
 function Base.show(io::IO, ::MIME"text/plain", V::Field)
-    if isdiagonal(V)
+    if isdegenerate(V)
+        print(io, "Degenerate $(typeof(V)), dim = ")
+        show(io, V.dims[:left])
+    elseif isdiagonal(V)
         print(io, "Diagonal $(typeof(V)), dim = ")
         show(io, V.dims[:left])
     else

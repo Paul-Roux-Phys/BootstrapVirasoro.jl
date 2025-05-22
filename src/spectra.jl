@@ -69,9 +69,19 @@ _add!(s::Union{Spectrum, ChannelSpectrum}, fields...) = foreach(V -> _add_one!(s
 
 """
         add!(s, fields)
-add one or several fields to the `Spectrum` or `ChannelSpectrum` s.
+add one or several fields to the `Spectrum` or `ChannelSpectrum` s, in-place.
 """
 add!(s, fields) = _add!(s, fields)
+
+"""
+        add!(s, fields)
+create a new spectrum by copying s and adding one or several fields to the `Spectrum` or `ChannelSpectrum` s, in-place.
+"""
+function add(s, fields)
+    s2 = deepcopy(s)
+    add!(s2, fields)
+    return s2
+end
 
 function Spectrum(fields::Vector{Field{T}}, Δmax; interchiral=false) where {T}
     s = BulkSpectrum{T}(Δmax, interchiral, [])
@@ -138,6 +148,17 @@ _remove!(s::Union{Spectrum, ChannelSpectrum}, fields...) = foreach(V -> _remove_
 remove one or several fields from the `Spectrum` or `ChannelSpectrum` s.
 """
 remove!(s, V) = _remove!(s, V)
+
+"""
+        remove!(s, fields)
+create a new spectrum by copying and removing one or several fields to the `Spectrum` or `ChannelSpectrum` s.
+"""
+function remove(s, fields)
+    s2 = deepcopy(s)
+    remove!(s2, fields)
+    return s2
+end
+
 
 Base.length(s::Union{Spectrum, ChannelSpectrum}) = length(s.fields)
 Base.size(s::Union{Spectrum, ChannelSpectrum}) = size(s.fields)

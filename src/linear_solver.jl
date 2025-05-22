@@ -4,6 +4,17 @@ function StructureConstants(S::Dict{Symbol,U}) where {T,U<:ChannelSpectrum{T}}
     return StructureConstants{T}(constants, errors)
 end
 
+function StructureConstants{T}(chans::Vector{Symbol}) where {T}
+    constants = Dict(chan => Dict{Field{T}, T}() for chan in chans)
+    errors = Dict(chan => Dict{Field{T}, T}() for chan in chans)
+    return StructureConstants{T}(constants, errors)
+end
+
+function fix!(cnst, chan, field, value, error = 0)
+    cnst[chan][field] = value
+    cnst.errors[chan][field] = 0
+end
+
 function Base.getproperty(c::StructureConstants, s::Symbol)
     s === :fields && begin
         consts = getfield(c, :constants)
@@ -12,24 +23,15 @@ function Base.getproperty(c::StructureConstants, s::Symbol)
     getfield(c, s)
 end
 
-function Base.show(io::IO, c::StructureConstants)
-    for (chan, vals) in c.constants
-        println(io, "Channel $chan:")
-        for (field, constant) in vals
-            println(io, "$field: $constant")
-        end
-    end
-end
-
 function format_complex(z::Complex{<:Real}; digits=5)
-    real_str = @sprintf("%.8e", digits, real(z))
-    imag_str = @sprintf("%.8e", digits, abs(imag(z)))
+    real_str = @sprintf("%.*e", digits, real(z))
+    imag_str = @sprintf("%.*e", digits, abs(imag(z)))
     sign = imag(z) < 0 ? "-" : "+"
     buf = real(z) > 0 ? " " : ""
     return "$buf$real_str $sign $(imag_str)im"
 end
 
-function Base.show(io::IO, c::StructureConstants)
+function Base.show(io::IO, c::StructureConstants{T}) where {T}
     chans = keys(c.constants)
     nondiags = Dict(
         chan => sort(
@@ -53,48 +55,66 @@ function Base.show(io::IO, c::StructureConstants)
         for chan in chans
     )
 
-    for chan in chans
+    for chan in sort(collect(chans), by=string)
         # Collect all the labels for this channel
         all_Vs = vcat(degs[chan], diags[chan], nondiags[chan])
 
         # Find max width of label for alignment
-        max_label_width = maximum(length(string(V)) for V in all_Vs)
+        max_label_width = if isempty(all_Vs)
+            0
+        else
+            maximum(length(string(V)) for V in all_Vs)
+        end
+
+        str_cst_col_width = if isempty(all_Vs)
+            0
+        else
+            length(format_complex(zero(T)))
+        end
 
         # Print channel header
         printstyled(io, "Channel $(chan)\n", color=:red, bold=true)
         printstyled(io, repeat('=', 9 + length(string(chan))) * "\n", color=:red, bold=true)
+        
+        # Print column headers
+        label1 = rpad("Fields", max_label_width)
+        label2 = rpad("Structure constants", str_cst_col_width)
+        label3 = rpad("Errors", str_cst_col_width)
+        println(io, "$label1 | $label2  | $label3")
+        println(io, repeat("-", max_label_width+2*str_cst_col_width))
 
         # Print each row with alignment
         for V in all_Vs
             label = rpad(string(V), max_label_width)
             value = format_complex(c[chan][V])
-            println(io, "$label | $value")
+            error = format_complex(c.errors[chan][V])
+            println(io, "$label | $value | $error")
         end
     end
 end
 
 Base.length(c::StructureConstants) = sum(length(c.constants[chan]) for chan in keys(c.constants))
 
-function solve!(s::BootstrapSystem; precision_factor=1)
-    # raw vector format
-    sol1, sol2 = setprecision(BigFloat, precision_factor * precision(BigFloat)) do
-        (
-            s.matrix.LHS[3:end, :] \ s.matrix.RHS[3:end],
-            s.matrix.LHS[1:end-2, :] \ s.matrix.RHS[1:end-2]
-        )
-    end
-    errors = @. abs((sol1 - sol2) / sol2)
+# function solve!(s::BootstrapSystem; precision_factor=1)
+#     # raw vector format
+#     sol1, sol2 = setprecision(BigFloat, precision_factor * precision(BigFloat)) do
+#         (
+#             s.matrix.LHS[3:end, :] \ s.matrix.RHS[3:end],
+#             s.matrix.LHS[1:end-2, :] \ s.matrix.RHS[1:end-2]
+#         )
+#     end
+#     errors = @. abs((sol1 - sol2) / sol2)
 
-    # back to dictionary format
-    mat = s.matrix
-    nb_fields = vcat([0], [length(mat.fields[chan]) for chan in mat.channels])
-    for (i, chan) in enumerate(mat.channels)
-        for (j, V) in enumerate(mat.fields[chan])
-            s.consts[chan][V] = sol1[nb_fields[i] + j]
-            s.consts.errors[chan][V] = errors[nb_fields[i] + j]
-        end
-    end
-end
+#     # back to dictionary format
+#     mat = s.matrix
+#     nb_fields = vcat([0], [length(mat.fields[chan]) for chan in mat.channels])
+#     for (i, chan) in enumerate(mat.channels)
+#         for (j, V) in enumerate(mat.fields[chan])
+#             s.consts[chan][V] = sol1[nb_fields[i] + j]
+#             s.consts.errors[chan][V] = errors[nb_fields[i] + j]
+#         end
+#     end
+# end
 
 
 

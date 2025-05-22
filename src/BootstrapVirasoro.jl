@@ -41,7 +41,8 @@ export Spectrum,
 
 # Bootstrap equations and solver.
 export BootstrapSystem,
-    StructureConstants
+    compute_linear_system!,
+    solve!
 
 # The exported methods and types are found in the following included files.
 # These files also document the exported methods
