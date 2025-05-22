@@ -136,13 +136,20 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
 end
 
 function solve!(s::BootstrapSystem; precision_factor=1)
+    @info "system size: $(size(s.matrix.LHS))"
     # solve for two different sets of positions
+    LHS, RHS = s.matrix.LHS, s.matrix.RHS
+    if precision_factor > 1
+        LHS = Matrix{Complex{BigFloat}}(LHS)
+        RHS = Vector{Complex{BigFloat}}(RHS)
+    end
     sol1, sol2 = setprecision(BigFloat, precision_factor * precision(BigFloat)) do
         (
             s.matrix.LHS[3:end, :] \ s.matrix.RHS[3:end],
             s.matrix.LHS[1:end-2, :] \ s.matrix.RHS[1:end-2]
         )
     end
+
     # compare the two solutions
     errors = @. abs((sol1 - sol2) / sol2)
 

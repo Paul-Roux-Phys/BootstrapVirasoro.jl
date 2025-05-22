@@ -37,6 +37,7 @@ export Correlation,
 # Spectra
 export Spectrum,
     ChannelSpectrum,
+    ChannelSpectra,
     add!, remove!
 
 # Bootstrap equations and solver.
