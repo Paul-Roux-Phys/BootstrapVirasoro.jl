@@ -23,9 +23,9 @@ function Base.getproperty(c::StructureConstants, s::Symbol)
     getfield(c, s)
 end
 
-function format_complex(z::Complex{<:Real}; digits=5)
-    real_str = @sprintf("%.*e", digits, real(z))
-    imag_str = @sprintf("%.*e", digits, abs(imag(z)))
+function format_complex(z::Complex{<:Real})
+    real_str = @sprintf("%.5e", real(z))
+    imag_str = @sprintf("%.5e", abs(imag(z)))
     sign = imag(z) < 0 ? "-" : "+"
     buf = real(z) > 0 ? " " : ""
     return "$buf$real_str $sign $(imag_str)im"
