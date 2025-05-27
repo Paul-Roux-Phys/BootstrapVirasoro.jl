@@ -1,9 +1,15 @@
 #===========================================================================================
 Four-point case
 ===========================================================================================#
-double_prod_in_Dmn(m, n, B) = prod(prod((r^2 * B - s^2 / B)^2 for s in 1:n-1) for r in 1:m-1)
+function double_prod_in_Dmn(m, n, B)
+    prod(
+        (r * r * B - s * s / B)^2
+        for s in 1:n-1
+        for r in 1:m-1
+    )
+end
 
-function Dmn(m::Int, n::Int, B::Number)
+function Dmn(m::Int, n::Int, B::T)::T where {T}
     # treat cases m = 1, n=1 separately
     m == 1 && n == 1 && return 1
     m == 1 && return n * prod(s^2 / B * (s^2 / B - m^2 * B) for s in 1:n-1)
@@ -78,9 +84,9 @@ end
 function Rmn_term_nonzero(r, s, i, j, d::FourDimensions)
     B = d[1].c.B
     δ = [d[i].δ for i in 1:4]
-    (r != 0 || s != 0) && return (δ[j] - δ[i])^2 - 2 *
+    (r != 0 || s != 0) && return (d[j].δ - d[i].δ)^2 - 2 *
                                                    δrs(r, s, B) * (δ[i] + δ[j]) + δrs(r, s, B)^2
-    return (δ[j] - δ[i]) * (-1)^(j / 2)
+    return (d[j].δ - d[i].δ) * (-1)^(j / 2)
 end
 
 function Rmn_term_reg(r, s, i, j, d::FourDimensions)
@@ -98,9 +104,11 @@ function Rmn_term(r, s, i, j, d::FourDimensions)
     return Rmn_term_nonzero(r, s, i, j, d)
 end
 
-Rmn_term(r, s, d::FourDimensions) = prod(
-    Rmn_term(r, s, i, j, d) for (i, j) in ((1, 2), (3, 4))
-)
+function Rmn_term(r, s, d::FourDimensions{T})::T where {T}
+    prod(
+        Rmn_term(r, s, i, j, d) for (i, j) in ((1, 2), (3, 4))
+    )
+end
 
 """
     computeRmn(m, n, d::FourDimensions)
@@ -108,18 +116,79 @@ Rmn_term(r, s, d::FourDimensions) = prod(
 Compute the ``Δ``-residue ``R_{m, n}`` of four-point blocks with external dimensions `d`,
 or regularisation thereof, so that ratios of vanishing residues are correct.
 """
-function computeRmn(m, n, d::FourDimensions{T}) where {T}
+function computeRmn(m, n, d::FourDimensions{T})::T where {T}
     if m == 1
-        res = prod(Rmn_term(0, s, d) for s in 1-n:2:0)
+        res = prod(Rmn_term(0, s, d) for s in 1-n:2:0) 
     else # m > 1
-        res = prod(prod(Rmn_term(r, s, d)
-                        for s in 1-n:2:n-1) for r in 1-m:2:-1)
+        res = prod(
+            Rmn_term(r, s, d)
+            for s in 1-n:2:n-1
+            for r in 1-m:2:-1
+        )
         if m % 2 == 1 # m odd -> treat r=0 term separately
             res *= prod(Rmn_term(0, s, d) for s in 1-n:2:0)
         end
     end
 
     return res / (2Dmn(m, n, d[1].c.B))
+end
+
+#=
+write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
+=#
+function computePns!(Pns, factors::Matrix{T}, Nmax) where {T}
+    # Pns[n, r+1] = P_n(r), r>=0, n>0
+    # factors[(r, s)] = Rmn_term(r, s)
+    @inbounds for r in 1:Nmax
+        Pns[1, r] = factors[r, 0+Nmax]
+        if r-1 == 0
+            Pns[2, r] = factors[r, 1+Nmax]
+        else
+            Pns[2, r] = factors[r, 1+Nmax] * factors[r, -1+Nmax]
+        end
+        @inbounds for n in 3:Nmax
+            (r - 1) * (n - 1) > Nmax && break
+            Pns[n, r] = Pns[n-2, r] * factors[r, n-1+Nmax]
+            if r - 1 != 0
+                Pns[n, r] *= factors[r, -n+1+Nmax]
+            end
+        end
+    end
+end
+
+function computeDRmns!(DRs, Pns, factors::Matrix{T}, Nmax) where {T}
+    computePns!(Pns, factors, Nmax)
+    @inbounds for n in 1:Nmax
+        DRs[1, n] = Pns[n, 1]
+        DRs[2, n] = Pns[n, 2]
+        @inbounds for m in 3:Nmax
+            m * n > Nmax && break
+            DRs[m, n] = DRs[m-2, n] * Pns[n, m]
+        end
+    end
+end
+
+function computeRmns!(DRs, Pns, factors, Nmax, ds::FourDimensions{T}) where {T}
+    for r in 1:Nmax
+        for s in 1:2Nmax-1
+            (r - 1) * (s - Nmax) > Nmax && break
+            factors[r, s] = Rmn_term(r - 1, s - Nmax, ds)
+        end
+    end
+    computeDRmns!(DRs, Pns, factors, Nmax)
+    Rs = Dict{Tuple{Int,Int},T}()
+    Rregs = Dict{Tuple{Int,Int},T}()
+    for m in 1:Nmax
+        for n in 1:Nmax
+            m * n > Nmax && break
+            if Rmn_zero_order(m, n, ds) == 0
+                Rs[(m, n)] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+            elseif Rmn_zero_order(m, n, ds) > 0
+                Rregs[(m, n)] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+            end
+        end
+    end
+    return Rs, Rregs
 end
 
 #===========================================================================================
@@ -169,8 +238,43 @@ Coefficients CNmn
     B = c.B
     (!((m, n) in keys(Rmn)) || m * n > N) && return 0
     m * n == N && return Rmn[(m, n)]
-    res = sum(sum(computeCNmn(N - m * n, mp, np, c, Rmn) / (δrs(m, -n, B) - δrs(mp, np, B))
-                  for mp in 1:N-m*n if mp * np <= N - m * n)
-              for np in 1:N-m*n)
+    res = sum(computeCNmn(N - m * n, mp, np, c, Rmn) / (δrs(m, -n, B) - δrs(mp, np, B))
+                  for mp in 1:N-m*n for np in 1:N-m*n if mp * np <= N - m * n)
     return Rmn[(m, n)] * res
+end
+
+function computeCNmns!(Nmax, c::CC{T}, Rs) where {T}
+    B = c.B
+    Cs = fill(zero(T), Nmax, Nmax, Nmax)
+    hasval = falses(Nmax, Nmax, Nmax)
+    δ_cache = [δrs(mp, np, B) for mp in 1:Nmax, np in 1:Nmax]
+    @inbounds for N in 1:Nmax
+        @inbounds for m in 1:Nmax
+            maxn = N÷m
+            @inbounds for n in 1:maxn
+                if haskey(Rs, (m, n))
+                    Rmn = Rs[(m, n)]
+                    Cs[N, m, n] = Rmn
+                    hasval[N, m, n] = true
+                    Np = N - m * n
+                    Np == 0 && continue
+                    δ0 = δrs(m, -n, B)
+                    _sum = zero(T)
+                    for mp in 1:Np
+                        for np in 1:Np÷mp
+                            if hasval[Np, mp, np]
+                                _sum += Cs[Np, mp, np] / (δ0 - δ_cache[mp, np])
+                            end
+                        end
+                    end
+                    Cs[N, m, n] *= _sum
+                end
+            end
+        end
+    end
+    return Dict(
+        (N, m, n) => Cs[N, m, n]
+        for N in 1:Nmax for m in 1:Nmax for n in 1:Nmax÷m
+        if hasval[N, m, n]
+    )
 end

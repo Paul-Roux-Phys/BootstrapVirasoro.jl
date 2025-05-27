@@ -1,6 +1,5 @@
-const RmnTable{T}  = Dict{Tuple{Int, Int},      T}
-const CNmnTable{T} = Dict{Tuple{Int, Int, Int}, T}
-
+const RmnTable{T}  = Array{T, 2}
+const CNmnTable{T} = Array{T, 3}
 const Channels{T} = Dict{Symbol, T} # type for holding data in all channels
 
 struct CorrelationChiral{T} <: Correlation{T}
@@ -31,7 +30,30 @@ function Base.show(io::IO, co::CorrelationChiral)
     print(io, ">")
 end
 
+
 function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
+    @assert all((dim.c === d[1].c for dim in d)) """
+    External fields in the argument of the Correlation constructor do not all have the same
+    CentralCharge
+    """
+    Rmn = Channels{RmnTable{T}}()
+    Rmnreg = Channels{RmnTable{T}}()
+    CNmn = Channels{CNmnTable{T}}()
+
+    DRs = Matrix{T}(undef, (Nmax, Nmax))
+    Pns = Matrix{T}(undef, (Nmax, Nmax))
+    factors = Matrix{T}(undef, (Nmax, 2Nmax-1))
+
+    for x in channels(d)
+        dx = permute_dimensions(d, x)
+        Rmn[x], Rmnreg[x] = computeRmns!(DRs, Pns, factors, Nmax, dx)
+        CNmn[x] = computeCNmns!(Nmax, d[1].c, Rmn[x])
+    end
+
+    CorrelationChiral{T}(d, Nmax, Rmn, Rmnreg, CNmn)
+end
+
+function CorrelationChiral_old(d::ExtDimensions{T}, Nmax::Int) where {T}
     @assert all((dim.c === d[1].c for dim in d)) """
     External fields in the argument of the Correlation constructor do not all have the same
     CentralCharge

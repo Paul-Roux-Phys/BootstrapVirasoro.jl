@@ -74,8 +74,9 @@ add one or several fields to the `Spectrum` or `ChannelSpectrum` s, in-place.
 add!(s, fields) = _add!(s, fields)
 
 """
-        add!(s, fields)
-create a new spectrum by copying s and adding one or several fields to the `Spectrum` or `ChannelSpectrum` s, in-place.
+        add(s, fields)
+create a new spectrum by copying s and adding one or several fields
+to the `Spectrum` or `ChannelSpectrum` s, in-place.
 """
 function add(s, fields)
     s2 = deepcopy(s)
@@ -85,7 +86,11 @@ end
 
 function Spectrum(fields::Vector{Field{T}}, Δmax; interchiral=false) where {T}
     s = BulkSpectrum{T}(Δmax, interchiral, [])
-    foreach(V -> add!(s, V), fields)
+    if interchiral
+        foreach(V -> if -1 < V.s <= 1 add!(s, V) end, fields)
+    else
+        foreach(V -> add!(s, V), fields)
+    end
     return s
 end
 
@@ -106,9 +111,10 @@ function ChannelSpectra(co, s::Spectrum{T}; signature=Dict(:s => 0, :t => 0, :u 
         chan => ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, [])
         for chan in (:s, :t, :u)
     )
-    for V in s.fields
-        for chan in (:s, :t, :u)
-            if isdegenerate(V) || V.r >= signature[chan]
+    for chan in (:s, :t, :u)
+        V1, V2, V3, V4 = permute_fields(co.fields, chan)
+        for V in s.fields
+            if !isdegenerate(V) && V.r >= signature[chan] && (V.r + V1.r + V2.r) % 1 == 0
                 add!(schan[chan], V)
             end
         end
@@ -150,7 +156,7 @@ remove one or several fields from the `Spectrum` or `ChannelSpectrum` s.
 remove!(s, V) = _remove!(s, V)
 
 """
-        remove!(s, fields)
+        remove(s, fields)
 create a new spectrum by copying and removing one or several fields to the `Spectrum` or `ChannelSpectrum` s.
 """
 function remove(s, fields)

@@ -5,35 +5,40 @@ struct BlockInterchiral{T} <: Block{T}
 
 end
 
+function my_mod2(s)
+    s = s % 2
+    return s > 1 ? s - 2 : s
+end
+
 function BlockInterchiral(
     co::Correlation{T}, chan, V, Δmax, s_shift=2
 ) where {T}
     @assert real(V.c.β^2) > 0 "interchiral blocks are defined for Re(β^2) > 0"
-    fields = []
-    shifts = []
-    if isdiagonal(V)
-        V0 = V
-    else
-        V0 = Field(V.c, r=V.r, s=mod(V.s, s_shift))
-    end
-    Vshift = V0
-    D = 1
     if s_shift == 1
         error("Interchiral blocks with shifts s->s+1 not implemented")
     end
+    fields = []
+    shifts = []
+    V0 = V
+    if !isdiagonal(V) && V0.s != 1 # bring back s in (-1, 1)
+        V0 = Field(V.c, r=V.r, s=my_mod2(V.s))
+    end
+    Vshift = V0
+    D = 1
+    ext_Vs = permute_fields(co.fields, chan)
     while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax)
         push!(fields, Vshift)
         push!(shifts, D)
-        D /= shift_D(co.fields, Vshift)
+        D /= shift_D(ext_Vs, Vshift)
         Vshift = shift(Vshift, s_shift)
     end
     Vshift = shift(V0, -s_shift)
-    D = shift_D(co.fields, Vshift)
+    D = shift_D(ext_Vs, Vshift)
     while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax)
         push!(fields, Vshift)
         push!(shifts, D)
         Vshift = shift(Vshift, -s_shift)
-        D *= shift_D(co.fields, Vshift)
+        D *= shift_D(ext_Vs, Vshift)
     end
     blocks = [Block(co, chan, V, Δmax=Δmax) for V in fields]
     BlockInterchiral{T}(blocks, shifts)
@@ -133,7 +138,7 @@ function Base.show(io::IO, ::MIME"text/plain", b::BlockInterchiral)
     shift_range = Int(minimum(ns)):b.shift:Int(maximum(ns))
     if isempty(b.fields)
         print(io, "Empty interchiral block")
-    elseif isdiagonal(b.fields[1]) == 0
+    elseif isdiagonal(b.fields[1])
         println(io, "Interchiral block with channel $(b.channel) and fields")
         print(io, "V_{P = $(V.P[:left]) + n/β}, n ∈ $(shift_range)}")
     else
