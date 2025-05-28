@@ -136,7 +136,7 @@ end
 #=
 write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
 =#
-function computePns!(Pns, factors::Matrix{T}, Nmax) where {T}
+function computePns!(Pns, factors::Matrix{T}, Nmax, ds::FourDimensions) where {T}
     # Pns[n, r+1] = P_n(r), r>=0, n>0
     # factors[(r, s)] = Rmn_term(r, s)
     @inbounds for r in 1:Nmax
@@ -156,8 +156,8 @@ function computePns!(Pns, factors::Matrix{T}, Nmax) where {T}
     end
 end
 
-function computeDRmns!(DRs, Pns, factors::Matrix{T}, Nmax) where {T}
-    computePns!(Pns, factors, Nmax)
+function computeDRmns!(DRs, Pns, factors::Matrix{T}, Nmax, ds::FourDimensions) where {T}
+    computePns!(Pns, factors, Nmax, ds)
     @inbounds for n in 1:Nmax
         DRs[1, n] = Pns[n, 1]
         DRs[2, n] = Pns[n, 2]
@@ -175,7 +175,7 @@ function computeRmns!(DRs, Pns, factors, Nmax, ds::FourDimensions{T}) where {T}
             factors[r, s] = Rmn_term(r - 1, s - Nmax, ds)
         end
     end
-    computeDRmns!(DRs, Pns, factors, Nmax)
+    computeDRmns!(DRs, Pns, factors, Nmax, ds)
     Rs = Dict{Tuple{Int,Int},T}()
     Rregs = Dict{Tuple{Int,Int},T}()
     for m in 1:Nmax
@@ -231,6 +231,55 @@ function computeRmn(m::Int, n::Int, d::OneDimension)
     return res / (2 * Dmn(m, n, B))
 end
 
+# TODO!
+#=
+write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
+=#
+function computePns!(Pns, factors::Matrix{T}, Nmax, d::OneDimension) where {T}
+    # Pns[n, r+1] = P_n(r), r>=0, n>0
+    # factors[(r, s)] = Rmn_term(r, s)
+    @inbounds for r in 1:Nmax
+        Pns[1, r] = factors[r, 1] * factors[r, 2]
+        @inbounds for n in 2:Nmax
+            (2r - 1) * (2n - 2Nmax - 1) >= 4Nmax && break
+            Pns[n, r] = Pns[n-1, r] * factors[r, 2n-1] * factors[r, 2n]
+        end
+    end
+end
+
+function computeDRmns!(DRs, Pns, factors::Matrix{T}, Nmax, d::OneDimension) where {T}
+    computePns!(Pns, factors, Nmax, d)
+    @inbounds for n in 1:Nmax
+        DRs[1, n] = Pns[n, 1]
+        @inbounds for m in 3:Nmax
+            m * n > Nmax && break
+            DRs[m, n] = DRs[m-2, n] * Pns[n, m]
+        end
+    end
+end
+
+function computeRmns!(DRs, Pns, factors, Nmax, ds::OneDimension{T}) where {T}
+    for r in 1:2:Nmax
+        for s in 1:2:2Nmax
+            (2r - 1) * (2s - 2Nmax - 1) >= 4Nmax && break
+            factors[r, s] = Rmn_term(2r - 1, 2s - 2Nmax - 1, ds)
+        end
+    end
+    computeDRmns!(DRs, Pns, factors, Nmax, ds)
+    Rs = Dict{Tuple{Int,Int},T}()
+    Rregs = Dict{Tuple{Int,Int},T}()
+    for m in 1:2:Nmax
+        for n in 1:2:Nmax
+            m * n > Nmax && break
+            if Rmn_zero_order(m, n, ds) == 0
+                Rs[(m, n)] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+            elseif Rmn_zero_order(m, n, ds) > 0
+                Rregs[(m, n)] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+            end
+        end
+    end
+    return Rs, Rregs
+end
 #===========================================================================================
 Coefficients CNmn
 ===========================================================================================#

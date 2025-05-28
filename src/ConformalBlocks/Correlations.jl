@@ -1,6 +1,6 @@
 const RmnTable{T}  = Array{T, 2}
-const CNmnTable{T} = Array{T, 3}
-const Channels{T} = Dict{Symbol, T} # type for holding data in all channels
+const CNmnTable{T} =  Array{T, 3}
+const Channels{T} = NamedTuple{(:s, :t, :u), NTuple{3, T}} # type for holding data in all channels
 
 struct CorrelationChiral{T} <: Correlation{T}
 
@@ -36,19 +36,26 @@ function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
     External fields in the argument of the Correlation constructor do not all have the same
     CentralCharge
     """
-    Rmn = Channels{RmnTable{T}}()
-    Rmnreg = Channels{RmnTable{T}}()
-    CNmn = Channels{CNmnTable{T}}()
-
     DRs = Matrix{T}(undef, (Nmax, Nmax))
     Pns = Matrix{T}(undef, (Nmax, Nmax))
-    factors = Matrix{T}(undef, (Nmax, 2Nmax-1))
+    factors = Matrix{T}(undef, (Nmax, 2Nmax))
 
-    for x in channels(d)
-        dx = permute_dimensions(d, x)
-        Rmn[x], Rmnreg[x] = computeRmns!(DRs, Pns, factors, Nmax, dx)
-        CNmn[x] = computeCNmns!(Nmax, d[1].c, Rmn[x])
+    # Create temporary channel data storage
+    rmn_vals     = NTuple{3, RmnTable{T}}(undef)
+    rmnreg_vals  = NTuple{3, RmnTable{T}}(undef)
+    cnmn_vals    = NTuple{3, CNmnTable{T}}(undef)
+
+    channel_syms = (:s, :t, :u)
+
+    for (i, ch) in enumerate(channel_syms)
+        dx = permute_dimensions(d, ch)
+        rmn_vals[i], rmnreg_vals[i] = computeRmns!(DRs, Pns, factors, Nmax, dx)
+        cnmn_vals[i] = computeCNmns!(Nmax, d[1].c, rmn_vals[i])
     end
+
+    Rmn    = NamedTuple{channel_syms}(rmn_vals)
+    Rmnreg = NamedTuple{channel_syms}(rmnreg_vals)
+    CNmn   = NamedTuple{channel_syms}(cnmn_vals)
 
     CorrelationChiral{T}(d, Nmax, Rmn, Rmnreg, CNmn)
 end
