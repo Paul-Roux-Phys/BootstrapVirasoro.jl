@@ -6,6 +6,7 @@ struct BlockChiral{T} <: Block{T}
     Nmax::Int
     _coefficients::Vector{T}
     _coefficients_der::Vector{T}
+    _missing_terms::Vector{T}
 
 end
 
@@ -22,8 +23,17 @@ function BlockChiral(
     if der
         coeffs_der = series_H(d, Nmax, CNmn, true)
     end
+    if !isdegenerate(d)
+        missing_terms = []
+    else
+        r, s = d.indices
+        missing_terms = [
+            (N, r, s) in CNmn.keys ? CNmn[N, r, s] : zero(T)
+            for N in 0:Nmax
+        ]
+    end
 
-    BlockChiral{T}(corr, chan, d, Nmax, coeffs, coeffs_der)
+    BlockChiral{T}(corr, chan, d, Nmax, coeffs, coeffs_der, missing_terms)
 end
 
 BlockChiral(corr::CorrelationChiral, chan, d::ConformalDimension; der=false) = 
@@ -62,7 +72,7 @@ function series_H_N(N, d::ConformalDimension, CNmn, der=false)
     (N == 0 && !der) && return 1
     (N == 0 &&  der) && return 0
     P = d.P
-    ind = [(m, n) for m in 1:N for n in 1:N if (N, m, n) in keys(CNmn)]
+    ind = [(m, n) for m in 1:N for n in 1:N if (N, m, n) in CNmn.keys]
     isempty(ind) && return 0
     function coeff(m, n)
         # for the derivative series
@@ -72,7 +82,7 @@ function series_H_N(N, d::ConformalDimension, CNmn, der=false)
         # vanilla series
         return inv(P^2 - δrs(m, n, B))
     end
-    return sum(CNmn[(N, m, n)] * coeff(m, n) for (m, n) in ind)
+    return sum(CNmn[N, m, n] * coeff(m, n) for (m, n) in ind)
 end
 
 function series_H(d::ConformalDimension, Nmax, CNmn, der=false)

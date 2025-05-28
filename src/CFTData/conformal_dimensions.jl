@@ -106,6 +106,10 @@ function get_indices(d::ConformalDimension)
     end
 end
 
+function isdegenerate(d::ConformalDimension)
+    return d.isKac && d.r%1 == d.s%1 == 0 && d.r > 0 && d.s > 0
+end
+
 function Base.getproperty(d::ConformalDimension, s::Symbol)
     c = getfield(d, :c)
     P = Pto(:P, Pfrom(:P, getfield(d, :P), c), c)

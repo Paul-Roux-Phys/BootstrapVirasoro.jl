@@ -3,7 +3,7 @@ Sphere prefactor
 ===========================================================================================#
 
 """Nome `q` from the cross-ratio `x`"""
-@memoize qfromx(x) = exp(- (π * ellipticK(1 - x) / ellipticK(x)))
+qfromx(x) = exp(- (π * ellipticK(1 - x) / ellipticK(x)))
 
 """Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
@@ -25,7 +25,7 @@ function channel_sign(b::Block, x)
 end
 
 """Cross-ratio at which to evaluate the s-channel block to get t- or u-channel block"""
-@memoize function crossratio(chan, x)
+function crossratio(chan, x)
     chan === :s && return x
     chan === :t && return 1 .- x
     chan === :u && return 1 ./ x
@@ -41,7 +41,7 @@ end
 Prefactor for getting the chiral block F from H. 
 The argument `lr` indicates if we are working with a left or right moving block
 """
-@memoize function prefactor_chiral(d::FourDimensions, chan::Symbol, x)
+function prefactor_chiral(d::FourDimensions, chan::Symbol, x)
     ds = permute_dimensions(d, chan)
     c = d[1].c.c
 
@@ -66,9 +66,9 @@ end
 #===========================================================================================
 Torus prefactor
 ===========================================================================================#
-@memoize qfromτ(τ) = exp(im*(π*τ))
+qfromτ(τ) = exp(im*(π*τ))
 
-@memoize function prefactor_chiral(d::OneDimension, chan::Symbol, τ)
+function prefactor_chiral(d::OneDimension, chan::Symbol, τ)
     q = qfromτ(τ)
     1 / etaDedekind(complex(τ)), q
 end

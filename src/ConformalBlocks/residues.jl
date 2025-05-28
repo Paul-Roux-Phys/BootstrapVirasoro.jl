@@ -61,8 +61,8 @@ function Rmn_zero_order(m, n, d::FourDimensions)
         return 0
     end
 
-    r = [d[i].r for i in 1:4]
-    s = [d[i].s for i in 1:4]
+    r = Tuple(d[i].r for i in 1:4)
+    s = Tuple(d[i].s for i in 1:4)
 
     #= Rmn is zero if r1 \pm r2 or r3 \pm r4 is an integer in 1-m:2:m-1, and
     s1 \pm s2 or s3 \pm s4 is an integer in 1-n:2:n-1.
@@ -83,9 +83,9 @@ end
 
 function Rmn_term_nonzero(r, s, i, j, d::FourDimensions)
     B = d[1].c.B
-    δ = [d[i].δ for i in 1:4]
+    δRS = δrs(r, s, B)
     (r != 0 || s != 0) && return (d[j].δ - d[i].δ)^2 - 2 *
-                                                   δrs(r, s, B) * (δ[i] + δ[j]) + δrs(r, s, B)^2
+                                                   δRS * (d[i].δ + d[j].δ) + δRS^2
     return (d[j].δ - d[i].δ) * (-1)^(j / 2)
 end
 
@@ -176,15 +176,15 @@ function computeRmns!(DRs, Pns, factors, Nmax, ds::FourDimensions{T}) where {T}
         end
     end
     computeDRmns!(DRs, Pns, factors, Nmax, ds)
-    Rs = Dict{Tuple{Int,Int},T}()
-    Rregs = Dict{Tuple{Int,Int},T}()
+    Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
+    Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
     for m in 1:Nmax
         for n in 1:Nmax
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
-                Rs[(m, n)] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
-            elseif Rmn_zero_order(m, n, ds) > 0
-                Rregs[(m, n)] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+                Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+            else
+                Rregs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
             end
         end
     end
@@ -251,9 +251,9 @@ function computeDRmns!(DRs, Pns, factors::Matrix{T}, Nmax, d::OneDimension) wher
     computePns!(Pns, factors, Nmax, d)
     @inbounds for n in 1:Nmax
         DRs[1, n] = Pns[n, 1]
-        @inbounds for m in 3:Nmax
+        @inbounds for m in 2:Nmax
             m * n > Nmax && break
-            DRs[m, n] = DRs[m-2, n] * Pns[n, m]
+            DRs[m, n] = DRs[m-1, n] * Pns[n, m]
         end
     end
 end
@@ -266,15 +266,15 @@ function computeRmns!(DRs, Pns, factors, Nmax, ds::OneDimension{T}) where {T}
         end
     end
     computeDRmns!(DRs, Pns, factors, Nmax, ds)
-    Rs = Dict{Tuple{Int,Int},T}()
-    Rregs = Dict{Tuple{Int,Int},T}()
+    Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
+    Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
     for m in 1:2:Nmax
         for n in 1:2:Nmax
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
-                Rs[(m, n)] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+                Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
             elseif Rmn_zero_order(m, n, ds) > 0
-                Rregs[(m, n)] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+                Rregs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
             end
         end
     end
@@ -294,24 +294,22 @@ end
 
 function computeCNmns!(Nmax, c::CC{T}, Rs) where {T}
     B = c.B
-    Cs = fill(zero(T), Nmax, Nmax, Nmax)
-    hasval = falses(Nmax, Nmax, Nmax)
+    Cs = CNmnTable{T}(Array{T}(undef, (Nmax, Nmax, Nmax)), Set{Tuple{Int, Int, Int}}())
     δ_cache = [δrs(mp, np, B) for mp in 1:Nmax, np in 1:Nmax]
     @inbounds for N in 1:Nmax
         @inbounds for m in 1:Nmax
             maxn = N÷m
             @inbounds for n in 1:maxn
                 if haskey(Rs, (m, n))
-                    Rmn = Rs[(m, n)]
+                    Rmn = Rs[m, n]
                     Cs[N, m, n] = Rmn
-                    hasval[N, m, n] = true
                     Np = N - m * n
                     Np == 0 && continue
                     δ0 = δrs(m, -n, B)
                     _sum = zero(T)
                     for mp in 1:Np
                         for np in 1:Np÷mp
-                            if hasval[Np, mp, np]
+                            if haskey(Cs, (Np, mp, np))
                                 _sum += Cs[Np, mp, np] / (δ0 - δ_cache[mp, np])
                             end
                         end
@@ -321,9 +319,5 @@ function computeCNmns!(Nmax, c::CC{T}, Rs) where {T}
             end
         end
     end
-    return Dict(
-        (N, m, n) => Cs[N, m, n]
-        for N in 1:Nmax for m in 1:Nmax for n in 1:Nmax÷m
-        if hasval[N, m, n]
-    )
+    return Cs
 end

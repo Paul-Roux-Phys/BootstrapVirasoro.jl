@@ -1,5 +1,13 @@
-const RmnTable{T}  = Array{T, 2}
-const CNmnTable{T} =  Array{T, 3}
+struct RmnTable{T}
+    values::Array{T, 2}
+    keys::Set{Tuple{Int, Int}}
+end
+
+struct CNmnTable{T}
+    values::Array{T, 3}
+    keys::Set{Tuple{Int, Int, Int}}
+end
+
 const Channels{T} = NamedTuple{(:s, :t, :u), NTuple{3, T}} # type for holding data in all channels
 
 struct CorrelationChiral{T} <: Correlation{T}
@@ -17,6 +25,21 @@ function Base.getproperty(co::CorrelationChiral, s::Symbol)
     getfield(co, s)
 end
 
+Base.getindex(R::RmnTable, m::Int, n::Int) = R.values[m, n]
+function Base.setindex!(R::RmnTable, value, m::Int, n::Int)
+    R.values[m, n] = value
+    push!(R.keys, (m, n))
+    return value
+end
+Base.haskey(R::RmnTable, key::Tuple{Int, Int}) = key in R.keys
+
+Base.getindex(C::CNmnTable, N::Int, m::Int, n::Int) = C.values[N, m, n]
+Base.haskey(C::CNmnTable, key::Tuple{Int, Int, Int}) = key in C.keys
+function Base.setindex!(C::CNmnTable, value, N, m::Int, n::Int)
+    C.values[N, m, n] = value
+    push!(C.keys, (N, m, n))
+    return value
+end
 
 function Base.show(io::IO, ::MIME"text/plain", co::CorrelationChiral{T}) where {T}
     print(io, "CorrelationChiral{$T} with external dimensions\n$(co.dims)")
@@ -30,7 +53,6 @@ function Base.show(io::IO, co::CorrelationChiral)
     print(io, ">")
 end
 
-
 function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
     @assert all((dim.c === d[1].c for dim in d)) """
     External fields in the argument of the Correlation constructor do not all have the same
@@ -40,22 +62,24 @@ function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
     Pns = Matrix{T}(undef, (Nmax, Nmax))
     factors = Matrix{T}(undef, (Nmax, 2Nmax))
 
-    # Create temporary channel data storage
-    rmn_vals     = NTuple{3, RmnTable{T}}(undef)
-    rmnreg_vals  = NTuple{3, RmnTable{T}}(undef)
-    cnmn_vals    = NTuple{3, CNmnTable{T}}(undef)
-
     channel_syms = (:s, :t, :u)
 
-    for (i, ch) in enumerate(channel_syms)
-        dx = permute_dimensions(d, ch)
-        rmn_vals[i], rmnreg_vals[i] = computeRmns!(DRs, Pns, factors, Nmax, dx)
-        cnmn_vals[i] = computeCNmns!(Nmax, d[1].c, rmn_vals[i])
-    end
+    vals = ntuple(i -> begin
+            ch = channel_syms[i]
+            dx = permute_dimensions(d, ch)
+            r, rreg = computeRmns!(DRs, Pns, factors, Nmax, dx)
+            cn = computeCNmns!(Nmax, d[1].c, r)
+            r, rreg, cn
+        end, 3)
 
-    Rmn    = NamedTuple{channel_syms}(rmn_vals)
-    Rmnreg = NamedTuple{channel_syms}(rmnreg_vals)
-    CNmn   = NamedTuple{channel_syms}(cnmn_vals)
+    # Now extract and regroup the outputs
+    rmn_vals = map(t -> t[1], vals)
+    rmnreg_vals = map(t -> t[2], vals)
+    cnmn_vals = map(t -> t[3], vals)
+
+    Rmn = NamedTuple{channel_syms}(Tuple(rmn_vals))
+    Rmnreg = NamedTuple{channel_syms}(Tuple(rmnreg_vals))
+    CNmn = NamedTuple{channel_syms}(Tuple(cnmn_vals))
 
     CorrelationChiral{T}(d, Nmax, Rmn, Rmnreg, CNmn)
 end
