@@ -64,58 +64,21 @@ function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
 
     channel_syms = (:s, :t, :u)
 
-    vals = ntuple(i -> begin
+    vals = Tuple(
+        begin
             ch = channel_syms[i]
             dx = permute_dimensions(d, ch)
             r, rreg = computeRmns!(DRs, Pns, factors, Nmax, dx)
             cn = computeCNmns!(Nmax, d[1].c, r)
             r, rreg, cn
-        end, 3)
+        end
+        for i in 1:3
+    )
 
     # Now extract and regroup the outputs
-    rmn_vals = map(t -> t[1], vals)
-    rmnreg_vals = map(t -> t[2], vals)
-    cnmn_vals = map(t -> t[3], vals)
-
-    Rmn = NamedTuple{channel_syms}(Tuple(rmn_vals))
-    Rmnreg = NamedTuple{channel_syms}(Tuple(rmnreg_vals))
-    CNmn = NamedTuple{channel_syms}(Tuple(cnmn_vals))
-
-    CorrelationChiral{T}(d, Nmax, Rmn, Rmnreg, CNmn)
-end
-
-function CorrelationChiral_old(d::ExtDimensions{T}, Nmax::Int) where {T}
-    @assert all((dim.c === d[1].c for dim in d)) """
-    External fields in the argument of the Correlation constructor do not all have the same
-    CentralCharge
-    """
-    Rmn = Channels{RmnTable{T}}()
-    Rmnreg = Channels{RmnTable{T}}()
-    CNmn = Channels{CNmnTable{T}}()
-
-    for x in channels(d)
-
-        dx = permute_dimensions(d, x)
-
-        Rmn[x] = Dict(
-            (m, n) => computeRmn(m, n, dx)
-            for m in 1:Nmax, n in 1:Nmax
-            if Rmn_zero_order(m, n, dx) == 0 && m * n <= Nmax
-        )
-
-        Rmnreg[x] = Dict(
-            (m, n) => computeRmn(m, n, dx)
-            for m in 1:Nmax, n in 1:Nmax
-            if Rmn_zero_order(m, n, dx) > 0 && m * n <= Nmax
-        )
-
-        CNmn[x] = Dict(
-            (N, m, n) => computeCNmn(N, m, n, d[1].c, Rmn[x])
-            for m in 1:Nmax, n in 1:Nmax, N in 1:Nmax
-            if m * n <= N && (m, n) in keys(Rmn[x])
-        )
-
-    end
+    Rmn = Channels{RmnTable{T}}(Tuple(vals[i][1] for i in 1:3))
+    Rmnreg = Channels{RmnTable{T}}(Tuple(Tuple(vals[i][2] for i in 1:3)))
+    CNmn = Channels{CNmnTable{T}}(Tuple(Tuple(vals[i][3] for i in 1:3)))
 
     CorrelationChiral{T}(d, Nmax, Rmn, Rmnreg, CNmn)
 end

@@ -102,7 +102,6 @@ include("ConformalBlocks/BlockChiral.jl")
 include("ConformalBlocks/BlockNonChiral.jl")
 include("ConformalBlocks/BlockInterchiral.jl")
 include("ConformalBlocks/prefactors.jl")
-include("ConformalBlocks/buffered_evalpoly.jl")
 include("ConformalBlocks/evaluate.jl")
 
 Block(co::Corr, chan::Symbol, d::CD, Nmax::Int) = BlockChiral(co, chan, d, Nmax)
@@ -140,6 +139,6 @@ function Block(
 end
 
 # Evaluate blocks with b(z)
-@memoize function (b::Block)(args...)
+function (b::Block)(args...)
     evaluate(b, args...)
 end

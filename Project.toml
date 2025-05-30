@@ -5,23 +5,17 @@ version = "0.0.0-DEV"
 
 [deps]
 BarnesDoubleGamma = "8c4ec0a7-3a81-41b6-9d5f-01f75984e8d3"
-DoubleFloats = "497a8b3b-efae-58df-a0af-a86822472b78"
 EllipticFunctions = "6a4e32cb-b31a-4929-85af-fb29d9a80738"
 GenericLinearAlgebra = "14197337-ba66-59df-a3e3-ca00e7dcff7a"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-Memoization = "6fafb56a-5788-4b4e-91ca-c0cea6611c73"
-MutableArithmetics = "d8a4904e-b15c-11e9-3269-09a3773c0cb0"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 BarnesDoubleGamma = "1"
-DoubleFloats = "1"
 EllipticFunctions = "2"
 GenericLinearAlgebra = "0"
 LinearAlgebra = "1"
-Memoization = "0"
-MutableArithmetics = "1"
 Printf = "1"
 SpecialFunctions = "2"
 julia = "1.4"

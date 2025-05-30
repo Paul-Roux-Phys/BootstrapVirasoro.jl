@@ -12,7 +12,6 @@ This file presents the whole user-interface of the package.
 module BootstrapVirasoro
 
 using EllipticFunctions,
-    Memoization,
     Printf
 
 using GenericLinearAlgebra: qr

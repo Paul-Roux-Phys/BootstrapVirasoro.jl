@@ -107,10 +107,10 @@ function ChannelSpectrum(co::Correlation, s::Spectrum{T}, chan) where {T}
 end
 
 function ChannelSpectra(co, s::Spectrum{T}; signature=Dict(:s => 0, :t => 0, :u => 0)) where {T}
-    schan = Dict(
-        chan => ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, [])
+    schan = Channels{ChannelSpectrum{T}}(Tuple(
+        ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, [])
         for chan in (:s, :t, :u)
-    )
+    ))
     for chan in (:s, :t, :u)
         V1, V2, V3, V4 = permute_fields(co.fields, chan)
         for V in s.fields

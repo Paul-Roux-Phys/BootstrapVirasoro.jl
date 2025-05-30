@@ -3,36 +3,16 @@ Sphere prefactor
 ===========================================================================================#
 
 """Nome `q` from the cross-ratio `x`"""
-qfromx(x) = exp(- (π * ellipticK(1 - x) / ellipticK(x)))
+@inline qfromx(x) = exp(- (π * ellipticK(1 - x) / ellipticK(x)))
 
 """Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0,q)^4 / jtheta3(0,q)^4
 
-"""
-    channelprefactor_chiral(d::FourDimensions, b, x)
+"""Cross-ratio at which to evaluate the s-channel block to get t- or u-channel block"""
 
-Prefactor to get t- or u-channel blocks from the s-channel block
-"""
 function channelprefactor_chiral(d::FourDimensions, chan, x)
     chan === :u && return x^(2*d[1].Δ)
     return 1
-end
-
-"""Sign (-1)^{S_1+S_2+S_3+S_4} when changing from s to t or u channels"""
-function channel_sign(b::Block, x)
-    b.channel === :s && return 1
-    return 1 # (-1)^(sum(spin.(corr.fields)))
-end
-
-"""Cross-ratio at which to evaluate the s-channel block to get t- or u-channel block"""
-function crossratio(chan, x)
-    chan === :s && return x
-    chan === :t && return 1 .- x
-    chan === :u && return 1 ./ x
-    error(
-        """Incorrect channel specification in crossratio(channel, x):
-        must be in $channels"""
-    )
 end
 
 """

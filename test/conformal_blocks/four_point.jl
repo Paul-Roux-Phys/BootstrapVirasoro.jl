@@ -14,9 +14,9 @@
     corr = Correlation(VKac, V_ext, VKac, VKac, 12)
     b = Block(corr, :s, V_chan, :left, 12)
 
-    h = evaluate_series(b, 16q)
-    BootstrapVirasoro.evalpoly_buf(q, b._coefficients)
+    h = evaluate_series(b, complex(x))
 
+    @test h ≈ evalpoly(16q, b._coefficients)
     @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol=1e-8) # value from Sylvain's code
 end
 
@@ -34,20 +34,26 @@ end
     b_u = Block(co, :u, V, Nmax)
     x=big"0.05" + big"0"*im
 
+    cache = BootstrapVirasoro.PositionCache(1/big"1.5"+0im, b_u)
+    cache.prefactor * (16cache.q)^b_u.channel_dimension.δ
+
     @testset "prefactors" begin
-        import BootstrapVirasoro: blockprefactor_chiral
+        import BootstrapVirasoro: PositionCache
+        cache = PositionCache(x, b_s)
         @test isapprox(
-            blockprefactor_chiral(b_s, x),
+            cache.prefactor * (16cache.q)^b_s.channel_dimension.δ,
             big"1813.32806084410414587456604",
             rtol = 1e-20
         )
+        cache = PositionCache(1-x, b_t)
         @test isapprox(
-            blockprefactor_chiral(b_t, 1-x),
+            cache.prefactor * (16cache.q)^b_t.channel_dimension.δ,
             big"0.07933043122650460823164",
             rtol = 1e-20
         )
+        cache = BootstrapVirasoro.PositionCache(1/big"1.5"+0im, b_u)
         @test isapprox(
-            blockprefactor_chiral(b_u, 1/big"1.5" + 0im),
+            cache.prefactor * (16cache.q)^b_u.channel_dimension.δ,
             big"3.425385476422140172584631280130419",
             rtol = 1e-20
         )
@@ -62,13 +68,13 @@ end
         )
 
         @test isapprox(
-            evaluate(b_t, complex(x)),
+            evaluate(b_t, complex(1-x)),
             big"10841.257658755518924543654",
             rtol=1e-20
         )
 
         @test isapprox(
-            evaluate(b_u, big"1.5" + 0im),
+            evaluate(b_u, 1/(big"1.5" + 0im)),
             big"67.6043205801146820843104",
             rtol=1e-20
         )
@@ -78,7 +84,7 @@ end
 @testset "Non Chiral Blocks" begin
     c = CentralCharge(:β, big"0.8"+big"0.1"*im)
     V = Field(c, r=2, s=3)
-    Nmax = 30
+    Nmax = 40
 
     V1 = Field(c, r=0, s=1)
     V2 = Field(c, r=0, s=1//2)
@@ -99,10 +105,11 @@ end
 
         # both blocks should be close to one
         @test abs(1 - evaluate(block_s, z) * z^Δ * conj(z)^Δ) < 1e-5
-        @test abs(1 - evaluate(block_t, 1 - z) * z^Δ * conj(z)^Δ) < 1e-5
+        @test abs(1 - evaluate(block_t, z) * z^Δ * conj(z)^Δ) < 1e-5
     end
 
     @testset "Block derivatives" begin
+        import BootstrapVirasoro: evaluate_series, evaluate_series_der
         setprecision(BigFloat, 256)
         ϵ = 1e-25
 
@@ -115,8 +122,7 @@ end
         b_m = Block(co, :s, Vm, :left, 40)
 
         function eval_series_der(x)
-            q = 16qfromx(complex(x))
-            series_der = evaluate_series(b, q, der=true)
+            series_der = evaluate_series_der(b, x)
             byhand = (evaluate_series(b_p, q) - evaluate_series(b_m, q)) / (2 * ϵ)
             series_der - byhand
         end
@@ -126,7 +132,7 @@ end
         @test abs(eval_series_der(big"10" + big"0.01" * im)) < big"1e-45"
 
         function eval_block_der(x)
-            block_der = evaluate(b, x, der=true)
+            block_der = evaluate_der(b, x)
             byhand = (evaluate(b_p, x) - evaluate(b_m, x)) / (2 * ϵ)
             block_der - byhand
         end

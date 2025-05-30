@@ -1,18 +1,9 @@
-function StructureConstants(S::Dict{Symbol,U}) where {T,U<:ChannelSpectrum{T}}
-    constants = Dict(chan => Dict{Field{T},T}() for chan in keys(S))
-    errors = Dict(chan => Dict{Field{T},T}() for chan in keys(S))
+function StructureConstants{T}() where {T}
+    constants = Channels{Dict{Field{T}, T}}(Tuple(
+        Dict() for chan in (:s, :t, :u)
+    ))
+    errors = deepcopy(constants)
     return StructureConstants{T}(constants, errors)
-end
-
-function StructureConstants{T}(chans::Vector{Symbol}) where {T}
-    constants = Dict(chan => Dict{Field{T}, T}() for chan in chans)
-    errors = Dict(chan => Dict{Field{T}, T}() for chan in chans)
-    return StructureConstants{T}(constants, errors)
-end
-
-function fix!(cnst, chan, field, value, error = 0)
-    cnst[chan][field] = value
-    cnst.errors[chan][field] = 0
 end
 
 function Base.getproperty(c::StructureConstants, s::Symbol)
@@ -21,6 +12,13 @@ function Base.getproperty(c::StructureConstants, s::Symbol)
         return vcat([[V for V in keys(consts[chan])] for chan in keys(consts)]...)
     end
     getfield(c, s)
+end
+
+Base.getindex(c::StructureConstants, s::Symbol) = c.constants[s]
+
+function fix!(cnst, chan, field, value; error = 0)
+    cnst[chan][field] = value
+    cnst.errors[chan][field] = error
 end
 
 function format_complex(z::Complex{<:Real})
@@ -73,8 +71,8 @@ function Base.show(io::IO, c::StructureConstants{T}) where {T}
         end
 
         # Print channel header
-        printstyled(io, "Channel $(chan)\n", color=:red, bold=true)
-        printstyled(io, repeat('=', 9 + length(string(chan))) * "\n", color=:red, bold=true)
+        println(io, "Channel $(chan)")
+        println(io, repeat('=', 9 + length(string(chan))))
         
         # Print column headers
         label1 = rpad("Fields", max_label_width)

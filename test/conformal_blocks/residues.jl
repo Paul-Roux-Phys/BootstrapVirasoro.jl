@@ -6,7 +6,7 @@
         corr = Correlation(V1, V2, V2, V1, 6)
 
         # litteral values are taken from Sylvain's code
-        @test isapprox(corr._Rmn[:left][:s][(3, 2)], -3.11111e-7,
+        @test isapprox(corr._Rmn[:left][:s][3, 2], -3.11111e-7,
             atol=1e-8)
 
         c = CentralCharge(:c, big"0.1")
@@ -15,14 +15,14 @@
         corr = Correlation(V1, V2, V2, V1, 10)
 
         @test isapprox(
-            corr._CNmn[:left][:t][(4, 1, 4)],
+            corr._CNmn[:left][:t][4, 1, 4],
             big"-0.00004010759186977254114462018639739857292228437487",
             atol=1e-20
         )
     end
 
     @testset "Regularised residues as limits of normal residues" begin
-        import BootstrapVirasoro: computeRmn,
+        import BootstrapVirasoro: computeRmns!,
             Rmn_term,
             Rmn_zero_order,
             Rmn_term_vanishes,
@@ -39,22 +39,34 @@
         
         dls(ϵ) = Tuple(v.dims[:left] for v in Vs(ϵ))
         drs(ϵ) = Tuple(v.dims[:right] for v in Vs(ϵ))
-        
+
         redirect_stderr(devnull) do
-            Rreg_1_2 = computeRmn(1, 2, dls(0))
-
             P3, P4 = dls(ϵ)[3].P, dls(ϵ)[4].P
-            P(r, s) = ConformalDimension(c, r=r, s=s).P
-            Rϵ12 = computeRmn(1, 2, dls(ϵ)) / (P3 - P4 + P(0, 1))
-            @test isapprox(Rreg_1_2, Rϵ12, rtol=1e-18)
-        end
+            P(r, s) = P_rs(r, s, c)
 
-        R12(ϵ) = computeRmn(1, 12, dls(ϵ))
-        barR12(ϵ) = computeRmn(1, 12, drs(ϵ))
+            Nmax = 12
+            T = Complex{BigFloat}
+            DRs = Matrix{T}(undef, (Nmax, Nmax))
+            Pns = Matrix{T}(undef, (Nmax, Nmax))
+            factors = Matrix{T}(undef, (Nmax, 2Nmax))
 
-        redirect_stderr(devnull) do 
-            Rratio_reg = (-1)^Rmn_zero_order(1, 12, dls(0)) * R12(0) / barR12(0)
-            Rratio_ϵ = R12(ϵ) / barR12(ϵ)
+            Rl_reg = computeRmns!(DRs, Pns, factors, Nmax, dls(0))[2]
+            Rlϵ = computeRmns!(DRs, Pns, factors, Nmax, dls(ϵ))[1]
+            Rr_reg = computeRmns!(DRs, Pns, factors, Nmax, drs(0))[2]
+            Rrϵ = computeRmns!(DRs, Pns, factors, Nmax, drs(ϵ))[1]
+
+            Rlreg_1_2 = Rl_reg[1, 2]
+            Rlϵ_1_2 = Rl[1, 2] / (P3 - P4 + P(0, 1))
+
+            @test isapprox(Rreg_1_2, Rlϵ_1_2, rtol=1e-18)
+
+            Rreg_12 = Rl_reg[1, 12]
+            barRreg_12 = Rr_reg[1, 12]
+            Rϵ_12 = Rlϵ[1, 12]
+            barRϵ_12 = Rrϵ[1, 12] # / (P3 - P4 + P(0, 1))
+
+            Rratio_reg = (-1)^Rmn_zero_order(1, 12, dls(0)) * Rreg_12 / barRreg_12
+            Rratio_ϵ = Rϵ_12 / barRϵ_12
 
             @test isapprox(Rratio_reg, Rratio_ϵ, rtol=1e-18)
         end

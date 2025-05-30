@@ -110,29 +110,6 @@ function Rmn_term(r, s, d::FourDimensions{T})::T where {T}
     )
 end
 
-"""
-    computeRmn(m, n, d::FourDimensions)
-
-Compute the ``Δ``-residue ``R_{m, n}`` of four-point blocks with external dimensions `d`,
-or regularisation thereof, so that ratios of vanishing residues are correct.
-"""
-function computeRmn(m, n, d::FourDimensions{T})::T where {T}
-    if m == 1
-        res = prod(Rmn_term(0, s, d) for s in 1-n:2:0) 
-    else # m > 1
-        res = prod(
-            Rmn_term(r, s, d)
-            for s in 1-n:2:n-1
-            for r in 1-m:2:-1
-        )
-        if m % 2 == 1 # m odd -> treat r=0 term separately
-            res *= prod(Rmn_term(0, s, d) for s in 1-n:2:0)
-        end
-    end
-
-    return res / (2Dmn(m, n, d[1].c.B))
-end
-
 #=
 write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
 =#
@@ -168,6 +145,11 @@ function computeDRmns!(DRs, Pns, factors::Matrix{T}, Nmax, ds::FourDimensions) w
     end
 end
 
+"""
+    computeRmns!
+
+Compute the ``Δ``-residues ``R_{m, n}`` for all `m`, `n` such that m*n ≤ Nmax
+"""
 function computeRmns!(DRs, Pns, factors, Nmax, ds::FourDimensions{T}) where {T}
     for r in 1:Nmax
         for s in 1:2Nmax-1
@@ -225,13 +207,6 @@ function Rmn_term(r, s, d::OneDimension)
     return Rmn_term_nonzero(r, s, d)
 end
 
-function computeRmn(m::Int, n::Int, d::OneDimension)
-    B = d[1].c.B
-    res = prod(Rmn_term(r, s, d) for r in 1:2:2*m-1 for s in 1-2n:2:2n-1)
-    return res / (2 * Dmn(m, n, B))
-end
-
-# TODO!
 #=
 write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
 =#
@@ -280,18 +255,10 @@ function computeRmns!(DRs, Pns, factors, Nmax, ds::OneDimension{T}) where {T}
     end
     return Rs, Rregs
 end
+
 #===========================================================================================
 Coefficients CNmn
 ===========================================================================================#
-@memoize function computeCNmn(N, m, n, c, Rmn)
-    B = c.B
-    (!((m, n) in keys(Rmn)) || m * n > N) && return 0
-    m * n == N && return Rmn[(m, n)]
-    res = sum(computeCNmn(N - m * n, mp, np, c, Rmn) / (δrs(m, -n, B) - δrs(mp, np, B))
-                  for mp in 1:N-m*n for np in 1:N-m*n if mp * np <= N - m * n)
-    return Rmn[(m, n)] * res
-end
-
 function computeCNmns!(Nmax, c::CC{T}, Rs) where {T}
     B = c.B
     Cs = CNmnTable{T}(Array{T}(undef, (Nmax, Nmax, Nmax)), Set{Tuple{Int, Int, Int}}())
