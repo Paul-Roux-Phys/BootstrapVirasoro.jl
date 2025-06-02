@@ -137,14 +137,14 @@ function evaluate(b::BlockLogarithmic{T}, x::LRPositionCache)::T where {T}
     s < 0 && return zero(T) # by convention G_(r, s<0) = 0
     Prs = V.P[:left]
 
-    Freg, Fbar = evaluate_lr(b, x,)
+    Freg, Fbar = evaluate_lr(b, x)
     F, Fregbar = evaluate_lr_op(b, x)
 
     if isaccidentallynonlogarithmic(b)
         Rreg = b.corr._Rmn_reg[:left][b.channel][r, s]
         Rregbar = b.corr._Rmn_reg[:right][b.channel][r, s]
         nbzeros = Rmn_zero_order(r, s, b.chiral_blocks[:left].dims)
-        @. Freg * Fbar + (-1)^nbzeros * Rreg / Rregbar * F * Fregbar
+        Freg * Fbar + (-1)^nbzeros * Rreg / Rregbar * F * Fregbar
 
     elseif islogarithmic(b)
         Fder, Fderbar = evaluate_lr_der(b, x)
@@ -153,7 +153,13 @@ function evaluate(b::BlockLogarithmic{T}, x::LRPositionCache)::T where {T}
         Rbar = b.corr._Rmn[:right][b.channel][r, s]
         l = b.ell
 
-        @. (Freg - R / 2 / Prs * Fder) * Fbar +
+        @show Freg, Fbar
+        @show F, Fregbar
+        @show Fder, Fderbar
+        @show R, Rbar
+        @show l
+        
+        (Freg - R / 2 / Prs * Fder) * Fbar +
         R / Rbar * F * (Fregbar - Rbar / 2 / Prs * Fderbar) +
         R / 2 / Prs * l * F * Fbar
     end
@@ -174,4 +180,14 @@ end
 @inline function evaluate(b::BlockNonChiral, x::Number)
     x_cache = LRPositionCache(x, b.corr, b.channel)
     return evaluate(b, x_cache)
+end
+
+@inline function evaluate_der(b::BlockChiral, x::Number)
+    x_cache = PositionCache(x, b.corr, b.channel)
+    return evaluate_der(b, x_cache)
+end
+
+@inline function evaluate_der(b::BlockNonChiral, x::Number)
+    x_cache = LRPositionCache(x, b.corr, b.channel)
+    return evaluate_der(b, x_cache)
 end

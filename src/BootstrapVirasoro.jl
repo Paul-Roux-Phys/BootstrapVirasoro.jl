@@ -30,8 +30,8 @@ export Correlation,
     Block,
     qfromx, xfromq,
     qfromτ,
-    evaluate_series,
-    evaluate
+    evaluate_series, evaluate_series_der,
+    evaluate, evaluate_der
 
 # Spectra
 export Spectrum,

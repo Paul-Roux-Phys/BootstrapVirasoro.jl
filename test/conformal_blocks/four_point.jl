@@ -123,7 +123,7 @@ end
 
         function eval_series_der(x)
             series_der = evaluate_series_der(b, x)
-            byhand = (evaluate_series(b_p, q) - evaluate_series(b_m, q)) / (2 * ϵ)
+            byhand = (evaluate_series(b_p, x) - evaluate_series(b_m, x)) / (2 * ϵ)
             series_der - byhand
         end
 
@@ -148,7 +148,7 @@ end
         l = ell(co.fields, :s, 2, 1)
         # comparing with Sylvain's code
         # When all fields are degenerate
-        @test isapprox(c.β * l, 14.20389003630952076540 - 5.0517664348341790287im, rtol=1e-15)
+        @test c.β * l ≈ 14.20389003630952076540 - 5.0517664348341790287im
     end
 
     @testset "Regularised blocks" begin
@@ -163,14 +163,14 @@ end
 
         @test isapprox(
             evaluate(bϵ, x),
-            co._Rmn[:left][:s][(V.r, V.s)] / ϵ * evaluate(bminus, x) +
+            co._Rmn[:left][:s][V.r, V.s] / ϵ * evaluate(bminus, x) +
                 evaluate(b, x),
             rtol = 1e-32
         )
 
         @test isapprox(
             evaluate(bPϵ, x),
-            co._Rmn[:left][:s][(V.r, V.s)] / 2 / V.P[:left] / ϵ * evaluate(bminus, x) +
+            co._Rmn[:left][:s][V.r, V.s] / 2 / V.P[:left] / ϵ * evaluate(bminus, x) +
                 evaluate(b, x),
             rtol = 1e-33
         )
@@ -187,6 +187,8 @@ end
     @testset "Full logarithmic blocks" begin
         bl(channel) = Block(co, channel, V, Nmax)
 
+        evaluate(bl(:s), x)
+
         # comparing with Sylvain's code
         @test isapprox(
             evaluate(bl(:s), x),
@@ -195,7 +197,7 @@ end
         )
 
         @test isapprox(
-            evaluate(bl(:t), x),
+            evaluate(bl(:t), 1-x),
             big"-0.4855554411145733280520066" + big"0.1128101630322690069857833"*im,
             rtol = 1e-20
         )
