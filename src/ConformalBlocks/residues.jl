@@ -212,12 +212,13 @@ write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
 =#
 function computePns!(Pns, factors::Matrix{T}, Nmax, d::OneDimension) where {T}
     # Pns[n, r+1] = P_n(r), r>=0, n>0
-    # factors[(r, s)] = Rmn_term(r, s)
-    @inbounds for r in 1:Nmax
-        Pns[1, r] = factors[r, 1] * factors[r, 2]
-        @inbounds for n in 2:Nmax
-            (2r - 1) * (2n - 2Nmax - 1) >= 4Nmax && break
-            Pns[n, r] = Pns[n-1, r] * factors[r, 2n-1] * factors[r, 2n]
+    for a in 1:Nmax
+        r = 2a-1
+        Pns[1, a] = factors[a, Nmax] * factors[a, Nmax+1]
+        n = 2
+        for n in 2:Nmax
+            r * abs(2n-1) >= 8Nmax && continue
+            Pns[n, a] = Pns[n-1, a] * factors[a, Nmax-n+1] * factors[a, Nmax+n]
         end
     end
 end
@@ -234,17 +235,18 @@ function computeDRmns!(DRs, Pns, factors::Matrix{T}, Nmax, d::OneDimension) wher
 end
 
 function computeRmns!(DRs, Pns, factors, Nmax, ds::OneDimension{T}) where {T}
-    for r in 1:2:Nmax
-        for s in 1:2:2Nmax
-            (2r - 1) * (2s - 2Nmax - 1) >= 4Nmax && break
-            factors[r, s] = Rmn_term(2r - 1, 2s - 2Nmax - 1, ds)
+    for a in 1:Nmax
+        for b in 1:2Nmax
+            r, s = 2a-1, 2b-2Nmax-1
+            r * s >= 8Nmax && continue
+            factors[a, b] = Rmn_term(r, s, ds)
         end
     end
     computeDRmns!(DRs, Pns, factors, Nmax, ds)
     Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
     Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
-    for m in 1:2:Nmax
-        for n in 1:2:Nmax
+    for m in 1:Nmax
+        for n in 1:Nmax
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
                 Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))

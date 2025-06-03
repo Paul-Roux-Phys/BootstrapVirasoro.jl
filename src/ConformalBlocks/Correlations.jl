@@ -41,26 +41,14 @@ function Base.setindex!(C::CNmnTable, value, N, m::Int, n::Int)
     return value
 end
 
-function Base.show(io::IO, ::MIME"text/plain", co::CorrelationChiral{T}) where {T}
-    print(io, "CorrelationChiral{$T} with external dimensions\n$(co.dims)")
-end
-
-function Base.show(io::IO, co::CorrelationChiral)
-    print(io, "< ")
-    for d in co.dims
-        print(io, d, " ")
-    end
-    print(io, ">")
-end
-
 function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
     @assert all((dim.c === d[1].c for dim in d)) """
     External fields in the argument of the Correlation constructor do not all have the same
     CentralCharge
     """
-    DRs = Matrix{T}(undef, (Nmax, Nmax))
-    Pns = Matrix{T}(undef, (Nmax, Nmax))
-    factors = Matrix{T}(undef, (Nmax, 2Nmax))
+    DRs = Matrix{T}(undef, Nmax, Nmax)
+    Pns = Matrix{T}(undef, Nmax, Nmax)
+    factors = Matrix{T}(undef, Nmax, 2Nmax)
 
     channel_syms = (:s, :t, :u)
 
@@ -95,19 +83,6 @@ struct CorrelationNonChiral{T} <: Correlation{T}
 
 end
 
-function Base.show(io::IO, ::MIME"text/plain", co::CorrelationNonChiral{T}) where {T}
-    println(io, "CorrelationNonChiral{$T} with external fields")
-    print(io, co.fields)
-end
-
-function Base.show(io::IO, co::CorrelationNonChiral)
-    print(io, "< ")
-    for V in co.fields
-        print(io, V, " ")
-    end
-    print(io, ">")
-end
-
 function permute_dimensions(ds::FourDimensions, chan::Symbol)
     chan === :s && return ds
     chan === :t && return (ds[1], ds[4], ds[3], ds[2])
@@ -121,8 +96,7 @@ function permute_fields(Vs::FourFields, chan::Symbol)
     chan === :t && return (Vs[1], Vs[4], Vs[3], Vs[2])
     chan === :u && return (Vs[1], Vs[3], Vs[2], Vs[4])
 end
-
-permute_dimensions(V::OneField, chan::Symbol) = V
+permute_fields(V::OneField, chan::Symbol) = V
 
 channels(Vs::FourDimensions) = (:s, :t, :u)
 channels(V::OneDimension) = (:τ,)
@@ -210,3 +184,43 @@ Correlation(co_left::CorrelationChiral, co_right::CorrelationChiral) =
 
 Correlation(args...; Δmax=10.) = Correlation(args..., N_max(CD(), Δmax))
 
+function Base.show(io::IO, ::MIME"text/plain", R::RmnTable{T}) where {T}
+    print(io, "RmnTable{$T}(")
+    for k in sort([k for k in R.keys])
+        print(io, "$k => $(R[k...]), ")
+    end
+    println(io, ")");
+end
+
+function Base.show(io::IO, R::RmnTable{T}) where {T}
+    println(io, "RmnTable{$T}(")
+    for k in sort([k for k in R.keys])
+        println(io, "\t$k => $(R[k...]),")
+    end
+    println(io, ")");
+end
+
+function Base.show(io::IO, ::MIME"text/plain", co::CorrelationChiral{T}) where {T}
+    print(io, "CorrelationChiral{$T} with external dimensions\n$(co.dims)")
+end
+
+function Base.show(io::IO, co::CorrelationChiral)
+    print(io, "< ")
+    for d in co.dims
+        print(io, d, " ")
+    end
+    print(io, ">")
+end
+
+function Base.show(io::IO, ::MIME"text/plain", co::CorrelationNonChiral{T}) where {T}
+    println(io, "CorrelationNonChiral{$T} with external fields")
+    print(io, co.fields)
+end
+
+function Base.show(io::IO, co::CorrelationNonChiral)
+    print(io, "< ")
+    for V in co.fields
+        print(io, V, " ")
+    end
+    print(io, ">")
+end

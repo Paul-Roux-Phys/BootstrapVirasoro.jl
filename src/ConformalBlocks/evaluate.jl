@@ -57,6 +57,7 @@ function LRPositionCache(x, co::Correlation{T}, chan) where {T}
         PositionCache(x, co, chan), PositionCache(xbar, co, chan)
     )
 end
+LRPositionCache(x, b::Block) = LRPositionCache(x, b.corr, b.channel)
 
 @inline function evalpoly(x::PositionCache, coeffs::Vector{T}) where {T}
     acc = zero(T)
@@ -95,10 +96,14 @@ conj_q(τ, V::OneDimension) = -conj(τ)
 conj_q(x, co::CorrelationChiral) = conj_q(x, co.dims)
 conj_q(x, co::CorrelationNonChiral) = conj_q(x, co[:left].dims)
 
+total_prefactor(b::BlockChiral, d::FourDimensions, x::PositionCache) = x.prefactor * (x.q_powers[2])^b.channel_dimension.δ
+total_prefactor(b::BlockChiral, d::OneDimension, x::PositionCache) = x.prefactor * x.q^b.channel_dimension.δ
+total_prefactor(b, x::PositionCache) = total_prefactor(b, b.corr.dims, x)
+total_prefactor(b, x::Number) = total_prefactor(b, b.corr.dims, PositionCache(x, b))
+
 function evaluate(b::BlockChiral{T}, x::PositionCache)::T where {T}
     d = b.channel_dimension
-    qor16q = x.q_powers[2]
-    p = x.prefactor * (qor16q)^b.channel_dimension.δ
+    p = total_prefactor(b, x)
     h = evaluate_series(b, x)
 
     if isdegenerate(d)
@@ -119,13 +124,14 @@ function evaluate_der(b::BlockChiral{T}, x::PositionCache)::T where {T}
     return p * h
 end
 
-@inline function evaluate_lr(bs::LeftRight{BlockChiral}, x::LRPositionCache)
-    return evaluate(bs[:left], x.left), evaluate(bs[:right], x.right)
-end
+@inline evaluate_lr(bs::LeftRight{BlockChiral}, x::LRPositionCache) =
+    evaluate(bs[:left], x.left), evaluate(bs[:right], x.right)
+@inline evaluate_lr_der(bs::LeftRight{BlockChiral}, x::LRPositionCache) =
+    evaluate_der(bs[:left], x.left), evaluate_der(bs[:right], x.right)
 @inline evaluate_lr(b::BlockFactorized, x) = evaluate_lr(b.chiral_blocks, x)
 @inline evaluate_lr(b::BlockLogarithmic, x) = evaluate_lr(b.chiral_blocks, x)
 @inline evaluate_lr_op(b::BlockLogarithmic, x) = evaluate_lr(b.chiral_blocks_op, x)
-@inline evaluate_lr_der(b::BlockLogarithmic, x) = evaluate_lr(b.chiral_blocks_der, x)
+@inline evaluate_lr_der(b::BlockLogarithmic, x) = evaluate_lr_der(b.chiral_blocks_der, x)
 
 @inline function evaluate(b::BlockFactorized{T}, x::LRPositionCache)::T where {T}
     return prod(evaluate_lr(b, x))
@@ -153,12 +159,6 @@ function evaluate(b::BlockLogarithmic{T}, x::LRPositionCache)::T where {T}
         Rbar = b.corr._Rmn[:right][b.channel][r, s]
         l = b.ell
 
-        @show Freg, Fbar
-        @show F, Fregbar
-        @show Fder, Fderbar
-        @show R, Rbar
-        @show l
-        
         (Freg - R / 2 / Prs * Fder) * Fbar +
         R / Rbar * F * (Fregbar - Rbar / 2 / Prs * Fderbar) +
         R / 2 / Prs * l * F * Fbar
@@ -172,22 +172,7 @@ function evaluate(b::BlockInterchiral{T}, x)::T where {T}
     )
 end
 
-@inline function evaluate(b::BlockChiral, x::Number)
-    x_cache = PositionCache(x, b.corr, b.channel)
-    return evaluate(b, x_cache)
-end
-
-@inline function evaluate(b::BlockNonChiral, x::Number)
-    x_cache = LRPositionCache(x, b.corr, b.channel)
-    return evaluate(b, x_cache)
-end
-
-@inline function evaluate_der(b::BlockChiral, x::Number)
-    x_cache = PositionCache(x, b.corr, b.channel)
-    return evaluate_der(b, x_cache)
-end
-
-@inline function evaluate_der(b::BlockNonChiral, x::Number)
-    x_cache = LRPositionCache(x, b.corr, b.channel)
-    return evaluate_der(b, x_cache)
-end
+evaluate(b::BlockChiral, x::Number) = evaluate(b, PositionCache(x, b))
+evaluate(b::BlockNonChiral, x::Number) = evaluate(b, LRPositionCache(x, b))
+evaluate_der(b::BlockChiral, x::Number) = evaluate_der(b, PositionCache(x, b))
+evaluate_der(b::BlockNonChiral, x::Number) = evaluate_der(b, LRPositionCache(x, b))
