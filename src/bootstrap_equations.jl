@@ -1,5 +1,5 @@
 struct BootstrapMatrix{T}
-    unknowns::Channels{Vector{Field{T}}}
+    unknowns::Channels{Vector{Tuple{Int, Field{T}}}}
     LHS::Matrix{T}
     RHS::Vector{T}
 end
@@ -23,7 +23,7 @@ end
 
 function BootstrapMatrix{T}() where {T}
     BootstrapMatrix{T}(
-        Channels{Vector{Field{T}}}(Tuple(
+        Channels{Vector{Tuple{Int, Field{T}}}}(Tuple(
             Vector{Field{T}}()
             for chan in (:s, :t, :u)
         )),
@@ -100,26 +100,35 @@ end
 
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     chans = (:s, :t, :u)
-    knowns = b.consts
+    known_consts = b.consts
+
+    unknowns = Channels{Vector{Tuple{Int, Field{T}}}}(Tuple(
+        [(i, V) for (i, V) in enumerate(b.spectra[chan].fields)
+             if !(V in keys(known_consts[chan]))]
+        for chan in chans
+    ))
 
     # if no consts are known, fix a normalisation: first str cst in the 1st-channel = 1
-    unknowns = Channels{Vector{Field{T}}}(Tuple(
-        b.spectra[chan].fields for chan in chans
-    ))
-    if all([isempty(b.consts[chan]) for chan in chans])
+    if all([isempty(known_consts[chan]) for chan in chans])
         idx, V_norm = sort(
-            collect(enumerate(unknowns[chans[1]])),
-            by=V->real(total_dimension(V[2]))
+            unknowns[chans[1]],
+            by=iV->real(total_dimension(iV[2]))
         )[1]
-        fix!(knowns, chans[1], V_norm, 1)
-        b.consts = knowns
+        fix!(known_consts, chans[1], V_norm, 1)
+        b.consts = known_consts
         deleteat!(unknowns[chans[1]], idx)
     end
+
+    knowns = Channels{Vector{Tuple{Int, Field{T}}}}(Tuple(
+        [(i, V) for (i, V) in enumerate(b.spectra[chan].fields)
+             if V in keys(known_consts[chan])]
+        for chan in chans
+    ))
 
     nb_positions = length(b.positions)
     nb_lines = nb_positions * (length(chans) - 1)
     nb_unknowns = [length(s) for s in b.spectra]
-    nb_unknowns .-= length.([knowns[chan] for chan in chans])
+    nb_unknowns .-= length.([known_consts[chan] for chan in chans])
 
     # # solve Σ_unknowns (chan1 - chan2) = Σ_knowns (chan2 - chan1)
     # # and Σ_unknowns (chan1 - chan3) = Σ_knowns (chan2 - chan3)
@@ -129,27 +138,52 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     # # [ G^s -G^t  0  ;
     # #   G^s  0   -G^u ]
     LHS = Matrix{T}(undef, nb_lines, sum(nb_unknowns))
-    for i in 1:length(unknowns[chans[1]])
-        LHS[1:nb_positions, i] = b.blocks[chans[1]][i]
-        LHS[nb_positions+1:end, i] = b.blocks[chans[1]][i]
+    blocks = b.blocks[:s]
+    _unknowns = unknowns[:s]
+    for i in 1:length(_unknowns)
+        LHS[1:nb_positions, i] = blocks[_unknowns[i][1]]
+        LHS[nb_positions+1:end, i] = blocks[_unknowns[i][1]]
     end
-    for i in 1:length(unknowns[chans[2]])
-        LHS[1:nb_positions, nb_unknowns[1]+i] = .- b.blocks[chans[2]][i]
+    blocks = b.blocks[:t]
+    _unknowns = unknowns[:t]
+    for i in 1:length(_unknowns)
+        LHS[1:nb_positions, nb_unknowns[1]+i] = .- blocks[_unknowns[i][1]]
         LHS[nb_positions+1:end, nb_unknowns[1]+i] = zer
     end
-    for i in 1:length(unknowns[chans[3]])
+    blocks = b.blocks[:u]
+    _unknowns = unknowns[:u]
+    for i in 1:length(_unknowns)
         LHS[1:nb_positions, nb_unknowns[1]+nb_unknowns[2]+i] = zer
-        LHS[nb_positions+1:end, nb_unknowns[1]+nb_unknowns[2]+i] = .- b.blocks[chans[3]][i]
+        LHS[nb_positions+1:end, nb_unknowns[1]+nb_unknowns[2]+i] = .- blocks[_unknowns[i][1]]
     end
 
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
-    RHS = vcat(
-        [sum(b.blocks[chans[i]][j] for j in 1:length(knowns[chans[i]]); init=zer) .-
-         sum(b.blocks[chans[1]][j] for j in 1:length(knowns[chans[1]]); init=zer)
-         for i in 2:length(chans)]...
-    )
+    RHS = Vector{T}(undef, 2nb_positions)
+    for i in 1:nb_positions
+        res = zero(T)
+        for j in 1:length(knowns[:s])
+            res -= b.blocks[:s][knowns[:s][j][1]][i]
+        end
+        for j in 1:length(knowns[:t])
+            res += b.blocks[:t][knowns[:t][j][1]][i]
+        end
+        RHS[i] = res
+        res = zero(T)
+        for j in 1:length(knowns[:s])
+            res -= b.blocks[:s][knowns[:s][j][1]][i]
+        end
+        for j in 1:length(knowns[:t])
+            res += b.blocks[:t][knowns[:t][j][1]][i]
+        end
+        RHS[i+nb_positions] = res
+    end
+    # RHS = vcat(
+    #     [sum(b.blocks[chans[i]][knowns[chans[i]][j][1]] for j in 1:length(knowns[chans[i]]); init=zer) .-
+    #      sum(b.blocks[chans[1]][knowns[chans[i]][j][1]] for j in 1:length(knowns[chans[1]]); init=zer)
+    #      for i in 2:length(chans)]...
+    # )
 
-    b.matrix = BootstrapMatrix(unknowns, LHS, RHS)
+    b.matrix = BootstrapMatrix{T}(unknowns, LHS, RHS)
 
     # b.matrix.LHS = LHS
     # b.matrix.RHS = RHS;
@@ -178,7 +212,7 @@ function solve!(s::BootstrapSystem; precision_factor=1)
     chans = keys(s.spectra)
     nb_unknowns = vcat([0], [length(mat.unknowns[chan]) for chan in chans])
     for (i, chan) in enumerate(chans)
-        for (j, V) in enumerate(mat.unknowns[chan])
+        for (j, V) in mat.unknowns[chan]
             index = sum(nb_unknowns[k] for k in 1:i-1; init=0) + j
             s.consts[chan][V] = sol1[index]
             s.consts.errors[chan][V] = errors[index]

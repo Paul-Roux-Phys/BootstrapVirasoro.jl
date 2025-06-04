@@ -77,7 +77,7 @@ function Base.show(io::IO, c::StructureConstants{T}) where {T}
         # Print column headers
         label1 = rpad("Fields", max_label_width)
         label2 = rpad("Structure constants", str_cst_col_width)
-        label3 = rpad("Errors", str_cst_col_width)
+        label3 = rpad("Relative errors", str_cst_col_width)
         println(io, "$label1 | $label2  | $label3")
         println(io, repeat("-", max_label_width+2*str_cst_col_width))
 
