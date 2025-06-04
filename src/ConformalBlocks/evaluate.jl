@@ -166,10 +166,11 @@ function evaluate(b::BlockLogarithmic{T}, x::LRPositionCache)::T where {T}
 end
 
 function evaluate(b::BlockInterchiral{T}, x)::T where {T}
-    sum(
-        evaluate((b.blocks)[i], x) .* b.shifts[i]
-        for i in eachindex(b.blocks)
-    )
+    res = zero(T)
+    for i in eachindex(b.blocks)
+        res += evaluate((b.blocks)[i], x) .* b.shifts[i]
+    end
+    return res
 end
 
 evaluate(b::BlockChiral, x::Number) = evaluate(b, PositionCache(x, b))
