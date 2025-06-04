@@ -134,12 +134,12 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
         LHS[nb_positions+1:end, i] = b.blocks[chans[1]][i]
     end
     for i in 1:length(unknowns[chans[2]])
-        LHS[1:nb_positions, nb_unknowns[1]+i] = b.blocks[chans[2]][i]
+        LHS[1:nb_positions, nb_unknowns[1]+i] = .- b.blocks[chans[2]][i]
         LHS[nb_positions+1:end, nb_unknowns[1]+i] = zer
     end
     for i in 1:length(unknowns[chans[3]])
         LHS[1:nb_positions, nb_unknowns[1]+nb_unknowns[2]+i] = zer
-        LHS[nb_positions+1:end, nb_unknowns[1]+nb_unknowns[2]+i] = b.blocks[chans[3]][i]
+        LHS[nb_positions+1:end, nb_unknowns[1]+nb_unknowns[2]+i] = .- b.blocks[chans[3]][i]
     end
 
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
