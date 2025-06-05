@@ -9,22 +9,42 @@ function double_prod_in_Dmn(m, n, B)
     )
 end
 
-function Dmn(m::Int, n::Int, B::T)::T where {T}
-    # treat cases m = 1, n=1 separately
-    m == 1 && n == 1 && return 1
-    m == 1 && return n * prod(s^2 / B * (s^2 / B - m^2 * B) for s in 1:n-1)
-    n == 1 && return m * prod(r^2 * B * (r^2 * B - n^2 / B) for r in 1:m-1)
-    f1 = prod(r^2 * B * (r^2 * B - n^2 / B) for r in 1:m-1)
-    f2 = prod(s^2 / B * (s^2 / B - m^2 * B) for s in 1:n-1)
-    f3 = double_prod_in_Dmn(m, n, B)
-    return m * n * f1 * f2 * f3
+function computeDmns(Nmax, c::CentralCharge{T}) where {T}
+    B = c.B
+    Dmns = zeros(T, Nmax, Nmax)
+
+    Dmns[1, 1] = one(T)
+
+    for n in 2:Nmax
+        f = prod(s -> (s^2 / B) * (s^2 / B - B), 1:n-1)
+        Dmns[1, n] = n * f
+    end
+
+    for m in 2:Nmax
+        f = prod(r -> (r^2 * B) * (r^2 * B - 1 / B), 1:m-1)
+        Dmns[m, 1] = m * f
+    end
+
+    for m in 2:Nmax
+        for n in 2:Nmax
+            m * n > Nmax && break
+
+            f1 = prod(r -> (r^2 * B) * (r^2 * B - n^2 / B), 1:m-1)
+            f2 = prod(s -> (s^2 / B) * (s^2 / B - m^2 * B), 1:n-1)
+            f3 = double_prod_in_Dmn(m, n, B)
+
+            Dmns[m, n] = m * n * f1 * f2 * f3
+        end
+    end
+
+    return Dmns
 end
 
 function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
     !(d[j].isKac && d[j].isKac) && return false
 
-    rs = [d[i].r for i in 1:4]
-    ss = [d[i].s for i in 1:4]
+    rs = Tuple(d[i].r for i in 1:4)
+    ss = Tuple(d[i].s for i in 1:4)
 
 
     #= The term r, s in Rmn is zero if r1 \pm r2 + r or r3 \pm r4 + r is 0, and
@@ -43,8 +63,8 @@ function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
 end
 
 function reg_signs(r, s, i, j, d::FourDimensions)
-    rs = [d[i].r for i in 1:4]
-    ss = [d[i].s for i in 1:4]
+    rs = Tuple(d[i].r for i in 1:4)
+    ss = Tuple(d[i].s for i in 1:4)
 
     for pm in (-1, 1), pm2 in (-1, 1)
         if (rs[i] + pm * rs[j] + pm2 * r == 0) &&
@@ -157,6 +177,7 @@ function computeRmns!(DRs, Pns, factors, Nmax, ds::FourDimensions{T}) where {T}
             factors[r, s] = Rmn_term(r - 1, s - Nmax, ds)
         end
     end
+    Dmns2 = 2 .* computeDmns(Nmax, ds[1].c)
     computeDRmns!(DRs, Pns, factors, Nmax, ds)
     Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
     Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
@@ -164,9 +185,9 @@ function computeRmns!(DRs, Pns, factors, Nmax, ds::FourDimensions{T}) where {T}
         for n in 1:Nmax
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
-                Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+                Rs[m, n] = DRs[m, n] / Dmns2[m, n]
             else
-                Rregs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+                Rregs[m, n] = DRs[m, n] / Dmns2[m, n]
             end
         end
     end
@@ -243,15 +264,16 @@ function computeRmns!(DRs, Pns, factors, Nmax, ds::OneDimension{T}) where {T}
         end
     end
     computeDRmns!(DRs, Pns, factors, Nmax, ds)
+    Dmns2 = 2 .* computeDmns(Nmax, ds[1].c)
     Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
     Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
     for m in 1:Nmax
         for n in 1:Nmax
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
-                Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+                Rs[m, n] = DRs[m, n] / Dmns2[m, n]
             elseif Rmn_zero_order(m, n, ds) > 0
-                Rregs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
+                Rregs[m, n] = DRs[m, n] / Dmns2[m, n]
             end
         end
     end

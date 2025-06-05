@@ -9,13 +9,13 @@ For more information, please refer to [the documentation](https://paul-roux-phys
 To install this package, run
 
 ```julia
-using Pkg; Pkg.add("BootstrapVirasoro")
+using Pkg; Pkg.add("https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl.git")
 ```
 
 in a Julia script, or
 
 ```julia-repl
-julia> ]add BootstrapVirasoro
+julia> ]add https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl.git
 ```
 
 in a Julia REPL.

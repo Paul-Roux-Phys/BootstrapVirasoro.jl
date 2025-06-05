@@ -46,6 +46,64 @@ function BootstrapMatrix{T}() where {T}
     )
 end
 
+mutable struct BootstrapSystem{T, U<:ChannelSpectrum{T}}
+    positions::Vector{T}
+    positions_cache::Channels{Vector{LRPositionCache{T}}}        # positions at which eqs are evaluated
+    spectra::Channels{U}    # channel spectra
+    blocks::Channels{Vector{Vector{T}}} # all blocks evaluated at all positions
+    matrix::BootstrapMatrix{T}  # matrix of equations
+    consts::StructureConstants{T}
+end
+
+# function evaluate_blocks(bs::Vector{Block{T}}, xs) where {T}
+#     nbs = length(bs)
+#     results = Vector{Vector{T}}(undef, nbs)
+
+#     Threads.@threads for i in 1:nbs
+#         b = bs[i]
+#         results[i] = [b(x) for x in xs]
+#     end
+
+#     return results
+# end
+
+function evaluate_blocks(bs::Vector{Block{T}}, xs) where {T}
+    nthreads = Threads.nthreads()
+    chunks = [bs[i:nthreads:end] for i in 1:nthreads]
+
+    results_chunks = Vector{Vector{Vector{T}}}(undef, nthreads)
+    
+    Threads.@threads for tid in 1:nthreads
+        local_chunk = chunks[tid]
+        local_results = Vector{Vector{T}}(undef, length(local_chunk))
+        for (j, b) in enumerate(local_chunk)
+            local_results[j] = [b(x) for x in xs]
+        end
+        results_chunks[tid] = local_results
+    end
+
+    # Flatten result while preserving order
+    return reduce(vcat, results_chunks)
+end
+
+function evaluate_blocks(S::Channels{U}, xs) where {T, U<:ChannelSpectrum{T}}
+    return Channels{Vector{Vector{T}}}(Tuple(
+        evaluate_blocks(S[chan].blocks, xs[chan])
+        for chan in keys(S)
+    ))
+end
+
+function new_random_point!(random_points, N; transfo=missing, square=true)
+    xmin, xmax, sep = square ? (.1, .5, .2) : (-.4, 1.4, .4)
+    while true
+        z = xmin + (xmax - xmin) * rand() + (1 + 4 * rand()) * im / 10
+        if minimum(append!(abs.(z .- random_points), 1)) > sep / sqrt(N)
+            push!(random_points, z)
+            break
+        end
+    end
+end
+
 """
 Generates N points in the square (.1, .5) + (.1, .5)i, while respecting 
 a minimum distance .2/sqrt(N) between points. Or in the rectangle 
@@ -55,44 +113,11 @@ function = a function that we may apply on the points
 square = whether to use a square (otherwise, a rectangle)
 """
 function random_points(N; transfo=missing, square=true)
-    xmin, xmax, sep = square ? (.1, .5, .2) : (-.4, 1.4, .4)
     res = []
-    while length(res) < N
-        z = xmin + (xmax - xmin)*rand() + (1+4*rand())*im/10 
-        if minimum(append!(abs.(z .- res), 1)) > sep/sqrt(N)
-            append!(res, z)
-        end
+    for _ in 1:N
+        new_random_point!(res, N, transfo=transfo, square=square)
     end
     return transfo !== missing ? transfo.(res) : res
-end
-
-mutable struct BootstrapSystem{T, U<:ChannelSpectrum{T}}
-    positions::Vector{T}
-    positions_cache::Channels{Vector{LRPositionCache{T}}}        # positions at which eqs are evaluated
-    spectra::Channels{U}    # channel spectra
-    blocks::Channels{Vector{Vector{T}}} # all blocks evaluated
-    matrix::BootstrapMatrix{T}  # matrix of equations
-    consts::StructureConstants{T}
-end
-
-
-function evaluate_blocks(bs::Vector{Block{T}}, xs) where {T}
-    nbs = length(bs)
-    results = Vector{Vector{T}}(undef, nbs)
-
-    Threads.@threads for i in 1:nbs
-        b = bs[i]
-        results[i] = [b(x) for x in xs]
-    end
-
-    return results
-end
-
-function evaluate_blocks(S::Channels{U}, xs) where {T, U<:ChannelSpectrum{T}}
-    return Channels{Vector{Vector{T}}}(Tuple(
-        evaluate_blocks(S[chan].blocks, xs[chan])
-        for chan in keys(S)
-    ))
 end
 
 function BootstrapSystem(S::Channels{U}; knowns=nothing, extrapoints::Int=6) where {T, U<:ChannelSpectrum{T}}
@@ -120,6 +145,49 @@ function BootstrapSystem(S::Channels{U}; knowns=nothing, extrapoints::Int=6) whe
     return BootstrapSystem{T, U}(
         pos, pos_cache, S, blocks, matrix, knowns
     )
+end
+
+function add!(b::BootstrapSystem, chan, V)
+    new_block = add!(b.spectra[chan], V)
+    if isnothing(new_block)
+        error("trying to add already present block")
+        return
+    end
+    # add a new position
+    new_random_point!(b.positions, length(b.positions))
+    new_pos = b.positions[end]
+    for chan in (:s, :t, :u)
+        new_pos_cache = LRPositionCache(new_pos, b.spectra[chan].corr, chan)
+        push!(b.positions_cache[chan], new_pos_cache)
+    end
+    for chan in (:s, :t, :u)
+        # evaluate previous blocks at the new position
+        for v in b.blocks[chan]
+            push!(v, new_block(new_pos))
+        end
+    end
+    # evaluate the new block at all positions
+    push!(b.blocks[chan], [new_block(x) for x in b.positions_cache[chan]])
+end
+
+function remove!(b::BootstrapSystem, chan, V)
+    idx = remove!(b.spectra[chan], V)
+    if isnothing(idx)
+        error("the block you are trying to remove is not present")
+        return
+    end
+    pop!(b.positions)
+    for chan in (:s, :t, :u)
+        pop!(b.positions_cache[chan])
+    end
+    # remove one position for all blocks
+    for chan in (:s, :t, :u)
+        for v in b.blocks[chan]
+            pop!(v)
+        end
+    end
+    # remove the block
+    deleteat!(b.blocks[chan], idx);
 end
 
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}

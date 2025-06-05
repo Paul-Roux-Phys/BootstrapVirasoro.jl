@@ -46,22 +46,23 @@ function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
     External fields in the argument of the Correlation constructor do not all have the same
     CentralCharge
     """
-    DRs = Matrix{T}(undef, Nmax, Nmax)
-    Pns = Matrix{T}(undef, Nmax, Nmax)
-    factors = Matrix{T}(undef, Nmax, 2Nmax)
-
     channel_syms = (:s, :t, :u)
-
-    vals = Tuple(
-        begin
+    # Launch a task for each channel
+    futures = map(1:3) do i
+        Threads.@spawn begin
             ch = channel_syms[i]
+            DRs = Matrix{T}(undef, Nmax, Nmax)
+            Pns = Matrix{T}(undef, Nmax, Nmax)
+            factors = Matrix{T}(undef, Nmax, 2Nmax)
             dx = permute_dimensions(d, ch)
             r, rreg = computeRmns!(DRs, Pns, factors, Nmax, dx)
             cn = computeCNmns!(Nmax, d[1].c, r)
-            r, rreg, cn
+            (r, rreg, cn)
         end
-        for i in 1:3
-    )
+    end
+
+    # Collect results
+    vals = Tuple(fetch(f) for f in futures)
 
     # Now extract and regroup the outputs
     Rmn = Channels{RmnTable{T}}(Tuple(vals[i][1] for i in 1:3))

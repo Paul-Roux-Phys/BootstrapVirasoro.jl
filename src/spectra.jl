@@ -55,11 +55,14 @@ function _add_one!(s::Spectrum, V)
     if !(V in s.fields) && real(total_dimension(V)) < real(s.Δmax)
         push!(s.fields, V)
     end
+    return V
 end
 
 function _add_one!(s::ChannelSpectrum, V)
     if !(V in s.fields) && real(total_dimension(V)) < real(s.Δmax)
-        push!(s.blocks, Block(s.corr, s.channel, V; interchiral=s.interchiral, Δmax=s.Δmax))
+        b = Block(s.corr, s.channel, V; interchiral=s.interchiral, Δmax=s.Δmax)
+        push!(s.blocks, b)
+        return b
     end
 end
 
@@ -102,23 +105,36 @@ end
 
 function ChannelSpectrum(co::Correlation, s::Spectrum{T}, chan) where {T}
     schan = ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, [])
-    foreach(V -> add!(schan, V), s.fields)
+    for i in eachindex(s.fields)
+        add!(schan, s.fields[i])
+    end
     return schan
 end
 
-function ChannelSpectra(co, s::Spectrum{T}; signature=Dict(:s => 0, :t => 0, :u => 0)) where {T}
+function ChannelSpectra(co, s::Spectrum{T}) where {T}
+    chans = (:s, :t, :u)
     schan = Channels{ChannelSpectrum{T}}(Tuple(
         ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, [])
-        for chan in (:s, :t, :u)
+        for chan in chans
     ))
-    for chan in (:s, :t, :u)
-        V1, V2, V3, V4 = permute_fields(co.fields, chan)
-        for V in s.fields
-            if !isdegenerate(V) && V.r >= signature[chan] && (V.r + V1.r + V2.r) % 1 == 0
-                add!(schan[chan], V)
+
+    # Launch one task per channel
+    tasks = map(chans) do chan
+        Threads.@spawn begin
+            V1, V2, V3, V4 = permute_fields(co.fields, chan)
+            for V in s.fields
+                cond = isdiagonal(V) ? (V1.r + V2.r) % 1 == 0 :
+                                       (V.r + V1.r + V2.r) % 1 == 0
+                if cond
+                    add!(schan[chan], V)
+                end
             end
         end
     end
+
+    # Wait for all threads to finish
+    foreach(fetch, tasks)
+
     return schan
 end
 
@@ -136,6 +152,7 @@ function _remove_one!(s::Spectrum, V)
     if idx !== nothing
         deleteat!(s.fields, idx)
     end
+    return idx
 end
 
 function _remove_one!(s::ChannelSpectrum, V)
@@ -143,6 +160,7 @@ function _remove_one!(s::ChannelSpectrum, V)
     if idx !== nothing
         deleteat!(s.blocks, idx)
     end
+    return idx
 end
 
 _remove!(s::Union{Spectrum, ChannelSpectrum}, V) = _remove_one!(s, V)

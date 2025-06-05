@@ -40,6 +40,9 @@ struct ConformalDimension{T}
 
     c::CentralCharge{T}
     P::T
+    p::T
+    δ::T
+    Δ::T
     isKac::Bool
     r::Union{Missing, Rational}
     s::Union{Missing, Rational}
@@ -71,7 +74,10 @@ function ConformalDimension(
         P = Pto(:P, Pfrom(sym, P, c), c)
         isKac = false
     end
-    ConformalDimension{T}(c, P, isKac, r, s)
+    p = Pto(:p, P, c)
+    δ = Pto(:δ, P, c)
+    Δ = Pto(:Δ, P, c)
+    ConformalDimension{T}(c, P, p, δ, Δ, isKac, r, s)
 end
 
 function ConformalDimension(
@@ -111,10 +117,6 @@ function isdegenerate(d::ConformalDimension)
 end
 
 function Base.getproperty(d::ConformalDimension, s::Symbol)
-    c = getfield(d, :c)
-    P = Pto(:P, Pfrom(:P, getfield(d, :P), c), c)
-    P = realify(P)
-    s in dimension_parameter_list && return Pto(s, P, c)
     s === :indices && return get_indices(d)
     s === :r && return get_indices(d)[1]
     s === :s && return get_indices(d)[2]
