@@ -28,9 +28,11 @@ The supported parameters are `Δ`, `δ`, `P`, `p`, or the Kac indices `r, s`.
 ```jldoctest
 julia> c = CentralCharge(β = 0.3im);
 
-julia> d1 = ConformalDimension(c, δ=0.5)
-ConformalDimension{ComplexF64} with
-Δ = 3.800277777777777 + 0.0im, P = 0.7071067811865476
+julia> d1 = ConformalDimension(c, δ=0.5); d1.Δ ≈ 3.800277777777777 + 0.0im
+true
+
+julia> d1.P ≈ 0.7071067811865476
+true
 
 julia> d2 = ConformalDimension(c, r=3//2, s=2//3)
 ConformalDimension{ComplexF64} with Kac indices r = 3//2, s = 2//3
