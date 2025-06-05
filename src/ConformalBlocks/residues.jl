@@ -21,7 +21,7 @@ function Dmn(m::Int, n::Int, B::T)::T where {T}
 end
 
 function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
-    !(d[j].isKac && d[j].isKac) && return false
+    !(d[i].isKac && d[j].isKac) && return false
 
     rs = [d[i].r for i in 1:4]
     ss = [d[i].s for i in 1:4]
@@ -178,6 +178,20 @@ function computeRmns(Nmax, ds::FourDimensions{T}) where {T}
     return Rs, Rregs
 end
 
+function computeRmn(m, n, d::FourDimensions{T}) where {T}
+    if m == 1
+        res = prod(Rmn_term(0, s, d) for s in 1-n:2:0)
+    else # m > 1
+        res = prod(prod(Rmn_term(r, s, d)
+                        for s in 1-n:2:n-1) for r in 1-m:2:-1)
+        if m % 2 == 1 # m odd -> treat r=0 term separately
+            res *= prod(Rmn_term(0, s, d) for s in 1-n:2:0)
+        end
+    end
+
+    return res / (2Dmn(m, n, d[1].c.B))
+end
+
 #===========================================================================================
 One-point case
 ===========================================================================================#
@@ -260,12 +274,18 @@ function computeRmns(Nmax, ds::OneDimension{T}) where {T}
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
                 Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
-            elseif Rmn_zero_order(m, n, ds) > 0
+            else
                 Rregs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
             end
         end
     end
     return Rs, Rregs
+end
+
+function computeRmn(m::Int, n::Int, d::OneDimension)
+    B = d[1].c.B
+    res = prod(Rmn_term(r, s, d) for r in 1:2:2*m-1 for s in 1-2n:2:2n-1)
+    return res / (2 * Dmn(m, n, B))
 end
 
 #===========================================================================================
