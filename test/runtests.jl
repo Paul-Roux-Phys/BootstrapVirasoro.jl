@@ -14,18 +14,16 @@ using BootstrapVirasoro,
     include("cft_data.jl")
 end
 
-@testset "Conformal blocks" begin
-    @testset "Residues" begin
-        include("conformal_blocks/residues.jl")
-    end
+@testset "Block residues" begin
+    include("residues.jl")
+end
 
-    @testset "Four point blocks" begin
-        include("conformal_blocks/four_point.jl")
-    end
+@testset "Four point blocks" begin
+    include("four_point.jl")
+end
 
-    @testset "One point blocks" begin
-        include("conformal_blocks/one_point.jl")
-    end
+@testset "One point blocks" begin
+    include("one_point.jl")
 end
 
 # @testset "Bootstrap equations" begin

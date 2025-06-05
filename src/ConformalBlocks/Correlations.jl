@@ -51,11 +51,8 @@ function CorrelationChiral(d::ExtDimensions{T}, Nmax::Int) where {T}
     futures = map(1:3) do i
         Threads.@spawn begin
             ch = channel_syms[i]
-            DRs = Matrix{T}(undef, Nmax, Nmax)
-            Pns = Matrix{T}(undef, Nmax, Nmax)
-            factors = Matrix{T}(undef, Nmax, 2Nmax)
             dx = permute_dimensions(d, ch)
-            r, rreg = computeRmns!(DRs, Pns, factors, Nmax, dx)
+            r, rreg = computeRmns(Nmax, dx)
             cn = computeCNmns!(Nmax, d[1].c, r)
             (r, rreg, cn)
         end
