@@ -84,7 +84,7 @@ end
 function modular_param(chan, τ)
     chan === :s && return τ
     chan === :t && return -1/τ
-    chan === :u && return 1/(1+τ)
+    chan === :u && return τ+1
 end
 channel_position(x, V::FourDimensions, chan) = crossratio(chan, x)
 channel_position(x, V::OneDimension, chan) = modular_param(chan, x)

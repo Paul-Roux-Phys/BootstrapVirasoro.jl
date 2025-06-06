@@ -387,4 +387,25 @@ function Base.show(io::IO, c::StructureConstants{T}) where {T}
     end
 end
 
+function write_csv(io::IO, c::StructureConstants{T}) where {T}
+    chans = keys(c.constants)
+    cc = collect(keys(c[:s]))[1].c
+    println("centralcharge=$(cc)")
+    println(io, "chan,r,s,isdiagonal,isdegenerate,real(structureconstant)," *
+                "imag(structureconstant)," *
+                "real(err),imag(err)")
+    for chan in sort(collect(chans), by=string)
+        for V in keys(c[chan])
+            if !haskey(c.errors[chan], V)
+                continue
+            end
+            sc = c[chan][V]
+            err = c.errors[chan][V]
+            println(io, "$(chan),$(V.r),$(V.s),$(isdiagonal(V)),$(isdegenerate(V))," *
+                        "$(real(sc)),$(imag(sc))," *
+                        "$(real(err)),$(imag(err))")
+        end
+    end
+end
+
 Base.length(c::StructureConstants) = sum(length(c.constants[chan]) for chan in keys(c.constants))

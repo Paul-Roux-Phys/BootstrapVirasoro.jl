@@ -20,7 +20,7 @@ using GenericLinearAlgebra: qr
 # CFT Data: Central charges, conformal dimensions, fields.
 export LeftRight,
     CentralCharge, CC,
-    ConformalDimension, CD, P_rs,
+    ConformalDimension, CD, P_rs, δrs,
     Field, spin, isdiagonal, isdegenerate,
     swap_lr, shift,
     total_dimension
@@ -42,7 +42,8 @@ export Spectrum,
 # Bootstrap equations and solver.
 export BootstrapSystem,
     compute_linear_system!,
-    solve!
+    solve!,
+    write_csv
 
 # The exported methods and types are found in the following included files.
 # These files also document the exported methods
