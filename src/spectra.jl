@@ -123,9 +123,9 @@ function ChannelSpectra(co, s::Spectrum{T}; signature=(s=0, t=0, u=0)) where {T}
         Threads.@spawn begin
             V1, V2, V3, V4 = permute_fields(co.fields, chan)
             for V in s.fields
-                cond = isdiagonal(V) ? (V1.r + V2.r) % 1 == 0 :
-                                       (V.r + V1.r + V2.r) % 1 == 0
-                if cond && V.r >= signature[chan]
+                cond = isdiagonal(V) ? (V1.r + V2.r) % 1 == 0 && signature[chan] == 0 :
+                                       (V.r + V1.r + V2.r) % 1 == 0 && V.r >= signature[chan]
+                if cond
                     add!(schan[chan], V)
                 end
             end
