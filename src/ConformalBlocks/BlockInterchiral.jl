@@ -5,6 +5,11 @@ struct BlockInterchiral{T} <: Block{T}
 
 end
 
+function my_mod2(s)
+    s = s % 2
+    return s > 1 ? s - 2 : s
+end
+
 function BlockInterchiral(
     co::Correlation{T}, chan, V, Δmax, s_shift=2
 ) where {T}
@@ -17,6 +22,9 @@ function BlockInterchiral(
         V0 = Field(V.c, r=V.r, s=mod(V.s, s_shift))
     end
     extfields = permute_fields(co.fields, chan)
+    if !isdiagonal(V) && V0.s != 1 # bring back s in (-1, 1)
+        V0 = Field(V.c, r=V.r, s=my_mod2(V.s))
+    end
     Vshift = V0
     D = 1
     if s_shift == 1
@@ -134,7 +142,7 @@ function Base.show(io::IO, ::MIME"text/plain", b::BlockInterchiral)
     shift_range = Int(minimum(ns)):b.shift:Int(maximum(ns))
     if isempty(b.fields)
         print(io, "Empty interchiral block")
-    elseif isdiagonal(b.fields[1]) == 0
+    elseif isdiagonal(b.fields[1])
         println(io, "Interchiral block with channel $(b.channel) and fields")
         print(io, "V_{P = $(V.P[:left]) + n/β}, n ∈ $(shift_range)}")
     else
@@ -150,7 +158,7 @@ function Base.show(io::IO, b::BlockInterchiral)
     shift_range = Int(minimum(ns)):b.shift:Int(maximum(ns))
     if isempty(b.fields)
         print(io, "Empty interchiral block")
-    elseif b.fields[1].r == 0
+    elseif isdiagonal(b.fields[1])
         print(io, "G^(s)({ ")
         print(io, "V_{P = $(V.P[:left]) + n/β}, n ∈ $(shift_range)}")
     else

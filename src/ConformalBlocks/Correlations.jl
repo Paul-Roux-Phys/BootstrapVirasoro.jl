@@ -198,6 +198,14 @@ function Base.show(io::IO, R::RmnTable{T}) where {T}
     println(io, ")");
 end
 
+function Base.show(io::IO, C::CNmnTable{T}) where {T}
+    println(io, "CNmnTable{$T}(")
+    for k in sort([k for k in C.keys])
+        println(io, "\t$k => $(C[k...]),")
+    end
+    println(io, ")");
+end
+
 function Base.show(io::IO, ::MIME"text/plain", co::CorrelationChiral{T}) where {T}
     print(io, "CorrelationChiral{$T} with external dimensions\n$(co.dims)")
 end

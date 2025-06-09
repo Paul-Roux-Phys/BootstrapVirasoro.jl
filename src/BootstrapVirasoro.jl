@@ -41,6 +41,7 @@ export Spectrum,
 
 # Bootstrap equations and solver.
 export BootstrapSystem,
+    evaluate_blocks!,
     compute_linear_system!,
     solve!,
     write_csv

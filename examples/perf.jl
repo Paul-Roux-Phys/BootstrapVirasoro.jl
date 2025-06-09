@@ -7,7 +7,7 @@ if n_threads == 1
 end
 
 setprecision(BigFloat, 35, base=10)
-c = CC(β=1/(big"0.8" + big"0.1"*im))
+c = CC(β=big"0.8" + big"0.1"*im)
 Δmax = 40.
 
 function LoopFields(model)
@@ -27,13 +27,13 @@ function LoopFields(model)
     )
 end
 
-
 LoopSpectrum(model, Δmax) = Spectrum(LoopFields(model), Δmax, interchiral=true);
 
 indices = ((1//2, 0), (1//2, 0), (1, 0), (1, 0))
 fields = [Field(c, r=r, s=s) for (r, s) in indices]
 co = Correlation(fields..., Δmax=Δmax)
 println("time to compute residues:")
+Δmax = 6.
 @btime Correlation(fields..., Δmax=Δmax)
 SPSUn = LoopSpectrum(:On, Δmax)
 println("time to compute the spectrum:")

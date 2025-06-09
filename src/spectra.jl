@@ -111,7 +111,7 @@ function ChannelSpectrum(co::Correlation, s::Spectrum{T}, chan) where {T}
     return schan
 end
 
-function ChannelSpectra(co, s::Spectrum{T}) where {T}
+function ChannelSpectra(co, s::Spectrum{T}; signature=nothing) where {T}
     chans = (:s, :t, :u)
     schan = Channels{ChannelSpectrum{T}}(Tuple(
         ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, [])
@@ -125,7 +125,7 @@ function ChannelSpectra(co, s::Spectrum{T}) where {T}
             for V in s.fields
                 cond = isdiagonal(V) ? (V1.r + V2.r) % 1 == 0 :
                                        (V.r + V1.r + V2.r) % 1 == 0
-                if cond
+                if cond && V.r >= signature[chan]
                     add!(schan[chan], V)
                 end
             end

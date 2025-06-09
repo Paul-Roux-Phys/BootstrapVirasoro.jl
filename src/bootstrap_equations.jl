@@ -93,6 +93,11 @@ function evaluate_blocks(S::Channels{U}, xs) where {T, U<:ChannelSpectrum{T}}
     ))
 end
 
+function evaluate_blocks!(sys::BootstrapSystem)
+    sys.blocks = evaluate_blocks(sys.spectra, sys.positions_cache)
+    return sys.blocks
+end
+
 function new_random_point!(random_points, N; transfo=missing, square=true)
     xmin, xmax, sep = square ? (.1, .5, .2) : (-.4, 1.4, .4)
     while true
