@@ -14,7 +14,7 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 [compat]
 BarnesDoubleGamma = "1"
 EllipticFunctions = "2"
-GenericLinearAlgebra = "0.2"
+GenericLinearAlgebra = "0.3"
 LinearAlgebra = "1"
 Printf = "1"
 SpecialFunctions = "2"

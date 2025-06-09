@@ -1,4 +1,3 @@
-Pkg.activate(".") # activate the parent environment
 using BootstrapVirasoro, BenchmarkTools
 n_threads = Threads.nthreads()
 if n_threads == 1
@@ -33,14 +32,13 @@ indices = ((1//2, 0), (1//2, 0), (1, 0), (1, 0))
 fields = [Field(c, r=r, s=s) for (r, s) in indices]
 co = Correlation(fields..., Δmax=Δmax)
 println("time to compute residues:")
-Δmax = 6.
 @btime Correlation(fields..., Δmax=Δmax)
-SPSUn = LoopSpectrum(:On, Δmax)
+SOn = LoopSpectrum(:On, Δmax)
 println("time to compute the spectrum:")
 @btime LoopSpectrum(:On, Δmax)
-Schan = ChannelSpectra(co, SPSUn)
+Schan = ChannelSpectra(co, SOn)
 println("time to precompute the block coefficients:")
-@btime ChannelSpectra(co, SPSUn)
+@btime ChannelSpectra(co, SOn)
 PrecomputedSystem = BootstrapSystem(Schan)
 println("time to compute all blocks evaluated at all positions:")
 @btime BootstrapSystem(Schan)
@@ -61,11 +59,12 @@ function BootstrapSystem(b; signature=(s=0, t=0, u=0), diags=(s=nothing, t=nothi
 end
 
 println("time to form the system for a given signature:")
-sys = BootstrapSystem(PrecomputedSystem, signature=(s=1, t=1 // 2, u=3 // 2))
-@btime BootstrapSystem(PrecomputedSystem, signature=(s=1, t=1 // 2, u=3 // 2))
+sys = BootstrapSystem(PrecomputedSystem, signature=(s=1, t=1//2, u=3//2))
+@btime BootstrapSystem(PrecomputedSystem, signature=(s=1, t=1//2, u=3//2))
 println("time to form the matrix of the system")
 compute_linear_system!(sys)
 @btime compute_linear_system!(sys)
 println("time to solve the system")
 solve!(sys)
 @btime solve!(sys)
+println(sys.consts)

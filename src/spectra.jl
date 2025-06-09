@@ -111,7 +111,7 @@ function ChannelSpectrum(co::Correlation, s::Spectrum{T}, chan) where {T}
     return schan
 end
 
-function ChannelSpectra(co, s::Spectrum{T}; signature=nothing) where {T}
+function ChannelSpectra(co, s::Spectrum{T}; signature=(s=0, t=0, u=0)) where {T}
     chans = (:s, :t, :u)
     schan = Channels{ChannelSpectrum{T}}(Tuple(
         ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, [])
