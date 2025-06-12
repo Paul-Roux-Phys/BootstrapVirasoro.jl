@@ -161,7 +161,7 @@ function shift(d::ConformalDimension, shift, index=:s)
         if d.isKac
             return ConformalDimension(c, r=d.r, s=d.s + shift)
         else
-            return ConformalDimension(c, P=d.P + shift / 2 / c.β)
+            return ConformalDimension(c, P=d.P - shift / 2 / c.β)
         end
     end
 end

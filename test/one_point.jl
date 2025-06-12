@@ -306,9 +306,12 @@ end
     s = shift_D(co.fields, V)
     s_s = shift_D(co_s.fields, V_s)
 
+    s_s / s
+    16^(8 / c.β * (V.P[:left] - 1/2/c.β))
+
     @test isapprox(
-        s_s / s / 16^(8 / c.β * (V.P[:left] + 1/2/c.β)), 1
-    ) # shift(D^S2) = shift(D) * 16^(-8β^-1 (P + β^-1/2))
+        s_s / s / 16^(8 / c.β * (V.P[:left] - 1 / 2 / c.β)), 1
+    ) # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^-1/2))
 
     b = Block(co, :s, V, interchiral=true, Δmax=10)
     prefactor = BootstrapVirasoro.PositionCache(2τ, b.blocks[1][:left]).prefactor *
@@ -327,8 +330,8 @@ end
     end
 
     @test isapprox(
-        (evaluate(b.blocks[1], 2τ) + evaluate(b.blocks[2], 2τ) / s) / prefactor,
-        (evaluate(b_s.blocks[1], x) + evaluate(b_s.blocks[2], x) / s_s) / prefactor_s * 16^(-4P^2),
+        (evaluate(b.blocks[1], 2τ) + evaluate(b.blocks[2], 2τ) * s) / prefactor,
+        (evaluate(b_s.blocks[1], x) + evaluate(b_s.blocks[2], x) * s_s) / prefactor_s * 16^(-4P^2),
         rtol = 1e-20
     )
 

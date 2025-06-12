@@ -125,7 +125,7 @@ function random_points(N; transfo=missing, square=true)
     return transfo !== missing ? transfo.(res) : res
 end
 
-function BootstrapSystem(S::Channels{U}; knowns=nothing, extrapoints::Int=6) where {T, U<:ChannelSpectrum{T}}
+function BootstrapSystem(S::Channels{U}; knowns=nothing, extrapoints::Int=6, pos=nothing) where {T, U<:ChannelSpectrum{T}}
     # if consts is empty, normalise the field with smallest indices
     chans = keys(S)
     co = S[1].corr
@@ -135,8 +135,12 @@ function BootstrapSystem(S::Channels{U}; knowns=nothing, extrapoints::Int=6) whe
     nb_unknowns = [length(s) for s in S]
     nb_unknowns .-= length.([knowns[chan] for chan in chans])
     nb_lines = 2 * ((sum(nb_unknowns)+extrapoints) ÷ 2)
-    nb_positions = nb_lines ÷ (length(S) - 1)
-    pos = Vector{T}(random_points(nb_positions))
+    if pos !== nothing
+        nb_positions = length(pos)
+    else
+        nb_positions = nb_lines ÷ (length(S) - 1)
+        pos = Vector{T}(random_points(nb_positions))
+    end
     pos_chan = Channels{Vector{T}}(Tuple(
         [channel_position(x, co, chan) for x in pos]
         for chan in keys(S)

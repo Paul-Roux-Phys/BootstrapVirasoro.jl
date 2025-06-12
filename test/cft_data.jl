@@ -27,5 +27,5 @@ end
     # test shift()
     @test shift(V1, 2, :r).r == 4
     V1 = Field(c1, P=0.5, diagonal=true)
-    @test isapprox(shift(V1, 1).dim.P - V1.dim.P, 1/c1.β/2)
+    @test isapprox(shift(V1, 1).dim.P - V1.dim.P, -1/c1.β/2)
 end

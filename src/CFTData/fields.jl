@@ -125,11 +125,11 @@ function isdegenerate(V::Field)
 end
 
 """Spin(V::Field) = Δleft - Δright."""
-function spin(V::Field)::Rational
+function spin(V::Field)::Int
     if isdiagonal(V)
         return 0
     elseif V.isKac
-        return V.r*V.s
+        return Int(V.r*V.s)
     else # this should never happen
         @warn "You are computing the spin of a field not defined from Kac indices"
         return V.Δ[1] - V.Δ[2]

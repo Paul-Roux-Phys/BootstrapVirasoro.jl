@@ -238,4 +238,35 @@ end
         b.shifts[3], big"5.464439142274867e-17" + big"1.7406391176219884e-17" * im,
         rtol=1e-15
     )
+
+    Nmax = 30
+    setprecision(BigFloat, 40, base=10) do
+        c = CC(β=-big"0.8" - big"0.1" * im)
+        field1 = Field(c, r=1 // 2, s=0)
+        field2 = Field(c, r=1, s=0)
+        fields = [field2, field2, field1, field1]
+        correl = Correlation(fields..., Nmax)
+        x = big"0.4" + big"0.2" * im
+
+        # interchiral, logarithmic
+        J = Field(c, r=1, s=1)
+        b = Block(correl, :s, J, Δmax=Nmax, interchiral=true)
+        @test b(x) ≈ big"1.320255511354332911164464364785819105156" +
+            big"0.4186925417664498703779197115719248226952"*im
+
+        # interchiral, non-diagonal
+        V3 = Field(c, r=3, s=1//3)
+        b = Block(correl, :s, V3, Δmax=Nmax, interchiral=true)
+        @test b(x) ≈ big"0.2052943176316875457496459173129386291016" -
+            big"0.2003078699572151816572767384428219647201"*im
+
+        # interchiral, degenerate
+        id = Field(c, r=1, s=1, diagonal=true)
+        b = Block(correl, :s, id, Δmax=Nmax, interchiral=true)
+        @test b(x) ≈ big"1.439312717815166500340922134926376204051" +
+            big"0.4561207475025284508099330175652862628828"*im
+
+        # interchiral, generic diagonal
+        # not implemented in the python code.
+    end
 end

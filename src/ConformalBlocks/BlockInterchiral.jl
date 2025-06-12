@@ -36,16 +36,30 @@ function BlockInterchiral(
         D /= shift_D(extfields, Vshift)
         Vshift = shift(Vshift, s_shift)
     end
-    Vshift = shift(V0, -s_shift)
-    D = shift_D(extfields, Vshift)
-    while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax)
-        push!(fields, Vshift)
-        push!(shifts, D)
-        Vshift = shift(Vshift, -s_shift)
-        D *= shift_D(extfields, Vshift)
+    if !isdegenerate(V)
+        Vshift = shift(V0, -s_shift)
+        D = shift_D(extfields, Vshift)
+        while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax)
+            push!(fields, Vshift)
+            push!(shifts, D)
+            Vshift = shift(Vshift, -s_shift)
+            D *= shift_D(extfields, Vshift)
+        end
+    end
+    if isdiagonal(V)
+        shifts = 1 ./ shifts
     end
     blocks = [Block(co, chan, V, Δmax=Δmax) for V in fields]
     BlockInterchiral{T}(blocks, shifts)
+end
+
+function get_indices(V)
+    β = V.c.β
+    if isdiagonal(V)
+        return 0, 2*β*V.dim.P
+    else
+        return V.indices
+    end
 end
 
 """"
@@ -56,18 +70,21 @@ See arXiv:2411.17262 (4.13a).
 """
 function shift_C123(V1, V2, V3)
     β = V1.c.β
-    r1, s1 = V1.indices
-    r2, s2 = V2.indices
-    r3, s3 = V3.indices
-    s3 += 1
+    r1, s1 = get_indices(V1)
+    r2, s2 = get_indices(V2)
+    r3, s3 = get_indices(shift(V3, 1))
+
 
     res = (-1)^(Int(2r2 + max(2r1, 2r2, 2r3, r1 + r2 + r3)))
     res *= (β+0im)^(-4inv(β)^2 * s3)
     res *= prod(
-        gamma(1 // 2 + 1 // 2 * abs(pm1 * r1 + pm2 * r2 - r3) +
-              inv(2 * β^2) * (pm1 * s1 + pm2 * s2 - s3)) /
-        gamma(1 // 2 + 1 // 2 * abs(pm1 * r1 + pm2 * r2 + r3) +
-              inv(2 * β^2) * (pm1 * s1 + pm2 * s2 + s3))
+        gamma(
+            1 // 2 + 1 // 2 * abs(pm1 * r1 + pm2 * r2 - r3) +
+                inv(2 * β^2) * (pm1 * s1 + pm2 * s2 - s3)
+        ) / gamma(
+            1 // 2 + 1 // 2 * abs(pm1 * r1 + pm2 * r2 + r3) +
+                inv(2 * β^2) * (pm1 * s1 + pm2 * s2 + s3)
+        )
         for pm1 in (-1, 1) for pm2 in (-1, 1)
     )
 end
@@ -79,11 +96,10 @@ Ratio ``C_{122}/C_{12^++2^++}``.
 """
 function shift_C122(V1, V2)
     β = V1.c.β
-    r1, s1 = V1.indices
-    r2, s2 = V2.indices
-    s2 += 1
+    r1, s1 = get_indices(V1)
+    r2, s2 = get_indices(shift(V2, 1))
 
-    res = (-1)^(2r2)
+    res = (-1)^(Int(2r2))
     res *= β^(-8inv(β)^2 * s2)
     res *= prod(
         gamma(1 // 2 + 1 // 2 * abs(r1 + 2pm2 * r2) -
@@ -102,8 +118,7 @@ See arXiv:2411.17262 (4.13b).
 """
 function shift_B(V)
     β = V.c.β
-    r, s = V.indices
-    s += 1
+    r, s = get_indices(shift(V, 1))
     res = (-1)^(2r)
     res *= β^(-8inv(β)^2 * s)
     res *= prod(
