@@ -2,20 +2,16 @@
 Four-point case
 ===========================================================================================#
 function double_prod_in_Dmn(m, n, B)
-    prod(
-        (r * r * B - s * s / B)^2
-        for s in 1:n-1
-        for r in 1:m-1
-    )
+    prod((r * r * B - s * s / B)^2 for s = 1:(n-1) for r = 1:(m-1))
 end
 
 function Dmn(m::Int, n::Int, B::T)::T where {T}
     # treat cases m = 1, n=1 separately
     m == 1 && n == 1 && return 1
-    m == 1 && return n * prod(s^2 / B * (s^2 / B - m^2 * B) for s in 1:n-1)
-    n == 1 && return m * prod(r^2 * B * (r^2 * B - n^2 / B) for r in 1:m-1)
-    f1 = prod(r^2 * B * (r^2 * B - n^2 / B) for r in 1:m-1)
-    f2 = prod(s^2 / B * (s^2 / B - m^2 * B) for s in 1:n-1)
+    m == 1 && return n * prod(s^2 / B * (s^2 / B - m^2 * B) for s = 1:(n-1))
+    n == 1 && return m * prod(r^2 * B * (r^2 * B - n^2 / B) for r = 1:(m-1))
+    f1 = prod(r^2 * B * (r^2 * B - n^2 / B) for r = 1:(m-1))
+    f2 = prod(s^2 / B * (s^2 / B - m^2 * B) for s = 1:(n-1))
     f3 = double_prod_in_Dmn(m, n, B)
     return m * n * f1 * f2 * f3
 end
@@ -23,17 +19,20 @@ end
 function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
     !(d[i].isKac && d[j].isKac) && return false
 
-    rs = [d[i].r for i in 1:4]
-    ss = [d[i].s for i in 1:4]
+    rs = [d[i].r for i = 1:4]
+    ss = [d[i].s for i = 1:4]
 
 
     #= The term r, s in Rmn is zero if r1 \pm r2 + r or r3 \pm r4 + r is 0, and
     s1 \pm s2 + s or s3 \pm s4 + s is 0.
     =#
     for pm in (-1, 1), pm2 in (-1, 1)
-        if (d[i].isKac && d[j].isKac
-            && (rs[i] + pm * rs[j] + pm2 * r == 0)
-            && (ss[i] + pm * ss[j] + pm2 * s == 0))
+        if (
+            d[i].isKac &&
+            d[j].isKac &&
+            (rs[i] + pm * rs[j] + pm2 * r == 0) &&
+            (ss[i] + pm * ss[j] + pm2 * s == 0)
+        )
 
             return true
         end
@@ -43,12 +42,11 @@ function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
 end
 
 function reg_signs(r, s, i, j, d::FourDimensions)
-    rs = [d[i].r for i in 1:4]
-    ss = [d[i].s for i in 1:4]
+    rs = [d[i].r for i = 1:4]
+    ss = [d[i].s for i = 1:4]
 
     for pm in (-1, 1), pm2 in (-1, 1)
-        if (rs[i] + pm * rs[j] + pm2 * r == 0) &&
-           (ss[i] + pm * ss[j] + pm2 * s == 0)
+        if (rs[i] + pm * rs[j] + pm2 * r == 0) && (ss[i] + pm * ss[j] + pm2 * s == 0)
             return pm, pm2
         end
     end
@@ -61,8 +59,8 @@ function Rmn_zero_order(m, n, d::FourDimensions)
         return 0
     end
 
-    r = Tuple(d[i].r for i in 1:4)
-    s = Tuple(d[i].s for i in 1:4)
+    r = Tuple(d[i].r for i = 1:4)
+    s = Tuple(d[i].s for i = 1:4)
 
     #= Rmn is zero if r1 \pm r2 or r3 \pm r4 is an integer in 1-m:2:m-1, and
     s1 \pm s2 or s3 \pm s4 is an integer in 1-n:2:n-1.
@@ -70,9 +68,12 @@ function Rmn_zero_order(m, n, d::FourDimensions)
     and (|s1 \pm s2| <= n-1 and s1-s2 - (n-1) % 2 == 0)
     =#
     for pm in (-1, 1), (i, j) in ((1, 2), (3, 4))
-        if (d[i].isKac && d[j].isKac
-            && (abs(r[i] + pm * r[j]) <= m - 1 && (r[i] + pm * r[j] - (m - 1)) % 2 == 0)
-            && (abs(s[i] + pm * s[j]) <= n - 1 && (s[i] + pm * s[j] - (n - 1)) % 2 == 0))
+        if (
+            d[i].isKac &&
+            d[j].isKac &&
+            (abs(r[i] + pm * r[j]) <= m - 1 && (r[i] + pm * r[j] - (m - 1)) % 2 == 0) &&
+            (abs(s[i] + pm * s[j]) <= n - 1 && (s[i] + pm * s[j] - (n - 1)) % 2 == 0)
+        )
 
             order += 1
         end
@@ -84,8 +85,7 @@ end
 function Rmn_term_nonzero(r, s, i, j, d::FourDimensions)
     B = d[1].c.B
     δRS = δrs(r, s, B)
-    (r != 0 || s != 0) && return (d[j].δ - d[i].δ)^2 - 2 *
-                                                   δRS * (d[i].δ + d[j].δ) + δRS^2
+    (r != 0 || s != 0) && return (d[j].δ - d[i].δ)^2 - 2 * δRS * (d[i].δ + d[j].δ) + δRS^2
     return (d[j].δ - d[i].δ) * (-1)^(j / 2)
 end
 
@@ -93,7 +93,7 @@ function Rmn_term_reg(r, s, i, j, d::FourDimensions)
     (r != 0 || s != 0) && begin
         signs = reg_signs(r, s, i, j, d)
         r0, s0 = -signs[2] .* d[i].indices .- signs[2] * signs[1] .* d[j].indices
-        P = ConformalDimension(d[1].c, r=r0, s=s0).P
+        P = ConformalDimension(d[1].c, r = r0, s = s0).P
         return 8 * signs[1] * signs[2] * d[i].P * d[j].P * P
     end
     return 2d[j].P
@@ -105,9 +105,7 @@ function Rmn_term(r, s, i, j, d::FourDimensions)
 end
 
 function Rmn_term(r, s, d::FourDimensions{T})::T where {T}
-    prod(
-        Rmn_term(r, s, i, j, d) for (i, j) in ((1, 2), (3, 4))
-    )
+    prod(Rmn_term(r, s, i, j, d) for (i, j) in ((1, 2), (3, 4)))
 end
 
 #=
@@ -117,14 +115,14 @@ function computePns(factors::Matrix{T}, Nmax, ds::FourDimensions) where {T}
     # Pns[n, r+1] = P_n(r), r>=0, n>0
     # factors[(r, s)] = Rmn_term(r, s)
     Pns = Matrix{T}(undef, Nmax, Nmax)
-    @inbounds for r in 1:Nmax
+    @inbounds for r = 1:Nmax
         Pns[1, r] = factors[r, 0+Nmax]
         if r-1 == 0
             Pns[2, r] = factors[r, 1+Nmax]
         else
             Pns[2, r] = factors[r, 1+Nmax] * factors[r, -1+Nmax]
         end
-        @inbounds for n in 3:Nmax
+        @inbounds for n = 3:Nmax
             (r - 1) * (n - 1) > Nmax && break
             Pns[n, r] = Pns[n-2, r] * factors[r, n-1+Nmax]
             if r - 1 != 0
@@ -138,10 +136,10 @@ end
 function computeDRmns(factors::Matrix{T}, Nmax, ds::FourDimensions) where {T}
     DRs = Matrix{T}(undef, Nmax, Nmax)
     Pns = computePns(factors, Nmax, ds)
-    @inbounds for n in 1:Nmax
+    @inbounds for n = 1:Nmax
         DRs[1, n] = Pns[n, 1]
         DRs[2, n] = Pns[n, 2]
-        @inbounds for m in 3:Nmax
+        @inbounds for m = 3:Nmax
             m * n > Nmax && break
             DRs[m, n] = DRs[m-2, n] * Pns[n, m]
         end
@@ -156,17 +154,17 @@ Compute the ``Δ``-residues ``R_{m, n}`` for all `m`, `n` such that m*n ≤ Nmax
 """
 function computeRmns(Nmax, ds::FourDimensions{T}) where {T}
     factors = Matrix{T}(undef, Nmax, 2Nmax)
-    for r in 1:Nmax
-        for s in 1:2Nmax-1
+    for r = 1:Nmax
+        for s = 1:(2Nmax-1)
             (r - 1) * (s - Nmax) > Nmax && break
             factors[r, s] = Rmn_term(r - 1, s - Nmax, ds)
         end
     end
     DRs = computeDRmns(factors, Nmax, ds)
-    Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
-    Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
-    for m in 1:Nmax
-        for n in 1:Nmax
+    Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
+    Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
+    for m = 1:Nmax
+        for n = 1:Nmax
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
                 Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
@@ -193,7 +191,11 @@ end
 
 function Rmn_zero_order(m, n, D::OneDimension)
     d = D[1]
-    if d.isKac && d.r % 2 == 1 && d.s % 2 == 1 && abs(d.r) <= 2 * m - 1 && abs(d.s) <= 2 * n - 1
+    if d.isKac &&
+       d.r % 2 == 1 &&
+       d.s % 2 == 1 &&
+       abs(d.r) <= 2 * m - 1 &&
+       abs(d.s) <= 2 * n - 1
         return 1
     end
     return 0
@@ -218,11 +220,11 @@ write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
 function computePns(factors::Matrix{T}, Nmax, d::OneDimension) where {T}
     # Pns[n, r+1] = P_n(r), r>=0, n>0
     Pns = Matrix{T}(undef, Nmax, Nmax)
-    for a in 1:Nmax
+    for a = 1:Nmax
         r = 2a-1
         Pns[1, a] = factors[a, Nmax] * factors[a, Nmax+1]
         n = 2
-        for n in 2:Nmax
+        for n = 2:Nmax
             r * abs(2n-1) >= 8Nmax && continue
             Pns[n, a] = Pns[n-1, a] * factors[a, Nmax-n+1] * factors[a, Nmax+n]
         end
@@ -233,9 +235,9 @@ end
 function computeDRmns(factors::Matrix{T}, Nmax, d::OneDimension) where {T}
     Pns = computePns(factors, Nmax, d)
     DRs = Matrix{T}(undef, Nmax, Nmax)
-    @inbounds for n in 1:Nmax
+    @inbounds for n = 1:Nmax
         DRs[1, n] = Pns[n, 1]
-        @inbounds for m in 2:Nmax
+        @inbounds for m = 2:Nmax
             m * n > Nmax && break
             DRs[m, n] = DRs[m-1, n] * Pns[n, m]
         end
@@ -245,18 +247,18 @@ end
 
 function computeRmns(Nmax, ds::OneDimension{T}) where {T}
     factors = Matrix{T}(undef, Nmax, 2Nmax)
-    for a in 1:Nmax
-        for b in 1:2Nmax
+    for a = 1:Nmax
+        for b = 1:2Nmax
             r, s = 2a-1, 2b-2Nmax-1
             r * s >= 8Nmax && continue
             factors[a, b] = Rmn_term(r, s, ds)
         end
     end
     DRs = computeDRmns(factors, Nmax, ds)
-    Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
-    Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int, Int}}())
-    for m in 1:Nmax
-        for n in 1:Nmax
+    Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
+    Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
+    for m = 1:Nmax
+        for n = 1:Nmax
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
                 Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
@@ -273,12 +275,12 @@ Coefficients CNmn
 ===========================================================================================#
 function computeCNmns!(Nmax, c::CC{T}, Rs) where {T}
     B = c.B
-    Cs = CNmnTable{T}(Array{T}(undef, (Nmax, Nmax, Nmax)), Set{Tuple{Int, Int, Int}}())
-    δ_cache = [δrs(mp, np, B) for mp in 1:Nmax, np in 1:Nmax]
-    @inbounds for N in 1:Nmax
-        @inbounds for m in 1:Nmax
+    Cs = CNmnTable{T}(Array{T}(undef, (Nmax, Nmax, Nmax)), Set{Tuple{Int,Int,Int}}())
+    δ_cache = [δrs(mp, np, B) for mp = 1:Nmax, np = 1:Nmax]
+    @inbounds for N = 1:Nmax
+        @inbounds for m = 1:Nmax
             maxn = N÷m
-            @inbounds for n in 1:maxn
+            @inbounds for n = 1:maxn
                 if haskey(Rs, (m, n))
                     Rmn = Rs[m, n]
                     Cs[N, m, n] = Rmn
@@ -286,8 +288,8 @@ function computeCNmns!(Nmax, c::CC{T}, Rs) where {T}
                     Np == 0 && continue
                     δ0 = δrs(m, -n, B)
                     _sum = zero(T)
-                    for mp in 1:Np
-                        for np in 1:Np÷mp
+                    for mp = 1:Np
+                        for np = 1:(Np÷mp)
                             if haskey(Cs, (Np, mp, np))
                                 _sum += Cs[Np, mp, np] / (δ0 - δ_cache[mp, np])
                             end

@@ -1,12 +1,16 @@
 import BarnesDoubleGamma: digamma_reg, gamma
 
 const ExtDimensions{T} = Tuple{Vararg{ConformalDimension{T}}} # tuples of dimensions
-const FourDimensions{T} = NTuple{4, ConformalDimension{T}}
+const FourDimensions{T} = NTuple{4,ConformalDimension{T}}
 const OneDimension{T} = Tuple{ConformalDimension{T}}
 
 const ExtFields{T} = Tuple{Vararg{Field{T}}} # tuples of fields
-const FourFields{T} = NTuple{4, Field{T}}
+const FourFields{T} = NTuple{4,Field{T}}
 const OneField{T} = Tuple{Field{T}}
+
+const ExtPoints{T} = Union{ExtDimensions{T}, ExtFields{T}}
+const FourPoints{T} = Union{FourFields{T}, FourDimensions{T}}
+const OnePoint{T} = Union{OneField{T}, OneDimension{T}}
 
 """
     Correlation(args...; Δmax=10.)
@@ -45,7 +49,7 @@ CorrelationChiral{ComplexF64} with external dimensions
 (Δ_{2, 3//2}, Δ_{2, 3//2}, Δ_{2, 3//2}, Δ_{2, 3//2})
 ```
 """
-abstract type Correlation{T} end
+abstract type Correlation{T,U} end
 # alias
 const Corr = Correlation
 
@@ -74,7 +78,7 @@ Chiral block for the correlation
 Channel: s, Δ_{2, 1//2}
 ```
 """
-abstract type Block{T} end # general conformal block. Can be interchiral, non-chiral or chiral
+abstract type Block{T, U} end # general conformal block. Can be interchiral, non-chiral or chiral
 
 N_max(d::CD, Δmax) = max(0, ceil(Int, real(Δmax - d.Δ)))
 N_max(V::Field, Δmax) = max(0, ceil(Int, real(Δmax - total_dimension(V))))
@@ -84,22 +88,24 @@ include("ConformalBlocks/Correlations.jl")
 include("ConformalBlocks/BlockChiral.jl")
 include("ConformalBlocks/BlockNonChiral.jl")
 include("ConformalBlocks/BlockInterchiral.jl")
-include("ConformalBlocks/prefactors.jl")
 include("ConformalBlocks/evaluate.jl")
 
 Block(co::Corr, chan::Symbol, d::CD, Nmax::Int) = BlockChiral(co, chan, d, Nmax)
 Block(co::Corr, chan::Symbol, V::Field, Nmax::Int) = BlockNonChiral(co, chan, V, Nmax)
-Block(co::Corr, chan, V::Field, lr::Symbol, Nmax; der=false) = 
-    BlockChiral(co, chan, V.dims[lr], lr, Nmax, der=der)
-Block(co, chan, d::CD, lr, Nmax; der=false) =
-    BlockChiral(co, chan, d, lr, Nmax, der=der)
+Block(co::Corr, chan, V::Field, lr::Symbol, Nmax; der = false) =
+    BlockChiral(co, chan, V.dims[lr], lr, Nmax, der = der)
+Block(co, chan, d::CD, lr, Nmax; der = false) =
+    BlockChiral(co, chan, d, lr, Nmax, der = der)
 
 function Block(
-    co, chan, d, lr=nothing;
-    Nmax::Union{Int, Nothing}=nothing,
-    Δmax=nothing,
-    interchiral=false,
-    s_shift=2
+    co,
+    chan,
+    d,
+    lr = nothing;
+    Nmax::Union{Int,Nothing} = nothing,
+    Δmax = nothing,
+    interchiral = false,
+    s_shift = 2,
 )
     # compute Nmax for this block
     if Nmax === nothing && Δmax === nothing

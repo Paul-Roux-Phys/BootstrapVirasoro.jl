@@ -1,6 +1,6 @@
-struct BlockInterchiral{T} <: Block{T}
+struct BlockInterchiral{T,U} <: Block{T,U}
 
-    blocks::Vector{Block{T}}
+    blocks::Vector{Block{T,U}}
     shifts::Vector{T}
 
 end
@@ -10,20 +10,18 @@ function my_mod2(s)
     return s > 1 ? s - 2 : s
 end
 
-function BlockInterchiral(
-    co::Correlation{T}, chan, V, Δmax, s_shift=2
-) where {T}
+function BlockInterchiral(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) where {T,U}
     @assert real(V.c.β^2) > 0 "interchiral blocks are defined for Re(β^2) > 0"
     fields = []
     shifts = []
     if isdiagonal(V)
         V0 = V
     else
-        V0 = Field(V.c, r=V.r, s=mod(V.s, s_shift))
+        V0 = Field(V.c, r = V.r, s = mod(V.s, s_shift))
     end
     extfields = permute_fields(co.fields, chan)
     if !isdiagonal(V) && V0.s != 1 # bring back s in (-1, 1)
-        V0 = Field(V.c, r=V.r, s=my_mod2(V.s))
+        V0 = Field(V.c, r = V.r, s = my_mod2(V.s))
     end
     Vshift = V0
     D = 1
@@ -49,8 +47,10 @@ function BlockInterchiral(
     if isdiagonal(V)
         shifts = 1 ./ shifts
     end
-    blocks = [Block(co, chan, V, Δmax=Δmax) for V in fields]
-    BlockInterchiral{T}(blocks, shifts)
+    blocks = [Block(co, chan, V, Δmax = Δmax) for V in fields]
+
+    W = typeof(co[:left]).parameters[2]
+    BlockInterchiral{T,W}(blocks, shifts)
 end
 
 function get_indices(V)
@@ -79,13 +79,14 @@ function shift_C123(V1, V2, V3)
     res *= (β+0im)^(-4inv(β)^2 * s3)
     res *= prod(
         gamma(
-            1 // 2 + 1 // 2 * abs(pm1 * r1 + pm2 * r2 - r3) +
-                inv(2 * β^2) * (pm1 * s1 + pm2 * s2 - s3)
+            1 // 2 +
+            1 // 2 * abs(pm1 * r1 + pm2 * r2 - r3) +
+            inv(2 * β^2) * (pm1 * s1 + pm2 * s2 - s3),
         ) / gamma(
-            1 // 2 + 1 // 2 * abs(pm1 * r1 + pm2 * r2 + r3) +
-                inv(2 * β^2) * (pm1 * s1 + pm2 * s2 + s3)
-        )
-        for pm1 in (-1, 1) for pm2 in (-1, 1)
+            1 // 2 +
+            1 // 2 * abs(pm1 * r1 + pm2 * r2 + r3) +
+            inv(2 * β^2) * (pm1 * s1 + pm2 * s2 + s3),
+        ) for pm1 in (-1, 1) for pm2 in (-1, 1)
     )
 end
 
@@ -102,11 +103,11 @@ function shift_C122(V1, V2)
     res = (-1)^(Int(2r2))
     res *= β^(-8inv(β)^2 * s2)
     res *= prod(
-        gamma(1 // 2 + 1 // 2 * abs(r1 + 2pm2 * r2) -
-              inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1)) /
-        gamma(1 // 2 + 1 // 2 * abs(r1 + 2pm2 * r2) +
-              inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1))
-        for pm1 in (-1, 1) for pm2 in (-1, 1)
+        gamma(
+            1 // 2 + 1 // 2 * abs(r1 + 2pm2 * r2) - inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1),
+        ) / gamma(
+            1 // 2 + 1 // 2 * abs(r1 + 2pm2 * r2) + inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1),
+        ) for pm1 in (-1, 1) for pm2 in (-1, 1)
     )
 end
 
@@ -122,8 +123,8 @@ function shift_B(V)
     res = (-1)^(2r)
     res *= β^(-8inv(β)^2 * s)
     res *= prod(
-        gamma(a + r - s / β^2) / gamma(a + r + s / β^2)
-        for a in (0, 1, inv(β^2), 1 - inv(β^2))
+        gamma(a + r - s / β^2) / gamma(a + r + s / β^2) for
+        a in (0, 1, inv(β^2), 1 - inv(β^2))
     )
 end
 
@@ -140,9 +141,10 @@ end
 function Base.getproperty(b::BlockInterchiral, s::Symbol)
     s === :fields && return [block.channel_field for block in getfield(b, :blocks)]
     s === :indices && return [block.channel_field.indices for block in getfield(b, :blocks)]
-    s in (:r, :s, :channel, :channel_field) && return getproperty(getfield(b, :blocks)[1], s)
+    s in (:r, :s, :channel, :channel_field) &&
+        return getproperty(getfield(b, :blocks)[1], s)
     s === :shift && return length(b.blocks) > 1 ?
-        Int(abs(getfield(b, :blocks)[2].s - getfield(b, :blocks)[1].s)) : 2
+           Int(abs(getfield(b, :blocks)[2].s - getfield(b, :blocks)[1].s)) : 2
     getfield(b, s)
 end
 

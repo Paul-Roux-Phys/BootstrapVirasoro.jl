@@ -11,46 +11,57 @@ This file presents the whole user-interface of the package.
 
 module BootstrapVirasoro
 
-using EllipticFunctions,
-    Printf
+using EllipticFunctions, Printf
 
 using GenericLinearAlgebra: qr
 
 
 # CFT Data: Central charges, conformal dimensions, fields.
 export LeftRight,
-    CentralCharge, CC,
-    ConformalDimension, CD, P_rs, δrs,
-    Field, spin, isdiagonal, isdegenerate,
-    swap_lr, shift,
+    CentralCharge,
+    CC,
+    ConformalDimension,
+    CD,
+    P_rs,
+    δrs,
+    Field,
+    spin,
+    isdiagonal,
+    isdegenerate,
+    swap_lr,
+    shift,
     total_dimension
 
 # Conformal blocks and correlations.
 export Correlation,
     Block,
-    qfromx, xfromq,
+    qfromx,
+    xfromq,
     qfromτ,
-    evaluate_series, evaluate_series_der,
-    evaluate, evaluate_der
+    evaluate_series,
+    evaluate_series_der,
+    evaluate,
+    evaluate_der
 
 # Spectra
-export Spectrum,
-    ChannelSpectrum,
-    ChannelSpectra,
-    add!, remove!
+export Spectrum, ChannelSpectrum, ChannelSpectra, add!, remove!
 
 # Bootstrap equations and solver.
-export BootstrapSystem,
-    evaluate_blocks!,
-    compute_linear_system!,
-    solve!,
-    write_csv
+export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!, write_csv
+
+# print complex numbers with 5 digits
+function format_complex(z::Complex{<:Real})
+    real_str = @sprintf("%.5e", real(z))
+    imag_str = @sprintf("%.5e", abs(imag(z)))
+    sign = imag(z) < 0 ? "-" : "+"
+    buf = real(z) > 0 ? " " : ""
+    return "$buf$real_str $sign $(imag_str)im"
+end
 
 # The exported methods and types are found in the following included files.
 # These files also document the exported methods
 include("CFTData.jl")
 include("ConformalBlocks.jl")
-include("spectra.jl")
-include("bootstrap_equations.jl")
+include("BootstrapEquations.jl")
 
 end
