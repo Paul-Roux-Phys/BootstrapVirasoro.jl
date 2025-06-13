@@ -30,6 +30,7 @@ export LeftRight,
     isdegenerate,
     swap_lr,
     shift,
+    reflect,
     total_dimension
 
 # Conformal blocks and correlations.

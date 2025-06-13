@@ -135,7 +135,11 @@ function CorrelationNonChiral(corr_chiral::LeftRight{CorrelationChiral{T,U}}) wh
     fields = Tuple(Field(d1, d2) for (d1, d2) in zip(dims_left, dims_right))
     Nmax = corr_chiral[:left].Nmax
 
-    CorrelationNonChiral(fields, Nmax)
+    Rmn = Tuple(corr_chiral[lr]._Rmn for lr in (:left, :right))
+    Rmnreg = Tuple(corr_chiral[lr]._Rmn_reg for lr in (:left, :right))
+    CNmn = Tuple(corr_chiral[lr]._CNmn for lr in (:left, :right))
+
+    CorrelationNonChiral{T,U}(fields, Nmax, Rmn, Rmnreg, CNmn)
 end
 
 function Correlation()

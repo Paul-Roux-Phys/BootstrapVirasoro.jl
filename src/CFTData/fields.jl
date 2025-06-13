@@ -129,6 +129,8 @@ function shift(V::Field, i, index = :s)
     end
 end
 
+reflect(V) = Field(V.c, r=V.r, s=-V.s)
+
 """
         total_dimension(V)
 Return ``Δ + \barΔ``.

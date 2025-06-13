@@ -182,9 +182,8 @@ end
 end
 
 @testset "Full logarithmic blocks" begin
+    setprecision(BigFloat, 50, base=10)
     bl(channel) = Block(co, channel, V, Nmax)
-
-    evaluate(bl(:s), x)
 
     # comparing with Sylvain's code
     @test isapprox(

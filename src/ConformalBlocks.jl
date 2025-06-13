@@ -85,20 +85,21 @@ N_max(V::Field, Δmax) = max(0, ceil(Int, real(Δmax - total_dimension(V))))
 
 include("ConformalBlocks/residues.jl")
 include("ConformalBlocks/Correlations.jl")
-include("ConformalBlocks/BlockChiral.jl")
-include("ConformalBlocks/BlockNonChiral.jl")
-include("ConformalBlocks/BlockInterchiral.jl")
+include("ConformalBlocks/ChiralBlocks.jl")
+include("ConformalBlocks/NonChiralBlocks.jl")
+include("ConformalBlocks/LinearCombinationBlocks.jl")
 include("ConformalBlocks/evaluate.jl")
 
-Block(co::Corr, chan::Symbol, d::CD, Nmax::Int) = BlockChiral(co, chan, d, Nmax)
-Block(co::Corr, chan::Symbol, V::Field, Nmax::Int) = BlockNonChiral(co, chan, V, Nmax)
+Block(co::Corr, chan::Symbol, d::CD, Nmax::Int) = ChiralBlock(co, chan, d, Nmax)
+Block(co::Corr, chan::Symbol, V::Field, Nmax::Int) = NonChiralBlock(co, chan, V, Nmax)
 Block(co::Corr, chan, V::Field, lr::Symbol, Nmax; der = false) =
-    BlockChiral(co, chan, V.dims[lr], lr, Nmax, der = der)
+    ChiralBlock(co, chan, V.dims[lr], lr, Nmax, der = der)
 Block(co, chan, d::CD, lr, Nmax; der = false) =
-    BlockChiral(co, chan, d, lr, Nmax, der = der)
+    ChiralBlock(co, chan, d, lr, Nmax, der = der)
+Block(bs::Vector{<:Block}, coeffs) = LinearCombinationBlock(bs, coeffs)
 
 function Block(
-    co,
+    co::Correlation{T,U},
     chan,
     d,
     lr = nothing;
@@ -106,7 +107,8 @@ function Block(
     Δmax = nothing,
     interchiral = false,
     s_shift = 2,
-)
+    parity=0 # 0 for no reflection, ±1 for even/odd
+) where {T,U}
     # compute Nmax for this block
     if Nmax === nothing && Δmax === nothing
         Nmax = co.Nmax
@@ -117,14 +119,17 @@ function Block(
     Nmax = min(Nmax, co.Nmax)
     if interchiral
         @assert Δmax !== nothing "must provide Δmax for interchiral block"
-        BlockInterchiral(co, chan, d, Δmax, s_shift)
+        b = InterchiralBlock(co, chan, d, Δmax, s_shift)
     else
         if lr === nothing
-            Block(co, chan, d, Nmax)
+            b = Block(co, chan, d, Nmax)
         else
-            Block(co, chan, d, lr, Nmax)
+            b = Block(co, chan, d, lr, Nmax)
         end
     end
+    parity == 0 && return b
+    b_refl = reflect(b)
+    return LinearCombinationBlock([b, b_refl], [one(T), parity*one(T)])
 end
 
 # Evaluate blocks with b(z)

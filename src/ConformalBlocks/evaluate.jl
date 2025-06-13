@@ -72,12 +72,12 @@ LRPositionCache(x, b::Block) = LRPositionCache(x, b.corr, b.channel)
     return res
 end
 
-@inline evaluate_series(b::BlockChiral, x::PositionCache) = evalpoly(x, b._coefficients)
-@inline evaluate_series_der(b::BlockChiral, x::PositionCache) =
+@inline evaluate_series(b::ChiralBlock, x::PositionCache) = evalpoly(x, b._coefficients)
+@inline evaluate_series_der(b::ChiralBlock, x::PositionCache) =
     evalpoly(x, b._coefficients_der)
-evaluate_series(b::BlockChiral, x::Number) =
+evaluate_series(b::ChiralBlock, x::Number) =
     evaluate_series(b, PositionCache(x, b.corr, b.channel))
-evaluate_series_der(b::BlockChiral, x::Number) =
+evaluate_series_der(b::ChiralBlock, x::Number) =
     evaluate_series_der(b, PositionCache(x, b.corr, b.channel))
 
 function crossratio(chan, x)
@@ -100,13 +100,13 @@ channel_position(x, _::Correlation{T,U}, chan) where {T,U<:OnePoint{T}} =
 conj_q(x, _::Correlation{T,U}) where {T,U<:FourPoints} = conj(x)
 conj_q(τ, _::Correlation{T,U}) where {T,U<:OnePoint} = -conj(τ)
 
-total_prefactor(b::BlockChiral{T,U}, x::PositionCache) where {T,U<:FourPoints} =
+total_prefactor(b::ChiralBlock{T,U}, x::PositionCache) where {T,U<:FourPoints} =
     x.prefactor * (x.q_powers[2])^b.channel_dimension.δ
-total_prefactor(b::BlockChiral{T,U}, x::PositionCache) where {T,U<:OnePoint} =
+total_prefactor(b::ChiralBlock{T,U}, x::PositionCache) where {T,U<:OnePoint} =
     x.prefactor * x.q^b.channel_dimension.δ
 total_prefactor(b, x::Number) = total_prefactor(b, PositionCache(x, b))
 
-function evaluate(b::BlockChiral{T,U}, x::PositionCache)::T where {T,U}
+function evaluate(b::ChiralBlock{T,U}, x::PositionCache)::T where {T,U}
     d = b.channel_dimension
     p = total_prefactor(b, x)
     h = evaluate_series(b, x)
@@ -119,7 +119,7 @@ function evaluate(b::BlockChiral{T,U}, x::PositionCache)::T where {T,U}
     return p * h
 end
 
-function evaluate_der(b::BlockChiral{T,U}, x::PositionCache)::T where {T,U}
+function evaluate_der(b::ChiralBlock{T,U}, x::PositionCache)::T where {T,U}
     d = b.channel_dimension
     qor16q = x.q_powers[2]
     p = x.prefactor * (qor16q)^b.channel_dimension.δ
@@ -129,20 +129,20 @@ function evaluate_der(b::BlockChiral{T,U}, x::PositionCache)::T where {T,U}
     return p * h
 end
 
-@inline evaluate_lr(bs::LeftRight{BlockChiral}, x::LRPositionCache) =
+@inline evaluate_lr(bs::LeftRight{ChiralBlock}, x::LRPositionCache) =
     evaluate(bs[:left], x.left), evaluate(bs[:right], x.right)
-@inline evaluate_lr_der(bs::LeftRight{BlockChiral}, x::LRPositionCache) =
+@inline evaluate_lr_der(bs::LeftRight{ChiralBlock}, x::LRPositionCache) =
     evaluate_der(bs[:left], x.left), evaluate_der(bs[:right], x.right)
 @inline evaluate_lr(b::BlockFactorized, x) = evaluate_lr(b.chiral_blocks, x)
-@inline evaluate_lr(b::BlockLogarithmic, x) = evaluate_lr(b.chiral_blocks, x)
-@inline evaluate_lr_op(b::BlockLogarithmic, x) = evaluate_lr(b.chiral_blocks_op, x)
-@inline evaluate_lr_der(b::BlockLogarithmic, x) = evaluate_lr_der(b.chiral_blocks_der, x)
+@inline evaluate_lr(b::LogarithmicBlock, x) = evaluate_lr(b.chiral_blocks, x)
+@inline evaluate_lr_op(b::LogarithmicBlock, x) = evaluate_lr(b.chiral_blocks_op, x)
+@inline evaluate_lr_der(b::LogarithmicBlock, x) = evaluate_lr_der(b.chiral_blocks_der, x)
 
 @inline function evaluate(b::BlockFactorized{T,U}, x::LRPositionCache)::T where {T,U}
     return prod(evaluate_lr(b, x))
 end
 
-function evaluate(b::BlockLogarithmic{T,U}, x::LRPositionCache)::T where {T,U}
+function evaluate(b::LogarithmicBlock{T,U}, x::LRPositionCache)::T where {T,U}
     V = b.channel_field
     r, s = V.indices
     s < 0 && return zero(T) # by convention G_(r, s<0) = 0
@@ -166,7 +166,7 @@ function evaluate(b::BlockLogarithmic{T,U}, x::LRPositionCache)::T where {T,U}
     end
 end
 
-function evaluate(b::BlockInterchiral{T,U}, x)::T where {T,U}
+function evaluate(b::InterchiralBlock{T,U}, x)::T where {T,U}
     res = zero(T)
     for i in eachindex(b.blocks)
         res += evaluate((b.blocks)[i], x) .* b.shifts[i]
@@ -174,7 +174,15 @@ function evaluate(b::BlockInterchiral{T,U}, x)::T where {T,U}
     return res
 end
 
-evaluate(b::BlockChiral, x::Number) = evaluate(b, PositionCache(x, b))
-evaluate(b::BlockNonChiral, x::Number) = evaluate(b, LRPositionCache(x, b))
-evaluate_der(b::BlockChiral, x::Number) = evaluate_der(b, PositionCache(x, b))
-evaluate_der(b::BlockNonChiral, x::Number) = evaluate_der(b, LRPositionCache(x, b))
+function evaluate(b::LinearCombinationBlock{T,U}, x)::T where {T,U}
+    res = zero(T)
+    for i in eachindex(b.blocks)
+        res += evaluate((b.blocks)[i], x) .* b.coefficients[i]
+    end
+    return res
+end
+
+evaluate(b::ChiralBlock, x::Number) = evaluate(b, PositionCache(x, b))
+evaluate(b::NonChiralBlock, x::Number) = evaluate(b, LRPositionCache(x, b))
+evaluate_der(b::ChiralBlock, x::Number) = evaluate_der(b, PositionCache(x, b))
+evaluate_der(b::NonChiralBlock, x::Number) = evaluate_der(b, LRPositionCache(x, b))
