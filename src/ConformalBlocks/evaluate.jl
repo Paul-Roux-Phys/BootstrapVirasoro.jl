@@ -145,18 +145,14 @@ function evaluate(b::BlockLogarithmic{T}, x::LRPositionCache)::T where {T}
 
     Freg, Fbar = evaluate_lr(b, x)
     F, Fregbar = evaluate_lr_op(b, x)
+    R, Rbar = b.R, b.Rbar
 
     if isaccidentallynonlogarithmic(b)
-        Rreg = b.corr._Rmn_reg[:left][b.channel][r, s]
-        Rregbar = b.corr._Rmn_reg[:right][b.channel][r, s]
-        nbzeros = Rmn_zero_order(r, s, b.chiral_blocks[:left].dims)
-        Freg * Fbar + (-1)^nbzeros * Rreg / Rregbar * F * Fregbar
+        Freg * Fbar + (-1)^b.nbzeros * R / Rbar * F * Fregbar
 
     elseif islogarithmic(b)
         Fder, Fderbar = evaluate_lr_der(b, x)
 
-        R = b.corr._Rmn[:left][b.channel][r, s]
-        Rbar = b.corr._Rmn[:right][b.channel][r, s]
         l = b.ell
 
         (Freg - R / 2 / Prs * Fder) * Fbar +

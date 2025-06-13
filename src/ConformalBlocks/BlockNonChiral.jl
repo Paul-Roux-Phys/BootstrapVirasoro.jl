@@ -15,7 +15,10 @@ struct BlockLogarithmic{T} <: BlockNonChiral{T}
     chiral_blocks::LeftRight{BlockChiral{T}} # blocks for V_(r, s) x V_(r, -s)
     chiral_blocks_op::LeftRight{BlockChiral{T}} # blocks for V_(r, -s) x V_(r, s)
     chiral_blocks_der::Union{LeftRight{BlockChiral{T}}, Nothing}
+    R::T
+    Rbar::T
     ell::T
+    nbzeros::Int
     
 end
 
@@ -45,23 +48,35 @@ isaccidentallynonlogarithmic(b) =
 function BlockLogarithmic(co::CorrelationNonChiral{T}, chan, V, Nmax) where {T}
     V_op = swap_lr(V)
     VV = V.s > 0 ? (V, V_op) : (V_op, V) # (V_(r, s > 0), V_(r, -s))
+    r, s = VV[1].r, VV[1].s
     left, left_op, right, right_op = Tuple(
         BlockChiral(co, chan, v, lr, Nmax)
         for lr in (:left, :right)
         for v in VV
     )
+    R, Rbar, l = zero(T), zero(T), zero(T)
     if isaccidentallynonlogarithmic(co, chan, V)
         chiral_blocks_der = nothing
+        if V.s > 0
+            R = co._Rmn_reg[:left][chan][r, s]
+            Rbar = co._Rmn_reg[:right][chan][r, s]
+        end
+        nbzeros = Rmn_zero_order(r, s, left.dims)
         l = 0
     else
         leftder = BlockChiral(co, chan, VV[2], :left, Nmax, der=true)
         rightder = BlockChiral(co, chan, VV[1], :right, Nmax, der=true)
         chiral_blocks_der = LeftRight((leftder, rightder))
-        l = ell(co, chan, V.r, VV[1].s)
+        if V.s > 0
+            R = co._Rmn[:left][chan][r, s]
+            Rbar = co._Rmn[:right][chan][r, s]
+            l = ell(co, chan, r, VV[1].s)
+        end
+        nbzeros = 0
     end
     BlockLogarithmic{T}(
         Nmax, V, LeftRight((left, right)), LeftRight((left_op, right_op)),
-        chiral_blocks_der, l
+        chiral_blocks_der, R, Rbar, l, nbzeros
     )
 end
 
