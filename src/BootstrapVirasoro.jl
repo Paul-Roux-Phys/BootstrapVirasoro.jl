@@ -45,10 +45,20 @@ export Correlation,
     evaluate_der
 
 # Spectra
-export Spectrum, ChannelSpectrum, ChannelSpectra, add!, remove!, fields
+export Spectrum,
+    ChannelSpectrum,
+    ChannelSpectra,
+    add!,
+    remove!,
+    fields,
+    hasdiagonals
 
 # Bootstrap equations and solver.
-export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!, write_csv
+export BootstrapSystem,
+    evaluate_blocks!,
+    compute_linear_system!,
+    solve!,
+    write_csv
 
 # print complex numbers with 5 digits
 function format_complex(z::Complex{<:Real})
@@ -59,10 +69,33 @@ function format_complex(z::Complex{<:Real})
     return "$buf$real_str $sign $(imag_str)im"
 end
 
+"""
+        LeftRight{T}
+Left and right pairs of objects. Can be accessed with
+`obj[:left]` and `obj[:right]`.
+"""
+const LeftRight{T} = Tuple{T,T} # left and right pairs of things
+
+function Base.getindex(x::LeftRight, s::Symbol)
+    s === :left && return x[1]
+    s === :right && return x[2]
+    error("tried to access pair element other than 1, 2, :left or :right")
+end
+
 # The exported methods and types are found in the following included files.
-# These files also document the exported methods
-include("CFTData.jl")
-include("ConformalBlocks.jl")
-include("BootstrapEquations.jl")
+# The files also document the exported methods
+# CFT Data: central charges, conformal dimensions, fields
+include("CFTData/CentralCharges.jl")
+include("CFTData/ConformalDimensions.jl")
+include("CFTData/Fields.jl")
+
+# Conformal blocks
+# AbstractBlocks serve as an interface to all types of blocks.
+include("ConformalBlocks/AbstractBlocks.jl")
+
+# Linear bootstrap equations
+include("BootstrapEquations/Spectrum.jl")
+include("BootstrapEquations/StructureConstants.jl")
+include("BootstrapEquations/LinearSystem.jl")
 
 end

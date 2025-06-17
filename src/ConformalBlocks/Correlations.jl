@@ -1,58 +1,111 @@
+import BarnesDoubleGamma: digamma_reg, gamma
+
+const ExtDimensions{T} = Tuple{Vararg{ConformalDimension{T}}} # tuples of dimensions
+const FourDimensions{T} = NTuple{4,ConformalDimension{T}}
+const OneDimension{T} = Tuple{ConformalDimension{T}}
+
+const ExtFields{T} = Tuple{Vararg{Field{T}}} # tuples of fields
+const FourFields{T} = NTuple{4,Field{T}}
+const OneField{T} = Tuple{Field{T}}
+
+const ExtPoints{T} = Union{ExtDimensions{T}, ExtFields{T}}
+const FourPoints{T} = Union{FourFields{T}, FourDimensions{T}}
+const OnePoint{T} = Union{OneField{T}, OneDimension{T}}
+
+include("residues.jl")
+
+"""
+    Correlation(args...; Δmax=10.)
+
+Abstract type for holding data relevant to the computation of a correlation function:
+* external fields
+* Coefficients ``R_{m,n}``, possibly left and right and for different channels
+* Coefficients ``R^{\\text{reg}}_{m, n}`` when ``R_{m, n}`` vanishes
+* Coefficients ``C^N_{m, n}``, possibly left and right and for different channels
+up to `N=Δmax`.
+
+It is also possible to access the central charge, left or right parts of the correlation if it is non chiral, etc. See examples.
+
+# Examples
+
+```jldoctest
+julia> c = CentralCharge(β = sqrt(2));
+
+julia> V1 = Field(c, r=2, s=3//2);
+
+julia> co = Correlation(V1, V1, V1, V1, 10)
+CorrelationNonChiral{ComplexF64,NTuple{4, Field{ComplexF64}}} with external fields
+< V_{(2, 3//2)} V_{(2, 3//2)} V_{(2, 3//2)} V_{(2, 3//2)} >
+
+julia> co._Rmn[:left][:s][2, 4] ≈ 8.37053571428573e-7 - 0.0im
+true
+
+julia> co.c.c ≈ -2
+true
+
+julia> co.fields
+(V_{(2, 3//2)}, V_{(2, 3//2)}, V_{(2, 3//2)}, V_{(2, 3//2)})
+
+julia> co[:left]
+CorrelationChiral{ComplexF64} with external dimensions
+(Δ_{2, 3//2}, Δ_{2, 3//2}, Δ_{2, 3//2}, Δ_{2, 3//2})
+```
+"""
+abstract type Correlation{T,U} end
+# alias
+const Corr = Correlation
+
 struct RmnTable{T}
-    values::Array{T,2}
-    keys::Set{Tuple{Int,Int}}
+values::Array{T,2}
+keys::Set{Tuple{Int,Int}}
 end
 
 struct CNmnTable{T}
-    values::Array{T,3}
-    keys::Set{Tuple{Int,Int,Int}}
+values::Array{T,3}
+keys::Set{Tuple{Int,Int,Int}}
 end
 
 const Channels{T} = NamedTuple{(:s, :t, :u),NTuple{3,T}} # type for holding data in all channels
 
-struct CorrelationChiral{T,U} <: Correlation{T,U}
-    dims::U
-    Nmax::Int
-    _Rmn::Channels{RmnTable{T}}
-    _Rmn_reg::Channels{RmnTable{T}}
-    _CNmn::Channels{CNmnTable{T}}
-end
-
-function Base.getproperty(co::CorrelationChiral, s::Symbol)
-    s === :fields && return co.dims
-    getfield(co, s)
+struct CorrelationChiral{T,U<:ExtDimensions{T}} <: Correlation{T,U}
+c::CentralCharge{T}
+fields::U
+Nmax::Int
+_Rmn::Channels{RmnTable{T}}
+_Rmn_reg::Channels{RmnTable{T}}
+_CNmn::Channels{CNmnTable{T}}
 end
 
 Base.getindex(R::RmnTable, m::Int, n::Int) = R.values[m, n]
 function Base.setindex!(R::RmnTable, value, m::Int, n::Int)
-    R.values[m, n] = value
-    push!(R.keys, (m, n))
-    return value
+R.values[m, n] = value
+push!(R.keys, (m, n))
+return value
 end
 Base.haskey(R::RmnTable, key::Tuple{Int,Int}) = key in R.keys
 
 Base.getindex(C::CNmnTable, N::Int, m::Int, n::Int) = C.values[N, m, n]
 Base.haskey(C::CNmnTable, key::Tuple{Int,Int,Int}) = key in C.keys
 function Base.setindex!(C::CNmnTable, value, N, m::Int, n::Int)
-    C.values[N, m, n] = value
-    push!(C.keys, (N, m, n))
-    return value
+C.values[N, m, n] = value
+push!(C.keys, (N, m, n))
+return value
 end
 
 function CorrelationChiral(d::U, Nmax::Int) where {T,U<:ExtDimensions{T}}
-    @assert all((dim.c === d[1].c for dim in d)) """
-    External fields in the argument of the Correlation constructor do not all have the same
-    CentralCharge
-    """
-    channel_syms = (:s, :t, :u)
-    # Launch a task for each channel
-    futures = map(1:3) do i
-        Threads.@spawn begin
-            ch = channel_syms[i]
-            dx = permute_dimensions(d, ch)
-            r, rreg = computeRmns(Nmax, dx)
-            cn = computeCNmns!(Nmax, d[1].c, r)
-            (r, rreg, cn)
+@assert all((dim.c === d[1].c for dim in d)) """
+External fields in the argument of the Correlation constructor do not all have the same
+CentralCharge
+"""
+channel_syms = (:s, :t, :u)
+# Launch a task for each channel
+futures = map(1:3) do i
+    Threads.@spawn begin
+        ch = channel_syms[i]
+        dx = permute_dimensions(d, ch)
+        r, rreg = computeRmns(Nmax, dx)
+        cn = computeCNmns!(Nmax, d[1].c, r)
+        (r, rreg, cn)
         end
     end
 
@@ -64,19 +117,18 @@ function CorrelationChiral(d::U, Nmax::Int) where {T,U<:ExtDimensions{T}}
     Rmnreg = Channels{RmnTable{T}}(Tuple(Tuple(vals[i][2] for i = 1:3)))
     CNmn = Channels{CNmnTable{T}}(Tuple(Tuple(vals[i][3] for i = 1:3)))
 
-    CorrelationChiral{T,U}(d, Nmax, Rmn, Rmnreg, CNmn)
+    CorrelationChiral{T,U}(d[1].c, d, Nmax, Rmn, Rmnreg, CNmn)
 end
 
 CorrelationChiral(d1, d2, d3, d4, Nmax) = CorrelationChiral((d1, d2, d3, d4), Nmax)
 
 struct CorrelationNonChiral{T,U} <: Correlation{T,U}
-
+    c::CentralCharge{T}
     fields::ExtFields{T}
     Nmax::Int
     _Rmn::LeftRight{Channels{RmnTable{T}}}
     _Rmn_reg::LeftRight{Channels{RmnTable{T}}}
     _CNmn::LeftRight{Channels{CNmnTable{T}}}
-
 end
 
 function permute_dimensions(ds::FourDimensions, chan::Symbol)
@@ -110,16 +162,12 @@ function CorrelationNonChiral(V::U, Nmax::Int) where {T,U<:ExtFields{T}}
     Rmnreg = Tuple(corr_chiral[lr]._Rmn_reg for lr in (:left, :right))
     CNmn = Tuple(corr_chiral[lr]._CNmn for lr in (:left, :right))
 
-    CorrelationNonChiral{T,U}(V, Nmax, Rmn, Rmnreg, CNmn)
-end
-
-function Base.getproperty(co::CorrelationNonChiral, s::Symbol)
-    s === :c && return getfield(co, :fields)[1].c
-    return getfield(co, s)
+    CorrelationNonChiral{T,U}(V[1].c, V, Nmax, Rmn, Rmnreg, CNmn)
 end
 
 function Base.getindex(c::CorrelationNonChiral, s::Symbol)
     s in (:left, :right) && return CorrelationChiral(
+        c.c,
         Tuple(v.dims[s] for v in c.fields),
         c.Nmax,
         c._Rmn[s],
@@ -130,8 +178,8 @@ function Base.getindex(c::CorrelationNonChiral, s::Symbol)
 end
 
 function CorrelationNonChiral(corr_chiral::LeftRight{CorrelationChiral{T,U}}) where {T,U}
-    dims_left = corr_chiral[:left].dims
-    dims_right = corr_chiral[:left].dims
+    dims_left = corr_chiral[:left].fields
+    dims_right = corr_chiral[:left].fields
     fields = Tuple(Field(d1, d2) for (d1, d2) in zip(dims_left, dims_right))
     Nmax = corr_chiral[:left].Nmax
 
@@ -139,7 +187,7 @@ function CorrelationNonChiral(corr_chiral::LeftRight{CorrelationChiral{T,U}}) wh
     Rmnreg = Tuple(corr_chiral[lr]._Rmn_reg for lr in (:left, :right))
     CNmn = Tuple(corr_chiral[lr]._CNmn for lr in (:left, :right))
 
-    CorrelationNonChiral{T,U}(fields, Nmax, Rmn, Rmnreg, CNmn)
+    CorrelationNonChiral{T,U}(corr_chiral[1].c, fields, Nmax, Rmn, Rmnreg, CNmn)
 end
 
 function Correlation()
@@ -187,20 +235,24 @@ function Base.show(io::IO, C::CNmnTable{T}) where {T}
 end
 
 function Base.show(io::IO, ::MIME"text/plain", co::CorrelationChiral{T}) where {T}
-    print(io, "CorrelationChiral{$T} with external dimensions\n$(co.dims)")
+    print(io, "CorrelationChiral{$T} with external dimensions\n$(co.fields)")
 end
 
 function Base.show(io::IO, co::CorrelationChiral)
     print(io, "< ")
-    for d in co.dims
+    for d in co.fields
         print(io, d, " ")
     end
     print(io, ">")
 end
 
-function Base.show(io::IO, ::MIME"text/plain", co::CorrelationNonChiral{T}) where {T}
-    println(io, "CorrelationNonChiral{$T} with external fields")
-    print(io, co.fields)
+function Base.show(io::IO, ::MIME"text/plain", co::CorrelationNonChiral{T,U}) where {T,U}
+    println(io, "CorrelationNonChiral{$T,$U} with external fields")
+    print(io, "< ")
+    for V in co.fields
+        print(io, V, " ")
+    end
+    print(io, ">")
 end
 
 function Base.show(io::IO, co::CorrelationNonChiral)

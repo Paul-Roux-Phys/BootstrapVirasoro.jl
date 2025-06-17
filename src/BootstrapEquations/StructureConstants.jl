@@ -1,3 +1,11 @@
+"""
+TODO
+"""
+struct StructureConstants{T}
+    constants::Channels{Dict{Field{T},T}}
+    errors::Channels{Dict{Field{T},T}}
+end
+
 function StructureConstants{T}() where {T}
     constants = Channels{Dict{Field{T},T}}(Tuple(Dict() for chan in (:s, :t, :u)))
     errors = deepcopy(constants)

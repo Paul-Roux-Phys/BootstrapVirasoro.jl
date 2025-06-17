@@ -1,3 +1,38 @@
+"""
+    ConformalDimension(c; param=value, r=0, s=0)
+    
+Type representing a conformal dimension, with precision given by the central charge.
+The supported parameters are `Δ`, `δ`, `P`, `p`, or the Kac indices `r, s`.
+
+# Examples
+
+```jldoctest
+julia> c = CentralCharge(β = 0.3im);
+
+julia> d1 = ConformalDimension(c, δ=0.5); d1.Δ ≈ 3.800277777777777 + 0.0im
+true
+
+julia> d1.P ≈ 0.7071067811865476
+true
+
+julia> d2 = ConformalDimension(c, r=3//2, s=2//3)
+ConformalDimension{ComplexF64} with Kac indices r = 3//2, s = 2//3
+```
+"""
+struct ConformalDimension{T}
+    c::CentralCharge{T}
+    P::T
+    p::T
+    δ::T
+    Δ::T
+    isKac::Bool
+    r::Union{Rational,Int}
+    s::Union{T,Rational,Int}
+end
+
+# convenience alias
+const CD = ConformalDimension
+
 function Pfrom(s::Symbol, x, c::CentralCharge)
     s === :Δ && return sqrt(complex(x - (c.c-1)/24))
     s === :δ && return sqrt(complex(x))
@@ -31,12 +66,17 @@ function ConformalDimension(
     r = missing,
     s = missing,
 ) where {T}
+    β = c.β
     if (r !== missing && s !== missing)
-        P = (r*c.β-s/c.β)/2
+        r % 1 == 0 ? r = Int(r) : nothing;
+        s % 1 == 0 ? s = Int(s) : nothing;
+        P = (r*β-s/β)/2
         isKac = true
     else
         P = Pto(:P, Pfrom(sym, P, c), c)
         isKac = false
+        r = 0
+        s = 2β * P
     end
     p = Pto(:p, P, c)
     δ = Pto(:δ, P, c)
@@ -63,32 +103,7 @@ end
 
 ConformalDimension() = ConformalDimension(CentralCharge())
 
-function get_indices(d::CD)
-    if d.isKac
-        r = getfield(d, :r)
-        s = getfield(d, :s)
-        if r % 1 == 0
-            r = Int(r)
-        end
-        if s % 1 == 0
-            s = Int(s)
-        end
-        return r, s
-    else
-        return 0, 2 * d.c.β * d.P
-    end
-end
-
-function isdegenerate(d::CD)
-    return d.isKac && d.r%1 == d.s%1 == 0 && d.r > 0 && d.s > 0
-end
-
-function Base.getproperty(d::CD, s::Symbol)
-    s === :indices && return get_indices(d)
-    s === :r && return get_indices(d)[1]
-    s === :s && return get_indices(d)[2]
-    return getfield(d, s)
-end
+indices(d::CD) = d.r, d.s
 
 function Base.:+(d1::CD, d2::CD)
     ConformalDimension(d1.c, :Δ, d1.Δ + d2.Δ)
@@ -116,6 +131,7 @@ function shift(d::CD, shift, index = :s)
 end
 
 total_dimension(d::CD) = d.Δ
+isdegenerate(d::CD) = d.isKac && d.r isa Int && d.s isa Int && d.r > 0 && d.s > 0
 
 function Base.isequal(a::CD, b::CD)
     c = isequal(a.c, b.c)

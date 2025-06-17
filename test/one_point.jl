@@ -17,9 +17,9 @@ co = Correlation(V1, Nmax)
 q = qfromτ(τ)
 x = xfromq(q)
 
-V_s = Field(c_s, P=sqrt(big(2)) * V.P[:left])
-V2_s = Field(c_s, P=sqrt(big(2)) * V2.P[:left])
-V1_s = Field(c_s, P=V1.P[:left] / sqrt(big(2)))
+V_s = Field(c_s, P=sqrt(big(2)) * V.dims[:left].P)
+V2_s = Field(c_s, P=sqrt(big(2)) * V2.dims[:left].P)
+V1_s = Field(c_s, P=V1.dims[:left].P / sqrt(big(2)))
 V_kac = Field(c_s, r=0, s=1 // 2)
 Vs = (V_kac, V1_s, V_kac, V_kac)
 
@@ -92,7 +92,7 @@ co_s = Correlation(Vs..., Nmax)
     )
 
     @test isapprox(
-        F / F2 * 16^(2 * (V.P[:left]^2 - V2.P[:left]^2)), F_s / F2_s, rtol=1e-15
+        F / F2 * 16^(2 * (V.dims[:left].P^2 - V2.dims[:left].P^2)), F_s / F2_s, rtol=1e-15
     ) # up to P-indep prefactors 16^(2P^2)*F_P^t = F_{\sqrt{2} P}^s
 end
 
@@ -143,13 +143,13 @@ end
 
     @test isapprox(
         evaluate(b, τ) / evaluate_series(b, τ),
-        q^(V0.δ[:left]) / etaDedekind(τ),
+        q^(V0.dims[:left].δ) / etaDedekind(τ),
         rtol=1e-50
     )
 
     @test isapprox(
         evaluate_der(b, τ),
-        q^(V0.δ[:left]) / etaDedekind(τ) * (hprime_byhand + 2 * V0.P[:left] * log(q) * h),
+        q^(V0.dims[:left].δ) / etaDedekind(τ) * (hprime_byhand + 2 * V0.dims[:left].P * log(q) * h),
         rtol=1e-30
     )
 
@@ -162,10 +162,10 @@ end
 @testset "Freg" begin
     V0 = Field(c, r=2, s=1)
     ϵ = 1e-40
-    δ0ϵ = V0.δ[:left] + ϵ
+    δ0ϵ = V0.dims[:left].δ + ϵ
     V0ϵ = Field(c, diagonal=true, δ=δ0ϵ)
     V0_s = Field(c_s, r=2 * V0.r, s=V0.s)
-    δ0_sϵ = V0_s.δ[:left] + ϵ
+    δ0_sϵ = V0_s.dims[:left].δ + ϵ
     V0_sϵ = Field(c_s, diagonal=true, δ=δ0_sϵ)
     b = Block(co, :s, V0, Nmax)
     bϵ = Block(co, :s, V0ϵ, Nmax)
@@ -221,8 +221,8 @@ end
     b_s = Block(co_s, :s, V_s, Nmax)
     b_op_s = Block(co_s, :s, Field(V_s.c, r=V_s.r, s=-V_s.s), Nmax)
 
-    P23 = V.P[:left]
-    P43_s = V_s.P[:left]
+    P23 = V.dims[:left].P
+    P43_s = V_s.dims[:left].P
 
     @test isapprox(
         evaluate_series(b[:left], τ2_cache),
@@ -307,10 +307,10 @@ end
     s_s = shift_D(co_s.fields, V_s)
 
     s_s / s
-    16^(8 / c.β * (V.P[:left] - 1/2/c.β))
+    16^(8 / c.β * (V.dims[:left].P - 1/2/c.β))
 
     @test isapprox(
-        s_s / s / 16^(8 / c.β * (V.P[:left] - 1 / 2 / c.β)), 1
+        s_s / s / 16^(8 / c.β * (V.dims[:left].P - 1 / 2 / c.β)), 1
     ) # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^-1/2))
 
     b = Block(co, :s, V, interchiral=true, Δmax=10)
@@ -324,7 +324,7 @@ end
     for i in 1:3
         @test isapprox(
             evaluate(b.blocks[i], 2τ) / prefactor,
-            evaluate(b_s.blocks[i], x) / prefactor_s * 16^(-4b.fields[i].P[:left]^2),
+            evaluate(b_s.blocks[i], x) / prefactor_s * 16^(-4b.fields[i].dims[:left].P^2),
             atol = 1e-20
         )
     end

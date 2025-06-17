@@ -98,7 +98,7 @@ x = big"0.3" + big"0.1" * im
     block_t = Block(cor, :t, V1, 12)
 
     z = 1e-8 + 1e-10im
-    Δ = V1.Δ[:left]
+    Δ = V1.dims[:left].Δ
 
     # both blocks should be close to one
     @test abs(1 - evaluate(block_s, z) * z^Δ * conj(z)^Δ) < 1e-5
@@ -151,8 +151,8 @@ end
 @testset "Regularised blocks" begin
     b = Block(co, :s, V, :left)
     ϵ = 1e-40
-    dϵ = ConformalDimension(c, δ=V.δ[:left] + ϵ)
-    dPϵ = ConformalDimension(c, P=V.P[:left] + ϵ)
+    dϵ = ConformalDimension(c, δ=V.dims[:left].δ + ϵ)
+    dPϵ = ConformalDimension(c, P=V.dims[:left].P + ϵ)
     dminus = ConformalDimension(c, r=V.r, s=-V.dims[:left].s)
     bϵ = Block(co[:left], :s, dϵ)
     bPϵ = Block(co[:left], :s, dPϵ)
@@ -167,7 +167,7 @@ end
 
     @test isapprox(
         evaluate(bPϵ, x),
-        co._Rmn[:left][:s][V.r, V.s] / 2 / V.P[:left] / ϵ * evaluate(bminus, x) +
+        co._Rmn[:left][:s][V.r, V.s] / 2 / V.dims[:left].P / ϵ * evaluate(bminus, x) +
         evaluate(b, x),
         rtol=1e-33
     )

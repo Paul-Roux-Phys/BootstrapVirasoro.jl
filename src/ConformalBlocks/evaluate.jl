@@ -53,9 +53,9 @@ function PositionCache(τ, _::OneDimension{T}, _::Symbol, Nmax) where {T}
     return PositionCache{T}(τ, prefactor, q, log(q), q_powers)
 end
 
-PositionCache(x, co::CorrelationChiral, chan) = PositionCache(x, co.dims, chan, co.Nmax)
+PositionCache(x, co::CorrelationChiral, chan) = PositionCache(x, co.fields, chan, co.Nmax)
 PositionCache(x, co::CorrelationNonChiral, chan) =
-    PositionCache(x, co[:left].dims, chan, co.Nmax)
+    PositionCache(x, co[:left].fields, chan, co.Nmax)
 PositionCache(x, b::Block) = PositionCache(x, b.corr, b.channel)
 
 function LRPositionCache(x, co::Correlation{T,U}, chan) where {T,U}
@@ -144,9 +144,9 @@ end
 
 function evaluate(b::LogarithmicBlock{T,U}, x::LRPositionCache)::T where {T,U}
     V = b.channel_field
-    r, s = V.indices
+    r, s = indices(V)
     s < 0 && return zero(T) # by convention G_(r, s<0) = 0
-    Prs = V.P[:left]
+    Prs = V.dims[:left].P
 
     Freg, Fbar = evaluate_lr(b, x)
     F, Fregbar = evaluate_lr_op(b, x)

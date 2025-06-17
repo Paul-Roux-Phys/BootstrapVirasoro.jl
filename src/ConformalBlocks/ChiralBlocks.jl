@@ -1,5 +1,7 @@
 struct ChiralBlock{T, U} <: Block{T, U}
 
+    c::CentralCharge{T}
+    fields::U
     corr::CorrelationChiral{T, U}
     channel::Symbol
     channel_dimension::ConformalDimension{T}
@@ -26,11 +28,11 @@ function ChiralBlock(
     if !isdegenerate(d)
         missing_terms = []
     else
-        r, s = d.indices
+        r, s = indices(d)
         missing_terms = [(N, r, s) in CNmn.keys ? CNmn[N, r, s] : zero(T) for N = 0:Nmax]
     end
 
-    ChiralBlock{T,U}(corr, chan, d, Nmax, coeffs, coeffs_der, missing_terms)
+    ChiralBlock{T,U}(corr.c, corr.fields, corr, chan, d, Nmax, coeffs, coeffs_der, missing_terms)
 end
 
 ChiralBlock(corr::CorrelationChiral, chan, d::ConformalDimension; der = false) =

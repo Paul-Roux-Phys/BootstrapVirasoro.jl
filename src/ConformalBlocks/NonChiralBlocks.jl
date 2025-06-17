@@ -29,15 +29,15 @@ function FactorizedBlock(co::Correlation{T,U}, chan, V, Nmax) where {T,U}
 end
 
 function islogarithmic(V::Field)
-    r, s = V.indices
-    !isdiagonal(V) && r*s != 0 && r%1 == s%1 == 0
+    r, s = indices(V)
+    !isdiagonal(V) && r*s != 0 && r%1 == s%1 == 0 && r > 0 && s > 0
 end
 
 islogarithmic(b::Block) = islogarithmic(b.channel_field)
 
 function isaccidentallynonlogarithmic(co, chan, V)
     !islogarithmic(V) && return false
-    return Rmn_zero_order(V.r, V.s, permute_dimensions(co[:left].dims, chan)) > 0
+    return Rmn_zero_order(V.r, V.s, permute_dimensions(co[:left].fields, chan)) > 0
 end
 
 isaccidentallynonlogarithmic(b) =
@@ -56,7 +56,7 @@ function LogarithmicBlock(co::CorrelationNonChiral{T,U}, chan, V, Nmax) where {T
             R = co._Rmn_reg[:left][chan][r, s]
             Rbar = co._Rmn_reg[:right][chan][r, s]
         end
-        nbzeros = Rmn_zero_order(r, s, left.dims)
+        nbzeros = Rmn_zero_order(r, s, left.fields)
         l = 0
     else
         leftder = ChiralBlock(co, chan, VV[2], :left, Nmax, der = true)
@@ -143,7 +143,7 @@ function ell(V::FourFields, chan, r, s)
     res -= sum(
         digamma_reg(
             1 // 2 + (lr == :left ? -1 : 1) *
-                (P_rs(r, j, β) + pm1 * V[a].P[lr] + pm2 * V[b].P[lr]) / β
+                (P_rs(r, j, β) + pm1 * V[a].dims[lr].P + pm2 * V[b].dims[lr].P) / β
         )
         for pm1 in (-1, 1) for pm2 in (-1, 1) for j = (1-s):2:(s-1) for
         (a, b) in ((1, 2), (3, 4)) for lr in (:left, :right)
@@ -164,7 +164,7 @@ function ell(V::OneField, chan, r, s)
             digamma_reg(
                 1//2 +
                 pm1 * inv(β)^2 / 2 +
-                (pm2 * V[1].P[lr] + 2 * (lr == :left ? -1 : 1) * P_rs(r, j, β)) / β,
+                (pm2 * V[1].dims[lr].P + 2 * (lr == :left ? -1 : 1) * P_rs(r, j, β)) / β,
             ) for j = (1-s):2:(s-1) for pm1 in (-1, 1) for pm2 in (-1, 1) for
             lr in (:left, :right)
         )

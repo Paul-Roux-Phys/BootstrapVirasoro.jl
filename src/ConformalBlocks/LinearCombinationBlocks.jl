@@ -1,4 +1,5 @@
 struct InterchiralBlock{T, U} <: Block{T, U}
+    fields::Vector{Field{T}}
     blocks::Vector{Block{T,U}}
     shifts::Vector{T}
     Δmax::T
@@ -6,6 +7,7 @@ struct InterchiralBlock{T, U} <: Block{T, U}
 end
 
 struct LinearCombinationBlock{T, U} <: Block{T, U}
+    channel_field::Field{T}
     blocks::Vector{Block{T,U}}
     coefficients::Vector{T}
 end
@@ -16,7 +18,7 @@ function my_mod2(s)
 end
 
 function LinearCombinationBlock(bs::Vector{<:Block{T,U}}, coeffs) where {T,U}
-    LinearCombinationBlock{T,U}(bs, coeffs)
+    LinearCombinationBlock{T,U}(bs[1].channel_field, bs, coeffs)
 end
 
 function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) where {T,U}
@@ -33,20 +35,20 @@ function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) whe
         V0 = Field(V.c, r = V.r, s = my_mod2(V.s))
     end
     Vshift = V0
-    D = 1
+    D = 1 
     if s_shift == 1
         error("Interchiral blocks with shifts s->s+1 not implemented")
     end
-    while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax)
+    while real(total_dimension(Vshift)) <= real(Δmax)
         push!(fields, Vshift)
         push!(shifts, D)
         D /= shift_D(extfields, Vshift)
         Vshift = shift(Vshift, s_shift)
     end
-    if !isdegenerate(V)
+    if !isdegenerate(V) && !islogarithmic(V)
         Vshift = shift(V0, -s_shift)
         D = shift_D(extfields, Vshift)
-        while real(Vshift.Δ[:left] + Vshift.Δ[:right]) <= real(Δmax)
+        while real(total_dimension(Vshift)) <= real(Δmax)
             push!(fields, Vshift)
             push!(shifts, D)
             Vshift = shift(Vshift, -s_shift)
@@ -59,7 +61,7 @@ function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) whe
     blocks = [Block(co, chan, V, Δmax = Δmax) for V in fields]
 
     W = typeof(co[:left]).parameters[2]
-    InterchiralBlock{T,W}(blocks, shifts, Δmax, s_shift)
+    InterchiralBlock{T,W}(fields, blocks, shifts, Δmax, s_shift)
 end
 
 islogarithmic(b::InterchiralBlock) = islogarithmic(b.blocks[1])
@@ -68,17 +70,12 @@ reflect(b::InterchiralBlock) = InterchiralBlock(
     b.corr, b.channel, reflect(b.blocks[1].channel_field), b.Δmax, b.shift
 )
 
-function Base.getproperty(b::LinearCombinationBlock, s::Symbol)
-    s === :channel_field && return b.blocks[1].channel_field
-    getfield(b, s)
-end
-
 function get_indices(V)
     β = V.c.β
     if isdiagonal(V)
-        return 0, 2*β*V.dim.P
+        return 0, 2*β*V.dims[:left].P
     else
-        return V.indices
+        return indices(V)
     end
 end
 
@@ -160,7 +157,7 @@ end
 
 function Base.getproperty(b::InterchiralBlock, s::Symbol)
     s === :fields && return [block.channel_field for block in getfield(b, :blocks)]
-    s === :indices && return [block.channel_field.indices for block in getfield(b, :blocks)]
+    s === :indices && return [indices(block.channel_field) for block in getfield(b, :blocks)]
     s in (:r, :s, :channel, :channel_field, :corr) &&
         return getproperty(getfield(b, :blocks)[1], s)
     s === :shift && return length(b.blocks) > 1 ?
@@ -181,7 +178,7 @@ function Base.show(io::IO, ::MIME"text/plain", b::InterchiralBlock)
         print(io, "Empty interchiral block")
     elseif isdiagonal(b.fields[1])
         println(io, "Interchiral block with channel $(b.channel) and fields")
-        print(io, "V_{P = $(V.P[:left]) + n/β}, n ∈ $(shift_range)}")
+        print(io, "V_{P = $(V.dims[:left].P) + n/β}, n ∈ $(shift_range)}")
     else
         println(io, "Interchiral block with channel $(b.channel) and fields")
         print(io, "{ V_{$(b.r), $(b.s) + s}, s ∈ $(shift_range) }")
@@ -197,7 +194,7 @@ function Base.show(io::IO, b::InterchiralBlock)
         print(io, "Empty interchiral block")
     elseif isdiagonal(b.fields[1])
         print(io, "G^(s)({ ")
-        print(io, "V_{P = $(V.P[:left]) + n/β}, n ∈ $(shift_range)})")
+        print(io, "V_{P = $(V.dims[:left].P) + n/β}, n ∈ $(shift_range)})")
     else
         print(io, "G^(s)({ ")
         print(io, "V_{$(b.r), $(b.s) + s}, s ∈ $(shift_range) })")

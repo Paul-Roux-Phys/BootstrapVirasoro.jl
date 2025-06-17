@@ -1,3 +1,22 @@
+struct BootstrapMatrix{T}
+    unknowns::Channels{Vector{Field{T}}}
+    LHS::Matrix{T}
+    RHS::Vector{T}
+end
+
+"""
+TODO
+"""
+mutable struct BootstrapSystem{T,U<:ChannelSpectrum{T}}
+    correlation::Correlation
+    positions::Vector{T}
+    positions_cache::Channels{Vector{LRPositionCache{T}}}        # positions at which eqs are evaluated
+    spectra::Channels{U}    # channel spectra
+    block_values::Channels{Dict{Field{T}, Vector{T}}} # all blocks evaluated at all positions
+    matrix::BootstrapMatrix{T}  # matrix of equations
+    consts::StructureConstants{T}
+end
+
 function BootstrapMatrix{T}() where {T}
     BootstrapMatrix{T}(
         Channels{Vector{Field{T}}}(
@@ -88,7 +107,7 @@ function BootstrapSystem(
     # blocks = evaluate_blocks(S, pos_cache)
     blocks = Channels{Dict{Field{T}, Vector{T}}}(Tuple(Dict{Field{T}, Vector{T}}() for chan in chans))
     matrix = BootstrapMatrix{T}()
-    return BootstrapSystem{T,U}(pos, pos_cache, S, blocks, matrix, knowns)
+    return BootstrapSystem{T,U}(co, pos, pos_cache, S, blocks, matrix, knowns)
 end
 
 function add!(sys::BootstrapSystem, chan, V)
@@ -131,9 +150,17 @@ function remove!(b::BootstrapSystem, chan, V)
     delete!(b.block_values[chan], V)
 end
 
+factor(_::Correlation{T, U}, chan, x) where {T, U<:FourPoints} = one(T)
+function factor(co::Correlation{T, U}, chan, τ) where {T, U<:OnePoint}
+    Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
+    chan === :t && return (-1)^(Δ₁) * τ^(-Δ₁) * τ^(-bΔ₁)
+    return one(T)
+end
+
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     chans = (:s, :t, :u)
     known_consts = b.consts
+    # facts = [factor(b.corr) 
 
     unknowns = Channels{Vector{Field{T}}}(Tuple(sort([
         V for V in fields(b.spectra[chan])

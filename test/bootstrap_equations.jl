@@ -46,8 +46,8 @@ end
 
 function C_shift_test(V1, V2, V3)
     β = V1.c.β
-    P1, P2, P3 = V1.P[:left], V2.P[:left], V3.P[:left]
-    bP1, bP2, bP3 = V1.P[:right], V2.P[:right], V3.P[:right]
+    P1, P2, P3 = V1.dims[:left].P, V2.dims[:left].P, V3.dims[:left].P
+    bP1, bP2, bP3 = V1.dims[:right].P, V2.dims[:right].P, V3.dims[:right].P
     prod(
         gamma_reg(1//2 - (bP3 + pm1 * bP2 + pm2 * bP1) / β) / 
             gamma_reg(1//2 - (P3 + pm1 * P2 + pm2 * P1) / β) 
@@ -62,8 +62,8 @@ shift_C123(V2, V2, V)
 C_shift_test(V2, V2, V)
 
 function D_ratio(r, s, V1, V2, V3, V4)
-    P1, P2, P3, P4 = V1.P[:left], V2.P[:left], V3.P[:left], V4.P[:left]
-    bP1, bP2, bP3, bP4 = V1.P[:right], V2.P[:right], V3.P[:right], V4.P[:right]
+    P1, P2, P3, P4 = V1.dims[:left].P, V2.dims[:left].P, V3.dims[:left].P, V4.dims[:left].P
+    bP1, bP2, bP3, bP4 = V1.dims[:right].P, V2.dims[:right].P, V3.dims[:right].P, V4.dims[:right].P
     prod(
         gamma_reg(-ϵ * B * r + η * s)^(-ϵ) *
         gamma_reg((1 - η) / 2 - (ϵ * r + η) * B - s)^(-ϵ)

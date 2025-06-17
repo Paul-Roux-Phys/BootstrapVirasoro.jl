@@ -92,7 +92,7 @@ end
 function Rmn_term_reg(r, s, i, j, d::FourDimensions)
     (r != 0 || s != 0) && begin
         signs = reg_signs(r, s, i, j, d)
-        r0, s0 = -signs[2] .* d[i].indices .- signs[2] * signs[1] .* d[j].indices
+        r0, s0 = -signs[2] .* indices(d[i]) .- signs[2] * signs[1] .* indices(d[j])
         P = ConformalDimension(d[1].c, r = r0, s = s0).P
         return 8 * signs[1] * signs[2] * d[i].P * d[j].P * P
     end

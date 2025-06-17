@@ -1,3 +1,33 @@
+"""
+    Spectrum(fields, Δmax; interchiral=false)
+
+Abstract type for representing a CFT spectrum.
+
+# examples
+
+```jldoctest
+julia> c = CentralCharge(β=1/(big"0.8"+big"0.1"*im));
+
+julia> V1 = Field(c, r=2, s=0);
+
+julia> co = Correlation(V1, Δmax=10.);
+
+julia> fields = [Field(c, r=r, s=s) for r in 2:30 for s in -1+1//r:1//r:1 if r*s% 1 == 0];
+
+julia> s = Spectrum(fields, 10.0)
+Non-diagonal:
+(2, -1//2), (2, 0), (2, 1//2), (2, 1)
+(3, -2//3), (3, -1//3), (3, 0), (3, 1//3), (3, 2//3), (3, 1)
+
+julia> add!(s, Field(c, r=1, s=0)); s
+Non-diagonal:
+(1, 0)
+(2, -1//2), (2, 0), (2, 1//2), (2, 1)
+(3, -2//3), (3, -1//3), (3, 0), (3, 1//3), (3, 2//3), (3, 1)
+```
+"""
+abstract type Spectrum{T} end
+
 struct BulkSpectrum{T} <: Spectrum{T}
     Δmax::T
     fields::Set{Field{T}}
@@ -10,6 +40,13 @@ end
 
 Spectrum{T}(Δmax::T, ds::Set{CD{T}}) where {T} = BoundarySpectrum{T}(Δmax, ds) 
 Spectrum{T}(Δmax::T, ds::Set{Field{T}}) where {T} = BulkSpectrum{T}(Δmax, ds) 
+
+function hasdiagonals(s::Spectrum)
+    for V in s.fields
+        V.diagonal && return true
+    end
+    return false
+end
 
 """
         Holds all the data for evaluating blocks in a channel.
@@ -46,7 +83,7 @@ _add!(s::Union{Spectrum,ChannelSpectrum}, fields...; kwargs...) = foreach(V -> _
 
 """
         add!(s, fields)
-add one or several fields to the `Spectrum` or `ChannelSpectrum` s, in-place.
+dd one or several fields to the `Spectrum` or `ChannelSpectrum` s, in-place.
 """
 add!(s, fields; kwargs...) = _add!(s, fields; kwargs...)
 
@@ -59,6 +96,13 @@ function add(s, fields; kwargs...)
     s2 = deepcopy(s)
     add!(s2, fields; kwargs...)
     return s2
+end
+
+function hasdiagonals(s::ChannelSpectrum)
+    for V in keys(s.blocks)
+        V.diagonal && return true
+    end
+    return false
 end
 
 function Spectrum(fields::AbstractArray{Field{T}}, Δmax; interchiral=false) where {T}
@@ -182,7 +226,7 @@ end
 
 
 function Base.show(io::IO, s::BulkSpectrum)
-    nondiags = sort([V.indices for V in s.fields if !isdiagonal(V)], by = x -> (x[1], x[2]))
+    nondiags = sort([indices(V) for V in s.fields if !isdiagonal(V)], by = x -> (x[1], x[2]))
     diags = sort(
         [V for V in s.fields if isdiagonal(V) && !isdegenerate(V)],
         by = V -> real(total_dimension(V)),
