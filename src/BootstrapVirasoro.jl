@@ -45,7 +45,7 @@ export Correlation,
     evaluate_der
 
 # Spectra
-export Spectrum, ChannelSpectrum, ChannelSpectra, add!, remove!
+export Spectrum, ChannelSpectrum, ChannelSpectra, add!, remove!, fields
 
 # Bootstrap equations and solver.
 export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!, write_csv

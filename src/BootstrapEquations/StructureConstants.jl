@@ -57,13 +57,14 @@ function Base.show(io::IO, c::StructureConstants{T}) where {T}
         end
 
         # Print channel header
+        println(io, repeat('=', 9 + length(string(chan))))
         println(io, "Channel $(chan)")
         println(io, repeat('=', 9 + length(string(chan))))
 
         # Print column headers
-        label1 = rpad("Fields", max_label_width)
-        label2 = rpad("Structure constants", str_cst_col_width)
-        label3 = rpad("Relative errors", str_cst_col_width)
+        label1 = rpad("Field", max_label_width)
+        label2 = rpad("Structure constant", str_cst_col_width)
+        label3 = rpad("Relative error", str_cst_col_width)
         println(io, "$label1 | $label2  | $label3")
         println(io, repeat("-", max_label_width+2*str_cst_col_width))
 
@@ -71,7 +72,7 @@ function Base.show(io::IO, c::StructureConstants{T}) where {T}
         for V in all_Vs
             label = rpad(string(V), max_label_width)
             value = format_complex(c[chan][V])
-            error = format_complex(c.errors[chan][V])
+            error = @sprintf("%.2e", c.errors[chan][V])
             println(io, "$label | $value | $error")
         end
     end
@@ -85,7 +86,7 @@ function write_csv(io::IO, c::StructureConstants{T}) where {T}
         io,
         "chan,r,s,isdiagonal,isdegenerate,real(structureconstant)," *
         "imag(structureconstant)," *
-        "real(err),imag(err)",
+        "err",
     )
     for chan in sort(collect(chans), by = string)
         for V in keys(c[chan])
@@ -93,12 +94,12 @@ function write_csv(io::IO, c::StructureConstants{T}) where {T}
                 continue
             end
             sc = c[chan][V]
-            err = c.errors[chan][V]
+            err = real(c.errors[chan][V])
             println(
                 io,
                 "$(chan),$(V.r),$(V.s),$(isdiagonal(V)),$(isdegenerate(V))," *
                 "$(real(sc)),$(imag(sc))," *
-                "$(real(err)),$(imag(err))",
+                "$err",
             )
         end
     end

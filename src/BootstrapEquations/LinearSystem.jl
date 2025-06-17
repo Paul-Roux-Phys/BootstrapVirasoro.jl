@@ -1,6 +1,6 @@
 function BootstrapMatrix{T}() where {T}
     BootstrapMatrix{T}(
-        Channels{Vector{Tuple{Int,Field{T}}}}(
+        Channels{Vector{Field{T}}}(
             Tuple(Vector{Field{T}}() for chan in (:s, :t, :u)),
         ),
         Matrix{T}(undef, 0, 0),
@@ -8,49 +8,30 @@ function BootstrapMatrix{T}() where {T}
     )
 end
 
-# function evaluate_blocks(bs::Vector{Block{T}}, xs) where {T}
-#     nbs = length(bs)
-#     results = Vector{Vector{T}}(undef, nbs)
+function evaluate_blocks(bs::Dict, xs)
+    T = typeof(bs).parameters[1].parameters[1]
+    nbs = length(bs)
+    results = Dict{Field{T},Vector{T}}()
 
-#     Threads.@threads for i in 1:nbs
-#         b = bs[i]
-#         results[i] = [b(x) for x in xs]
-#     end
-
-#     return results
-# end
-
-function evaluate_blocks(bs::Vector{Block{T}}, xs) where {T}
-    nthreads = Threads.nthreads()
-    chunks = [bs[i:nthreads:end] for i = 1:nthreads]
-
-    results_chunks = Vector{Vector{Vector{T}}}(undef, nthreads)
-
-    Threads.@threads for tid = 1:nthreads
-        local_chunk = chunks[tid]
-        local_results = Vector{Vector{T}}(undef, length(local_chunk))
-        for (j, b) in enumerate(local_chunk)
-            local_results[j] = [b(x) for x in xs]
-        end
-        results_chunks[tid] = local_results
+    for b in values(bs)
+        results[b.channel_field] = [b(x) for x in xs]
     end
 
-    # Flatten result while preserving order
-    return reduce(vcat, results_chunks)
+    return results
 end
 
 function evaluate_blocks(S::Channels{U}, xs) where {T,U<:ChannelSpectrum{T}}
-    return Channels{Vector{Vector{T}}}(
-        Tuple(evaluate_blocks(S[chan].blocks, xs[chan]) for chan in keys(S)),
-    )
+    return Channels{Dict{Field{T}, Vector{T}}}(Tuple(
+        evaluate_blocks(S[chan].blocks, xs[chan]) for chan in keys(S)
+    ))
 end
 
 function evaluate_blocks!(sys::BootstrapSystem)
-    sys.blocks = evaluate_blocks(sys.spectra, sys.positions_cache)
-    return sys.blocks
+    sys.block_values = evaluate_blocks(sys.spectra, sys.positions_cache)
+    return sys.block_values
 end
 
-function new_random_point!(random_points, N; transfo = missing, square = true)
+function new_random_point!(random_points, N; transfo=missing, square=true)
     xmin, xmax, sep = square ? (0.1, 0.5, 0.2) : (-0.4, 1.4, 0.4)
     while true
         z = xmin + (xmax - xmin) * rand() + (1 + 4 * rand()) * im / 10
@@ -69,19 +50,19 @@ N = the number of points.
 function = a function that we may apply on the points
 square = whether to use a square (otherwise, a rectangle)
 """
-function random_points(N; transfo = missing, square = true)
+function random_points(N; transfo=missing, square=true)
     res = []
     for _ = 1:N
-        new_random_point!(res, N, transfo = transfo, square = square)
+        new_random_point!(res, N, transfo=transfo, square=square)
     end
     return transfo !== missing ? transfo.(res) : res
 end
 
 function BootstrapSystem(
     S::Channels{U};
-    knowns = nothing,
-    extrapoints::Int = 6,
-    pos = nothing,
+    knowns=nothing,
+    extrapoints::Int=6,
+    pos=nothing,
 ) where {T,U<:ChannelSpectrum{T}}
     # if consts is empty, normalise the field with smallest indices
     chans = keys(S)
@@ -91,7 +72,7 @@ function BootstrapSystem(
     end
     nb_unknowns = [length(s) for s in S]
     nb_unknowns .-= length.([knowns[chan] for chan in chans])
-    nb_lines = 2 * ((sum(nb_unknowns)+extrapoints) ÷ 2)
+    nb_lines = 2 * ((sum(nb_unknowns) + extrapoints) ÷ 2)
     if pos !== nothing
         nb_positions = length(pos)
     else
@@ -104,150 +85,122 @@ function BootstrapSystem(
     pos_cache = Channels{Vector{LRPositionCache{T}}}(
         Tuple([LRPositionCache(x, S[i].corr, chans[i]) for x in pos_chan[i]] for i = 1:3),
     )
-    blocks = evaluate_blocks(S, pos_cache)
+    # blocks = evaluate_blocks(S, pos_cache)
+    blocks = Channels{Dict{Field{T}, Vector{T}}}(Tuple(Dict{Field{T}, Vector{T}}() for chan in chans))
     matrix = BootstrapMatrix{T}()
     return BootstrapSystem{T,U}(pos, pos_cache, S, blocks, matrix, knowns)
 end
 
-function add!(b::BootstrapSystem, chan, V)
-    new_block = add!(b.spectra[chan], V)
+function add!(sys::BootstrapSystem, chan, V)
+    new_block = add!(sys.spectra[chan], V)
     if isnothing(new_block)
         error("trying to add already present block")
         return
     end
     # add a new position
-    new_random_point!(b.positions, length(b.positions))
-    new_pos = b.positions[end]
+    new_random_point!(sys.positions, length(sys.positions))
+    new_pos = sys.positions[end]
     for chan in (:s, :t, :u)
-        new_pos_cache = LRPositionCache(new_pos, b.spectra[chan].corr, chan)
-        push!(b.positions_cache[chan], new_pos_cache)
+        new_pos_cache = LRPositionCache(new_pos, sys.spectra[chan].corr, chan)
+        push!(sys.positions_cache[chan], new_pos_cache)
     end
     for chan in (:s, :t, :u)
         # evaluate previous blocks at the new position
-        for v in b.blocks[chan]
-            push!(v, new_block(new_pos))
+        new_pos = sys.positions_cache[chan][end]
+        for v in sys.block_values[chan]
+            push!(v, v(new_pos))
         end
     end
     # evaluate the new block at all positions
-    push!(b.blocks[chan], [new_block(x) for x in b.positions_cache[chan]])
+    sys.block_values[chan][V] = [new_block(x) for x in sys.positions_cache[chan]]
 end
 
 function remove!(b::BootstrapSystem, chan, V)
-    idx = remove!(b.spectra[chan], V)
-    if isnothing(idx)
-        error("the block you are trying to remove is not present")
-        return
-    end
+    remove!(b.spectra[chan], V)
     pop!(b.positions)
     for chan in (:s, :t, :u)
         pop!(b.positions_cache[chan])
     end
     # remove one position for all blocks
     for chan in (:s, :t, :u)
-        for v in b.blocks[chan]
+        for v in b.block_values[chan]
             pop!(v)
         end
     end
     # remove the block
-    deleteat!(b.blocks[chan], idx);
+    delete!(b.block_values[chan], V)
 end
 
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     chans = (:s, :t, :u)
     known_consts = b.consts
 
-    unknowns = Channels{Vector{Tuple{Int,Field{T}}}}(
-        Tuple(
-            [
-                (i, V) for (i, V) in enumerate(b.spectra[chan].fields) if
-                !(V in keys(known_consts[chan]))
-            ] for chan in chans
-        ),
-    )
+    unknowns = Channels{Vector{Field{T}}}(Tuple(sort([
+        V for V in fields(b.spectra[chan])
+        if !(V in keys(known_consts[chan]))
+            ], by=V->real(total_dimension(V))) for chan in chans
+    ))
 
-    # if no consts are known, fix a normalisation: first str cst in the 1st-channel = 1
+    # if no consts are known, fix a normalisation: first str cst in the s channel = 1
     if all([isempty(known_consts[chan]) for chan in chans])
-        idx, V_norm = sort(unknowns[chans[1]], by = iV->real(total_dimension(iV[2])))[1]
-        fix!(known_consts, chans[1], V_norm, 1)
+        smallest_dim = reduce(
+            (V1, V2) -> real(total_dimension(V1)) < real(total_dimension(V2)) ? V1 : V2, unknowns[:s]
+        )
+        fix!(known_consts, :s, smallest_dim, 1)
         b.consts = known_consts
-        deleteat!(unknowns[chans[1]], idx)
+        idx = findfirst(==(smallest_dim), unknowns[:s])
+        deleteat!(unknowns[:s], idx)
     end
 
-    knowns = Channels{Vector{Tuple{Int,Field{T}}}}(
-        Tuple(
-            [
-                (i, V) for (i, V) in enumerate(b.spectra[chan].fields) if
-                V in keys(known_consts[chan])
-            ] for chan in chans
-        ),
-    )
+    knowns = Channels{Vector{Field{T}}}(Tuple([
+            V for V in fields(b.spectra[chan])
+            if V in keys(b.consts[chan])
+        ] for chan in chans
+    ))
 
     nb_positions = length(b.positions)
     nb_lines = nb_positions * (length(chans) - 1)
     nb_unknowns = [length(s) for s in b.spectra]
     nb_unknowns .-= length.([known_consts[chan] for chan in chans])
 
-    # # solve Σ_unknowns (chan1 - chan2) = Σ_knowns (chan2 - chan1)
-    # # and Σ_unknowns (chan1 - chan3) = Σ_knowns (chan2 - chan3)
+    # matrix of equations Σ_unknowns (chan1 - chan2) = Σ_knowns (chan2 - chan1)
+    # and Σ_unknowns (chan1 - chan3) = Σ_knowns (chan3 - chan1)
     zer = zeros(T, nb_positions)
 
-    # # Form the matrix
-    # # [ G^s -G^t  0  ;
-    # #   G^s  0   -G^u ]
+    # Form the matrix
+    # [ G^s -G^t  0  ;
+    #   G^s  0   -G^u ]
     LHS = Matrix{T}(undef, nb_lines, sum(nb_unknowns))
-    blocks = b.blocks[:s]
-    _unknowns = unknowns[:s]
-    for i = 1:length(_unknowns)
-        LHS[1:nb_positions, i] = blocks[_unknowns[i][1]]
-        LHS[(nb_positions+1):end, i] = blocks[_unknowns[i][1]]
+    col_idx = 1
+    for V in unknowns[:s]
+        LHS[1:nb_positions, col_idx] = b.block_values[:s][V]
+        LHS[(nb_positions+1):end, col_idx] = b.block_values[:s][V]
+        col_idx += 1
     end
-    blocks = b.blocks[:t]
-    _unknowns = unknowns[:t]
-    for i = 1:length(_unknowns)
-        LHS[1:nb_positions, nb_unknowns[1]+i] = .- blocks[_unknowns[i][1]]
-        LHS[(nb_positions+1):end, nb_unknowns[1]+i] = zer
+    for V in unknowns[:t]
+        LHS[1:nb_positions, col_idx] = .- b.block_values[:t][V]
+        LHS[(nb_positions+1):end, col_idx] = zer
+        col_idx += 1
     end
-    blocks = b.blocks[:u]
-    _unknowns = unknowns[:u]
-    for i = 1:length(_unknowns)
-        LHS[1:nb_positions, nb_unknowns[1]+nb_unknowns[2]+i] = zer
-        LHS[(nb_positions+1):end, nb_unknowns[1]+nb_unknowns[2]+i] =
-            .- blocks[_unknowns[i][1]]
+    for V in unknowns[:u]
+        LHS[1:nb_positions, col_idx] = zer
+        LHS[(nb_positions+1):end, col_idx] = .-b.block_values[:u][V]
+        col_idx += 1
     end
 
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
     RHS = Vector{T}(undef, 2nb_positions)
     for i = 1:nb_positions
-        res = zero(T)
-        for j = 1:length(knowns[:s])
-            res -= b.blocks[:s][knowns[:s][j][1]][i]
-        end
-        for j = 1:length(knowns[:t])
-            res += b.blocks[:t][knowns[:t][j][1]][i]
-        end
-        RHS[i] = res
-        res = zero(T)
-        for j = 1:length(knowns[:s])
-            res -= b.blocks[:s][knowns[:s][j][1]][i]
-        end
-        for j = 1:length(knowns[:t])
-            res += b.blocks[:t][knowns[:t][j][1]][i]
-        end
-        RHS[i+nb_positions] = res
+        RHS[i] = sum(b.block_values[:t][V][i] for V in knowns[:t]; init=zero(T))
+        RHS[i] -= sum(b.block_values[:s][V][i] for V in knowns[:s]; init=zero(T))
+        RHS[i+nb_positions] = sum(b.block_values[:u][V][i] for V in knowns[:u]; init=zero(T))
+        RHS[i+nb_positions] -= sum(b.block_values[:s][V][i] for V in knowns[:s]; init=zero(T))
     end
-    # RHS = vcat(
-    #     [sum(b.blocks[chans[i]][knowns[chans[i]][j][1]] for j in 1:length(knowns[chans[i]]); init=zer) .-
-    #      sum(b.blocks[chans[1]][knowns[chans[i]][j][1]] for j in 1:length(knowns[chans[1]]); init=zer)
-    #      for i in 2:length(chans)]...
-    # )
 
     b.matrix = BootstrapMatrix{T}(unknowns, LHS, RHS)
-
-    # b.matrix.LHS = LHS
-    # b.matrix.RHS = RHS;
 end
 
-function solve!(s::BootstrapSystem; precision_factor = 1)
+function solve!(s::BootstrapSystem; precision_factor=1)
     @info "system size: $(size(s.matrix.LHS))"
     # solve for two different sets of positions
     LHS, RHS = s.matrix.LHS, s.matrix.RHS
@@ -270,8 +223,8 @@ function solve!(s::BootstrapSystem; precision_factor = 1)
     chans = keys(s.spectra)
     nb_unknowns = vcat([0], [length(mat.unknowns[chan]) for chan in chans])
     for (i, chan) in enumerate(chans)
-        for (j, V) in mat.unknowns[chan]
-            index = sum(nb_unknowns[k] for k = 1:(i-1); init = 0) + j
+        for (j, V) in enumerate(mat.unknowns[chan])
+            index = sum(nb_unknowns[k] for k = 1:(i-1); init=0) + j
             s.consts[chan][V] = sol1[index]
             s.consts.errors[chan][V] = errors[index]
         end
@@ -280,5 +233,5 @@ end
 
 function clear!(b::BootstrapSystem{T}) where {T}
     b.consts = StructureConstants(b.spectra)
-    b.matrix = BootstrapMatrix{T}([chan for chan in keys(b.spectra)]);
+    b.matrix = BootstrapMatrix{T}([chan for chan in keys(b.spectra)])
 end

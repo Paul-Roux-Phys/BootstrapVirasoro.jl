@@ -5,18 +5,24 @@ end
 
 struct BoundarySpectrum{T} <: Spectrum{T}
     Δmax::T
-    fields::Vector{ConformalDimension{T}}
+    fields::Set{ConformalDimension{T}}
 end
+
+Spectrum{T}(Δmax::T, ds::Set{CD{T}}) where {T} = BoundarySpectrum{T}(Δmax, ds) 
+Spectrum{T}(Δmax::T, ds::Set{Field{T}}) where {T} = BulkSpectrum{T}(Δmax, ds) 
 
 """
         Holds all the data for evaluating blocks in a channel.
 """
 struct ChannelSpectrum{T,U}
     Δmax::T
-    corr::Correlation{T,U}
+    corr::Correlation
     channel::Symbol
     blocks::Dict{Field{T},Block{T,U}}
 end
+
+fields(s::Spectrum) = s.fields
+fields(s::ChannelSpectrum) = keys(s.blocks)
 
 function _add_one!(s::Spectrum, V)
     if !(V in s.fields) && real(total_dimension(V)) < real(s.Δmax)
@@ -26,9 +32,9 @@ function _add_one!(s::Spectrum, V)
 end
 
 function _add_one!(s::ChannelSpectrum, V; kwargs...)
-    if !(V in s.fields) && real(total_dimension(V)) < real(s.Δmax)
+    if !(V in fields(s)) && real(total_dimension(V)) < real(s.Δmax)
         b = Block(s.corr, s.channel, V; kwargs...)
-        s.blocks[V] = b
+        (s.blocks)[V] = b
         return b
     end
 end
@@ -55,7 +61,7 @@ function add(s, fields; kwargs...)
     return s2
 end
 
-function Spectrum(fields::Vector{Field{T}}, Δmax; interchiral=false) where {T}
+function Spectrum(fields::AbstractArray{Field{T}}, Δmax; interchiral=false) where {T}
     s = BulkSpectrum{T}(Δmax, Set{Field{T}}())
     if interchiral
         foreach(V -> if -1 < V.s <= 1
@@ -67,7 +73,7 @@ function Spectrum(fields::Vector{Field{T}}, Δmax; interchiral=false) where {T}
     return s
 end
 
-function Spectrum(fields::Vector{CD{T}}, Δmax; interchiral=false) where {T}
+function Spectrum(fields::AbstractArray{CD{T}}, Δmax; interchiral=false) where {T}
     s = BoundarySpectrum{T}(Δmax, [])
     if interchiral
         foreach(V -> if -1 < V.s <= 1
@@ -79,37 +85,29 @@ function Spectrum(fields::Vector{CD{T}}, Δmax; interchiral=false) where {T}
     return s
 end
 
+function ChannelSpectrum(co::Correlation{T,U}, Δmax::Number, chan; kwargs...) where {T,U}
+    W = typeof(co[:left]).parameters[2]
+    return ChannelSpectrum{T, W}(Δmax, co, chan, Dict{Field{T},Block{T, W}}())
+end
+
 function ChannelSpectrum(co::Correlation, s::Spectrum{T}, chan; kwargs...) where {T}
-    schan = ChannelSpectrum{T}(s.Δmax, co, chan, Dict{Field{T},Block}())
-    for i in eachindex(s.fields)
-        add!(schan, s.fields[i]; kwargs...)
+    schan = ChannelSpectrum(co, s.Δmax, chan; kwargs...)
+    for V in fields(s)
+        add!(schan, V; kwargs...)
     end
     return schan
 end
 
-function Spectrum(s::ChannelSpectrum{T}) where {T}
-    return Spectrum(Vector{Field{T}}(s.fields), s.Δmax)
-end
-
-function Base.getproperty(s::ChannelSpectrum, p::Symbol)
-    p === :fields && return [b.channel_field for b in s.blocks]
-    getfield(s, p)
+function Spectrum(s::ChannelSpectrum{T,U}) where {T,U}
+    return Spectrum{T}(s.Δmax, Set(fields(s)))
 end
 
 function _remove_one!(s::Spectrum, V)
-    idx = findfirst(==(V), s.fields)
-    if idx !== nothing
-        deleteat!(s.fields, idx)
-    end
-    return idx
+    delete!(s.fields, V)
 end
 
 function _remove_one!(s::ChannelSpectrum, V)
-    idx = findfirst(==(V), s.fields)
-    if idx !== nothing
-        deleteat!(s.blocks, idx)
-    end
-    return idx
+    delete!(s.blocks, V)
 end
 
 _remove!(s::Union{Spectrum,ChannelSpectrum}, V) = _remove_one!(s, V)
@@ -134,15 +132,26 @@ function remove(s, fields)
     return s2
 end
 
-Base.length(s::Union{Spectrum,ChannelSpectrum}) = length(s.fields)
-Base.size(s::Union{Spectrum,ChannelSpectrum}) = size(s.fields)
+Base.length(s::Spectrum) = length(s.fields)
+Base.length(s::ChannelSpectrum) = length(s.blocks)
+Base.size(s::Spectrum) = size(s.fields)
+Base.size(s::ChannelSpectrum) = size(s.blocks)
 nb_blocks(s::ChannelSpectrum) = sum(length(b) for b in s.blocks)
 
-function ChannelSpectra(co, s::Spectrum{T}; signature = (s = 0, t = 0, u = 0)) where {T}
+function ChannelSpectra(
+    co, s::Spectrum{T}, signature=(s=0, t=0, u=0);
+    kwargs...
+) where {T}
     chans = (:s, :t, :u)
-    schan = Channels{ChannelSpectrum{T}}(
-        Tuple(ChannelSpectrum{T}(s.Δmax, co, chan, s.interchiral, []) for chan in chans),
-    )
+    schan = Channels{ChannelSpectrum{T}}(Tuple(
+        ChannelSpectrum(co, s.Δmax, chan; kwargs...)
+        for chan in chans
+            ))
+    exclude = nothing
+    if haskey(kwargs, :exclude)
+        exclude = kwargs[:exclude]
+    end
+    kwargs = (; (k => v for (k, v) in kwargs if k != :exclude)...)
 
     # Launch one task per channel
     tasks = map(chans) do chan
@@ -152,8 +161,14 @@ function ChannelSpectra(co, s::Spectrum{T}; signature = (s = 0, t = 0, u = 0)) w
                 cond =
                     isdiagonal(V) ? (V1.r + V2.r) % 1 == 0 && signature[chan] == 0 :
                     (V.r + V1.r + V2.r) % 1 == 0 && V.r >= signature[chan]
+                if haskey(kwargs, :parity) && kwargs[:parity] != 0
+                    cond = cond && V.s >= 0
+                end
+                if !isnothing(exclude) && haskey(exclude, chan)
+                    cond = cond && !(V in exclude[chan])
+                end
                 if cond
-                    add!(schan[chan], V)
+                    add!(schan[chan], V; kwargs...)
                 end
             end
         end

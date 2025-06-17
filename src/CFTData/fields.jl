@@ -140,10 +140,12 @@ total_dimension(V::Field) = V.Δ[:left] + V.Δ[:right]
 # Implement the hashing interface (for Dict, Set)
 function Base.isequal(a::Field, b::Field)
     d = (a.diagonal == b.diagonal)
-    l = (a.dims[:left] == b.dims[:left])
-    r = (a.dims[:right] == b.dims[:right])
+    l = isequal(a.dims[:left], b.dims[:left])
+    r = isequal(a.dims[:right], b.dims[:right])
     return d && l && r
 end
+
+Base.:(==)(V1::Field, V2::Field) = isequal(V1, V2)
 
 function Base.hash(V::Field, h::UInt)
     # hash using the string representation

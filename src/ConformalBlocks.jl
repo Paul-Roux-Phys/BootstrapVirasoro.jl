@@ -127,7 +127,7 @@ function Block(
             b = Block(co, chan, d, lr, Nmax)
         end
     end
-    parity == 0 && return b
+    (parity == 0 || d.s <= 0 || islogarithmic(b) || isdegenerate(b)) && return b
     b_refl = reflect(b)
     return LinearCombinationBlock([b, b_refl], [one(T), parity*one(T)])
 end
@@ -136,3 +136,6 @@ end
 function (b::Block)(args...)
     evaluate(b, args...)
 end
+
+isdegenerate(b::Block) = isdegenerate(b.channel_field)
+isdiagonal(b::Block) = isdiagonal(b.channel_field)

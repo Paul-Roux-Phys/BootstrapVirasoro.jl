@@ -124,6 +124,8 @@ function Base.isequal(a::CD, b::CD)
     return c && p && k
 end
 
+Base.:(==)(V1::CD, V2::CD) = isequal(V1, V2)
+
 function Base.hash(d::CD, h::UInt)
     str = sprint(show, d)
     return hash(str, h)

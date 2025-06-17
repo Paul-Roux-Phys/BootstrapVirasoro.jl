@@ -37,6 +37,7 @@ struct CentralCharge{T}
     B::T
     b::T
     c::T
+    n::T
 end
 # convenience alias
 const CC = CentralCharge

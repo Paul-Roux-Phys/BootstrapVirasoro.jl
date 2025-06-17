@@ -41,7 +41,7 @@ end
 include("BootstrapEquations/StructureConstants.jl")
 
 struct BootstrapMatrix{T}
-    unknowns::Channels{Vector{Tuple{Int,Field{T}}}}
+    unknowns::Channels{Vector{Field{T}}}
     LHS::Matrix{T}
     RHS::Vector{T}
 end
@@ -49,11 +49,11 @@ end
 """
 TODO
 """
-struct BootstrapSystem{T,U<:ChannelSpectrum{T}}
+mutable struct BootstrapSystem{T,U<:ChannelSpectrum{T}}
     positions::Vector{T}
     positions_cache::Channels{Vector{LRPositionCache{T}}}        # positions at which eqs are evaluated
     spectra::Channels{U}    # channel spectra
-    blocks::Channels{Vector{Vector{T}}} # all blocks evaluated at all positions
+    block_values::Channels{Dict{Field{T}, Vector{T}}} # all blocks evaluated at all positions
     matrix::BootstrapMatrix{T}  # matrix of equations
     consts::StructureConstants{T}
 end

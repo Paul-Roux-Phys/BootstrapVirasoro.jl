@@ -133,12 +133,12 @@ end
     evaluate(bs[:left], x.left), evaluate(bs[:right], x.right)
 @inline evaluate_lr_der(bs::LeftRight{ChiralBlock}, x::LRPositionCache) =
     evaluate_der(bs[:left], x.left), evaluate_der(bs[:right], x.right)
-@inline evaluate_lr(b::BlockFactorized, x) = evaluate_lr(b.chiral_blocks, x)
+@inline evaluate_lr(b::FactorizedBlock, x) = evaluate_lr(b.chiral_blocks, x)
 @inline evaluate_lr(b::LogarithmicBlock, x) = evaluate_lr(b.chiral_blocks, x)
 @inline evaluate_lr_op(b::LogarithmicBlock, x) = evaluate_lr(b.chiral_blocks_op, x)
 @inline evaluate_lr_der(b::LogarithmicBlock, x) = evaluate_lr_der(b.chiral_blocks_der, x)
 
-@inline function evaluate(b::BlockFactorized{T,U}, x::LRPositionCache)::T where {T,U}
+@inline function evaluate(b::FactorizedBlock{T,U}, x::LRPositionCache)::T where {T,U}
     return prod(evaluate_lr(b, x))
 end
 

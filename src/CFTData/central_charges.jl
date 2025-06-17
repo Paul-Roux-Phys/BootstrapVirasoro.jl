@@ -19,14 +19,7 @@ function Bto(s::Symbol, x)
     s === :c && return 13+6*x+6/x
     s === :b && return rx
     s === :B && return x
-end
-
-
-function Base.getproperty(c::CC, s::Symbol)
-    β = getfield(c, :β)
-    s in (:β, :c, :B, :b) && return getfield(c, s)
-    s === :n && return -2*cos(π*β^2)
-    error("$s is not a supported parametrisation of the central charge")
+    s === :n && return -2cos(π*x)
 end
 
 function CentralCharge(s::Symbol, x)
@@ -34,16 +27,16 @@ function CentralCharge(s::Symbol, x)
     β = Bto(:β, B)
     b = Bto(:b, B)
     c = Bto(:c, B)
-    CentralCharge(β, B, b, c)
+    n = Bto(:n, B)
+    CentralCharge(β, B, b, c, n)
 end
 
-"""
-"""
-function CentralCharge(; β = missing, c = missing, B = missing, b = missing)
+function CentralCharge(; β = missing, c = missing, B = missing, b = missing, n = missing)
     β !== missing && return CentralCharge(:β, β)
     c !== missing && return CentralCharge(:c, c)
     B !== missing && return CentralCharge(:B, B)
     b !== missing && return CentralCharge(:b, b)
+    n !== missing && return CentralCharge(:n, n)
     return CentralCharge(:c, 1)
 end
 

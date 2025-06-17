@@ -1,6 +1,6 @@
 abstract type NonChiralBlock{T,U} <: Block{T,U} end
 
-struct BlockFactorized{T,U} <: NonChiralBlock{T,U}
+struct FactorizedBlock{T,U} <: NonChiralBlock{T,U}
 
     Nmax::Int
     channel_field::Field{T}
@@ -22,10 +22,10 @@ struct LogarithmicBlock{T,U} <: NonChiralBlock{T,U}
 
 end
 
-function BlockFactorized(co::Correlation{T,U}, chan, V, Nmax) where {T,U}
+function FactorizedBlock(co::Correlation{T,U}, chan, V, Nmax) where {T,U}
     left, right = Tuple(ChiralBlock(co, chan, V, lr, Nmax) for lr in (:left, :right))
     W = typeof(co[:left]).parameters[2]
-    BlockFactorized{T,W}(Nmax, V, LeftRight((left, right)))
+    FactorizedBlock{T,W}(Nmax, V, LeftRight((left, right)))
 end
 
 function islogarithmic(V::Field)
@@ -83,13 +83,13 @@ function LogarithmicBlock(co::CorrelationNonChiral{T,U}, chan, V, Nmax) where {T
     )
 end
 
-reflect(b::NonChiralBlock) = BlockFactorized(b.corr, b.channel, reflect(b.channel_field), b.Nmax)
+reflect(b::NonChiralBlock) = FactorizedBlock(b.corr, b.channel, reflect(b.channel_field), b.Nmax)
 
 function NonChiralBlock(co, chan, V, Nmax)
     if islogarithmic(V)
         LogarithmicBlock(co, chan, V, Nmax)
     else
-        BlockFactorized(co, chan, V, Nmax)
+        FactorizedBlock(co, chan, V, Nmax)
     end
 end
 
@@ -130,21 +130,22 @@ end
 """Factor ``\\ell_{(r,s)}`` that appears in logarithmic blocks"""
 ell(b::Block, r, s) = ell(b.corr.fields, b.channel, r, s)
 
-"""Factor \ell_{(r,s)} that appears in logarithmic blocks"""
 function ell(V::FourFields, chan, r, s)
     V = permute_fields(V, chan)
     β = V[1].c.β
+    βsq = β^2
     res = 4 * (π / tan(s * (π / β^2)))
     res +=
         4 * sum(
-            digamma_reg(-2 * P_rs(r, j, β) / β) + digamma_reg(2 * P_rs(r, -j, β) / β) for
-            j = (1-s):s
-        )
+        digamma_reg(-r + j/βsq) + digamma_reg(r + j/βsq) for
+        j = (1-s):s
+    )
     res -= sum(
         digamma_reg(
-            1 // 2 +
-            (lr == :left ? -1 : 1) * (P_rs(r, j, β) + pm1 * V[a].P[lr] + pm2 * V[b].P[lr]) / β,
-        ) for pm1 in (-1, 1) for pm2 in (-1, 1) for j = (1-s):2:(s-1) for
+            1 // 2 + (lr == :left ? -1 : 1) *
+                (P_rs(r, j, β) + pm1 * V[a].P[lr] + pm2 * V[b].P[lr]) / β
+        )
+        for pm1 in (-1, 1) for pm2 in (-1, 1) for j = (1-s):2:(s-1) for
         (a, b) in ((1, 2), (3, 4)) for lr in (:left, :right)
     )
     res / β

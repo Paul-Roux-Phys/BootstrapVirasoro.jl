@@ -62,9 +62,16 @@ function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) whe
     InterchiralBlock{T,W}(blocks, shifts, Δmax, s_shift)
 end
 
+islogarithmic(b::InterchiralBlock) = islogarithmic(b.blocks[1])
+
 reflect(b::InterchiralBlock) = InterchiralBlock(
     b.corr, b.channel, reflect(b.blocks[1].channel_field), b.Δmax, b.shift
 )
+
+function Base.getproperty(b::LinearCombinationBlock, s::Symbol)
+    s === :channel_field && return b.blocks[1].channel_field
+    getfield(b, s)
+end
 
 function get_indices(V)
     β = V.c.β
@@ -190,9 +197,17 @@ function Base.show(io::IO, b::InterchiralBlock)
         print(io, "Empty interchiral block")
     elseif isdiagonal(b.fields[1])
         print(io, "G^(s)({ ")
-        print(io, "V_{P = $(V.P[:left]) + n/β}, n ∈ $(shift_range)}")
+        print(io, "V_{P = $(V.P[:left]) + n/β}, n ∈ $(shift_range)})")
     else
         print(io, "G^(s)({ ")
-        print(io, "{ V_{$(b.r), $(b.s) + s}, s ∈ $(shift_range) }")
+        print(io, "V_{$(b.r), $(b.s) + s}, s ∈ $(shift_range) })")
+    end
+end
+
+function Base.show(io::IO, b::LinearCombinationBlock)
+    coeffs = [if c ≈ round(Int, c) round(Int, c) else c end for c in b.coefficients]
+    print(io, "($(coeffs[1])) * $(b.blocks[1])")
+    for (i, bl) in enumerate(b.blocks[2:end])
+        print(io, " + ($(coeffs[i])) * $bl")
     end
 end
