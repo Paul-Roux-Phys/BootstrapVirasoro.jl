@@ -31,7 +31,9 @@ in a Julia script, or
 
 ```julia-repl
 julia> ]add BarnesDoubleGamma
+# or
 julia> ]add https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl.git
 ```
 
 in a Julia REPL.
+Installing directly from git will ensure you have the most up-to-date version, while the version on the Julia registry is kept more stable.
