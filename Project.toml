@@ -1,7 +1,7 @@
 name = "BootstrapVirasoro"
 uuid = "ca6c609c-7c6b-4ea6-be06-ee6e3ced7d6c"
 authors = ["Paul_Roux"]
-version = "0.0.1"
+version = "0.0.2"
 
 [deps]
 BarnesDoubleGamma = "8c4ec0a7-3a81-41b6-9d5f-01f75984e8d3"
