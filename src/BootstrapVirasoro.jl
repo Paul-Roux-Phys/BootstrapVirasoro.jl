@@ -85,17 +85,17 @@ end
 # The exported methods and types are found in the following included files.
 # The files also document the exported methods
 # CFT Data: central charges, conformal dimensions, fields
-include("CFTData/CentralCharges.jl")
-include("CFTData/ConformalDimensions.jl")
-include("CFTData/Fields.jl")
+include("CFTData/central_charges.jl")
+include("CFTData/conformal_dimensions.jl")
+include("CFTData/fields.jl")
 
 # Conformal blocks
 # AbstractBlocks serve as an interface to all types of blocks.
-include("ConformalBlocks/AbstractBlocks.jl")
+include("ConformalBlocks/abstract_blocks.jl")
 
 # Linear bootstrap equations
 include("BootstrapEquations/Spectrum.jl")
-include("BootstrapEquations/StructureConstants.jl")
-include("BootstrapEquations/LinearSystem.jl")
+include("BootstrapEquations/structure_constants.jl")
+include("BootstrapEquations/linear_system.jl")
 
 end

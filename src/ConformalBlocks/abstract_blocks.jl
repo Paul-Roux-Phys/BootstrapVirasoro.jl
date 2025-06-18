@@ -28,10 +28,10 @@ abstract type Block{T, U} end # general conformal block. Can be interchiral, non
 N_max(d::CD, Δmax) = max(0, ceil(Int, real(Δmax - d.Δ)))
 N_max(V::Field, Δmax) = max(0, ceil(Int, real(Δmax - total_dimension(V))))
 
-include("Correlations.jl")
-include("ChiralBlocks.jl")
-include("NonChiralBlocks.jl")
-include("LinearCombinationBlocks.jl")
+include("correlations.jl")
+include("chiral_blocks.jl")
+include("non_chiral_blocks.jl")
+include("linear_combination_blocks.jl")
 include("evaluate.jl")
 
 Block(co::Corr, chan::Symbol, d::CD, Nmax::Int) = ChiralBlock(co, chan, d, Nmax)

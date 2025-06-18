@@ -176,7 +176,10 @@ end
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     chans = (:s, :t, :u)
     known_consts = b.consts
-    # facts = [factor(b.corr) 
+    facts = Dict(
+        chan => [factor(b.correlation, chan, pos) for pos in b.positions]
+        for chan in chans
+    )
 
     unknowns = Channels{Vector{Field{T}}}(Tuple(sort([
         V for V in fields(b.spectra[chan])
@@ -216,18 +219,18 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     LHS = Matrix{T}(undef, nb_lines, sum(nb_unknowns))
     col_idx = 1
     for V in unknowns[:s]
-        LHS[1:nb_positions, col_idx] = b.block_values[:s][V]
-        LHS[(nb_positions+1):end, col_idx] = b.block_values[:s][V]
+        LHS[1:nb_positions, col_idx] = facts[:s] .* b.block_values[:s][V]
+        LHS[(nb_positions+1):end, col_idx] = facts[:s] .* b.block_values[:s][V]
         col_idx += 1
     end
     for V in unknowns[:t]
-        LHS[1:nb_positions, col_idx] = .- b.block_values[:t][V]
+        LHS[1:nb_positions, col_idx] = .- facts[:t] .* b.block_values[:t][V]
         LHS[(nb_positions+1):end, col_idx] = zer
         col_idx += 1
     end
     for V in unknowns[:u]
         LHS[1:nb_positions, col_idx] = zer
-        LHS[(nb_positions+1):end, col_idx] = .-b.block_values[:u][V]
+        LHS[(nb_positions+1):end, col_idx] = .- facts[:u] .* b.block_values[:u][V]
         col_idx += 1
     end
 
