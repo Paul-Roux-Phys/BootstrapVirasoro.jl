@@ -30,10 +30,22 @@ end
 function evaluate_blocks(bs::Dict, xs)
     T = typeof(bs).parameters[1].parameters[1]
     nbs = length(bs)
-    results = Dict{Field{T},Vector{T}}()
 
-    for b in values(bs)
-        results[b.channel_field] = [b(x) for x in xs]
+    # Preallocate thread-local results
+    thread_results = [Dict{Field{T}, Vector{T}}() for _ in 1:Threads.nthreads()]
+
+    bs_vals = collect(values(bs))
+
+    Threads.@threads for i in 1:nbs
+        b = bs_vals[i]
+        tid = Threads.threadid()
+        thread_results[tid][b.channel_field] = [b(x) for x in xs]
+    end
+
+    # Merge all thread-local dictionaries into a single result
+    results = Dict{Field{T}, Vector{T}}()
+    for d in thread_results
+        merge!(results, d)
     end
 
     return results
@@ -101,9 +113,13 @@ function BootstrapSystem(
     pos_chan = Channels{Vector{T}}(
         Tuple([channel_position(x, co, chan) for x in pos] for chan in keys(S)),
     )
-    pos_cache = Channels{Vector{LRPositionCache{T}}}(
-        Tuple([LRPositionCache(x, S[i].corr, chans[i]) for x in pos_chan[i]] for i = 1:3),
-    )
+    # compute position cache
+    pos_cache_data = Vector{Vector{LRPositionCache{T}}}(undef, length(S)) # result container
+    Threads.@threads for i = 1:3
+        chan = chans[i]
+        pos_cache_data[i] = [LRPositionCache(x, S[i].corr, chan) for x in pos_chan[i]]
+    end
+    pos_cache = Channels{Vector{LRPositionCache{T}}}(Tuple(pos_cache_data))
     # blocks = evaluate_blocks(S, pos_cache)
     blocks = Channels{Dict{Field{T}, Vector{T}}}(Tuple(Dict{Field{T}, Vector{T}}() for chan in chans))
     matrix = BootstrapMatrix{T}()
@@ -228,7 +244,6 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
 end
 
 function solve!(s::BootstrapSystem; precision_factor=1)
-    @info "system size: $(size(s.matrix.LHS))"
     # solve for two different sets of positions
     LHS, RHS = s.matrix.LHS, s.matrix.RHS
     if precision_factor > 1

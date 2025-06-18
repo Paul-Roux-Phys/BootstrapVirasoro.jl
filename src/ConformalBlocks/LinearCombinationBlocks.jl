@@ -39,16 +39,16 @@ function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) whe
     if s_shift == 1
         error("Interchiral blocks with shifts s->s+1 not implemented")
     end
-    while real(total_dimension(Vshift)) <= real(Δmax)
+    while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) <= real(Δmax)
         push!(fields, Vshift)
         push!(shifts, D)
         D /= shift_D(extfields, Vshift)
         Vshift = shift(Vshift, s_shift)
     end
-    if !isdegenerate(V) && !islogarithmic(V)
+    if !isdegenerate(V) && !(V.r isa Int && V.s isa Int)
         Vshift = shift(V0, -s_shift)
         D = shift_D(extfields, Vshift)
-        while real(total_dimension(Vshift)) <= real(Δmax)
+        while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) <= real(Δmax)
             push!(fields, Vshift)
             push!(shifts, D)
             Vshift = shift(Vshift, -s_shift)
@@ -66,13 +66,13 @@ end
 
 islogarithmic(b::InterchiralBlock) = islogarithmic(b.blocks[1])
 
-reflect(b::InterchiralBlock) = InterchiralBlock(
-    b.corr, b.channel, reflect(b.blocks[1].channel_field), b.Δmax, b.shift
+reflect(b::InterchiralBlock) = Block(
+    b.corr, b.channel, reflect(b.blocks[1].channel_field), interchiral=true, Δmax = b.Δmax
 )
 
 function get_indices(V)
     β = V.c.β
-    if isdiagonal(V)
+    if isdegenerate(V)
         return 0, 2*β*V.dims[:left].P
     else
         return indices(V)

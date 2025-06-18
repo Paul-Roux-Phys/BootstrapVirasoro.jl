@@ -135,7 +135,7 @@ function ChannelSpectrum(co::Correlation{T,U}, Δmax::Number, chan; kwargs...) w
 end
 
 function ChannelSpectrum(co::Correlation, s::Spectrum{T}, chan; kwargs...) where {T}
-    schan = ChannelSpectrum(co, s.Δmax, chan; kwargs...)
+    schan = ChannelSpectrum(co, co.Nmax, chan; kwargs...)
     for V in fields(s)
         add!(schan, V; kwargs...)
     end
