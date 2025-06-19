@@ -39,7 +39,7 @@ function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) whe
     if s_shift == 1
         error("Interchiral blocks with shifts s->s+1 not implemented")
     end
-    while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) <= real(Δmax)
+    while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) < real(Δmax)
         push!(fields, Vshift)
         push!(shifts, D)
         D /= shift_D(extfields, Vshift)
@@ -48,7 +48,7 @@ function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) whe
     if !isdegenerate(V) && !(V.r isa Int && V.s isa Int)
         Vshift = shift(V0, -s_shift)
         D = shift_D(extfields, Vshift)
-        while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) <= real(Δmax)
+        while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) < real(Δmax)
             push!(fields, Vshift)
             push!(shifts, D)
             Vshift = shift(Vshift, -s_shift)

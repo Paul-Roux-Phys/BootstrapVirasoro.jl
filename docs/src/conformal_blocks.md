@@ -237,3 +237,11 @@ $$\begin{align}
 \end{align}$$
 
 where $P_1$ is the momentum of the external field.
+
+### The `Block` type
+
+The package defines a type `Block` which is an abstract type for all kinds of conformal blocks.
+
+```@docs
+Block
+```

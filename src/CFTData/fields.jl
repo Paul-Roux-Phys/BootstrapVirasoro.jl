@@ -211,9 +211,9 @@ function Base.show(io::IO, V::Field)
     if isdiagonal(V)
         if V.isKac
             if isdegenerate(V)
-                print(io, "<$(V.r), $(V.s)>")
+                print(io, "V_{<$(V.r), $(V.s)>}")
             else
-                print(io, "($(V.r), $(V.s))")
+                print(io, "V_{($(V.r), $(V.s))}")
             end
         else
             print(io, "V_{P=$(V.dims[:left].P)}")

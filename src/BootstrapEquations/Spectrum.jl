@@ -182,15 +182,30 @@ Base.size(s::Spectrum) = size(s.fields)
 Base.size(s::ChannelSpectrum) = size(s.blocks)
 nb_blocks(s::ChannelSpectrum) = sum(length(b) for b in s.blocks)
 
+function field_compatible_with_signature(
+    co::Correlation{T,U}, V, signature, chan
+) where {T,U<:FourPoints}
+    V1, V2, _, _ = permute_fields(co.fields, chan)
+    return isdiagonal(V) ? (V1.r + V2.r) % 1 == 0 && signature[chan] == 0 :
+                    (V.r + V1.r + V2.r) % 1 == 0 && V.r >= signature[chan]
+end
+
+function field_compatible_with_signature(
+    co::Correlation{T,U}, V, signature, chan
+) where {T,U<:OnePoint}
+    return isdiagonal(V) ? signature[chan] == 0 :
+                    V.r % 1 == signature[chan] && V.r >= signature[chan]
+end
+
 function ChannelSpectra(
-    co, s::Spectrum{T}, signature=(s=0, t=0, u=0);
+    co, s::Channels{<:Spectrum{T}}, signature=(s=0, t=0, u=0);
     kwargs...
 ) where {T}
     chans = (:s, :t, :u)
     schan = Channels{ChannelSpectrum{T}}(Tuple(
-        ChannelSpectrum(co, s.Δmax, chan; kwargs...)
+        ChannelSpectrum(co, s.s.Δmax, chan; kwargs...)
         for chan in chans
-            ))
+    ))
     exclude = nothing
     if haskey(kwargs, :exclude)
         exclude = kwargs[:exclude]
@@ -200,11 +215,8 @@ function ChannelSpectra(
     # Launch one task per channel
     tasks = map(chans) do chan
         Threads.@spawn begin
-            V1, V2, V3, V4 = permute_fields(co.fields, chan)
-            for V in s.fields
-                cond =
-                    isdiagonal(V) ? (V1.r + V2.r) % 1 == 0 && signature[chan] == 0 :
-                    (V.r + V1.r + V2.r) % 1 == 0 && V.r >= signature[chan]
+            for V in s[chan].fields
+                cond = field_compatible_with_signature(co, V, signature, chan)
                 if haskey(kwargs, :parity) && kwargs[:parity] != 0
                     cond = cond && V.s >= 0
                 end
@@ -224,6 +236,8 @@ function ChannelSpectra(
     return schan
 end
 
+ChannelSpectra(co, S::Spectrum, signature=(s=0, t=0, u=0); kwargs...) =
+    ChannelSpectra(co, (s=S, t=S, u=S), signature; kwargs...)
 
 function Base.show(io::IO, s::BulkSpectrum)
     nondiags = sort([indices(V) for V in s.fields if !isdiagonal(V)], by = x -> (x[1], x[2]))

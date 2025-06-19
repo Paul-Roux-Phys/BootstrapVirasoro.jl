@@ -14,7 +14,7 @@ mutable struct BootstrapSystem{T,U<:ChannelSpectrum{T}}
     spectra::Channels{U}    # channel spectra
     block_values::Channels{Dict{Field{T}, Vector{T}}} # all blocks evaluated at all positions
     matrix::BootstrapMatrix{T}  # matrix of equations
-    consts::StructureConstants{T}
+    structure_constants::StructureConstants{T}
 end
 
 function BootstrapMatrix{T}() where {T}
@@ -175,7 +175,7 @@ end
 
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     chans = (:s, :t, :u)
-    known_consts = b.consts
+    known_consts = b.structure_constants
     facts = Dict(
         chan => [factor(b.correlation, chan, pos) for pos in b.positions]
         for chan in chans
@@ -193,14 +193,14 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
             (V1, V2) -> real(total_dimension(V1)) < real(total_dimension(V2)) ? V1 : V2, unknowns[:s]
         )
         fix!(known_consts, :s, smallest_dim, 1)
-        b.consts = known_consts
+        b.structure_constants = known_consts
         idx = findfirst(==(smallest_dim), unknowns[:s])
         deleteat!(unknowns[:s], idx)
     end
 
     knowns = Channels{Vector{Field{T}}}(Tuple([
             V for V in fields(b.spectra[chan])
-            if V in keys(b.consts[chan])
+            if V in keys(b.structure_constants[chan])
         ] for chan in chans
     ))
 
@@ -270,13 +270,15 @@ function solve!(s::BootstrapSystem; precision_factor=1)
     for (i, chan) in enumerate(chans)
         for (j, V) in enumerate(mat.unknowns[chan])
             index = sum(nb_unknowns[k] for k = 1:(i-1); init=0) + j
-            s.consts[chan][V] = sol1[index]
-            s.consts.errors[chan][V] = errors[index]
+            s.structure_constants[chan][V] = sol1[index]
+            s.structure_constants.errors[chan][V] = errors[index]
         end
     end
+
+    return s.structure_constants
 end
 
 function clear!(b::BootstrapSystem{T}) where {T}
-    b.consts = StructureConstants(b.spectra)
+    b.structure_constants = StructureConstants(b.spectra)
     b.matrix = BootstrapMatrix{T}([chan for chan in keys(b.spectra)])
 end
