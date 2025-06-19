@@ -1,4 +1,5 @@
 struct InterchiralBlock{T, U} <: Block{T, U}
+    channel::Symbol
     fields::Vector{Field{T}}
     blocks::Vector{Block{T,U}}
     shifts::Vector{T}
@@ -7,6 +8,7 @@ struct InterchiralBlock{T, U} <: Block{T, U}
 end
 
 struct LinearCombinationBlock{T, U} <: Block{T, U}
+    channel::Symbol
     channel_field::Field{T}
     blocks::Vector{Block{T,U}}
     coefficients::Vector{T}
@@ -18,7 +20,7 @@ function my_mod2(s)
 end
 
 function LinearCombinationBlock(bs::Vector{<:Block{T,U}}, coeffs) where {T,U}
-    LinearCombinationBlock{T,U}(bs[1].channel_field, bs, coeffs)
+    LinearCombinationBlock{T,U}(bs[1].channel, bs[1].channel_field, bs, coeffs)
 end
 
 function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) where {T,U}
@@ -61,7 +63,7 @@ function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) whe
     blocks = [Block(co, chan, V, Δmax = Δmax) for V in fields]
 
     W = typeof(co[:left]).parameters[2]
-    InterchiralBlock{T,W}(fields, blocks, shifts, Δmax, s_shift)
+    InterchiralBlock{T,W}(chan, fields, blocks, shifts, Δmax, s_shift)
 end
 
 islogarithmic(b::InterchiralBlock) = islogarithmic(b.blocks[1])
@@ -158,10 +160,15 @@ end
 function Base.getproperty(b::InterchiralBlock, s::Symbol)
     s === :fields && return [block.channel_field for block in getfield(b, :blocks)]
     s === :indices && return [indices(block.channel_field) for block in getfield(b, :blocks)]
-    s in (:r, :s, :channel, :channel_field, :corr) &&
+    s in (:r, :s, :channel, :channel_field, :corr, :correlation) &&
         return getproperty(getfield(b, :blocks)[1], s)
     s === :shift && return length(b.blocks) > 1 ?
            Int(abs(getfield(b, :blocks)[2].s - getfield(b, :blocks)[1].s)) : 2
+    getfield(b, s)
+end
+
+function Base.getproperty(b::LinearCombinationBlock, s::Symbol)
+    s === :correlation && return getfield(b, :blocks)[1].correlation
     getfield(b, s)
 end
 

@@ -282,3 +282,5 @@ function clear!(b::BootstrapSystem{T}) where {T}
     b.structure_constants = StructureConstants(b.spectra)
     b.matrix = BootstrapMatrix{T}([chan for chan in keys(b.spectra)])
 end
+
+compute_reference!(sys::BootstrapSystem) = compute_reference!(sys.structure_constants, sys.spectra)

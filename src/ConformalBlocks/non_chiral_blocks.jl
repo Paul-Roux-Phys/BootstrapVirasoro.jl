@@ -3,6 +3,7 @@ abstract type NonChiralBlock{T,U} <: Block{T,U} end
 struct FactorizedBlock{T,U} <: NonChiralBlock{T,U}
 
     Nmax::Int
+    correlation::Correlation
     channel_field::Field{T}
     chiral_blocks::LeftRight{ChiralBlock{T,U}}
 
@@ -11,6 +12,7 @@ end
 struct LogarithmicBlock{T,U} <: NonChiralBlock{T,U}
 
     Nmax::Int
+    correlation::Correlation
     channel_field::Field{T}
     chiral_blocks::LeftRight{ChiralBlock{T,U}} # blocks for V_(r, s) x V_(r, -s)
     chiral_blocks_op::LeftRight{ChiralBlock{T,U}} # blocks for V_(r, -s) x V_(r, s)
@@ -25,7 +27,7 @@ end
 function FactorizedBlock(co::Correlation{T,U}, chan, V, Nmax) where {T,U}
     left, right = Tuple(ChiralBlock(co, chan, V, lr, Nmax) for lr in (:left, :right))
     W = typeof(co[:left]).parameters[2]
-    FactorizedBlock{T,W}(Nmax, V, LeftRight((left, right)))
+    FactorizedBlock{T,W}(Nmax, co, V, LeftRight((left, right)))
 end
 
 function islogarithmic(V::Field)
@@ -72,6 +74,7 @@ function LogarithmicBlock(co::CorrelationNonChiral{T,U}, chan, V, Nmax) where {T
     W = typeof(co[:left]).parameters[2]
     LogarithmicBlock{T,W}(
         Nmax,
+        co,
         V,
         LeftRight((left, right)),
         LeftRight((left_op, right_op)),

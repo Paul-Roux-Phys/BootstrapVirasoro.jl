@@ -90,7 +90,7 @@ end
 function modular_param(chan, τ)
     chan === :s && return τ
     chan === :t && return -1/τ
-    chan === :u && return τ+1
+    chan === :u && return τ/(τ+1)
 end
 channel_position(x, _::Correlation{T,U}, chan,) where {T,U<:FourPoints} =
     crossratio(chan, x)

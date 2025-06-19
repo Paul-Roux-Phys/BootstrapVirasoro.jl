@@ -1,4 +1,5 @@
 [deps]
+BarnesDoubleGamma = "8c4ec0a7-3a81-41b6-9d5f-01f75984e8d3"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 BootstrapVirasoro = "ca6c609c-7c6b-4ea6-be06-ee6e3ced7d6c"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"

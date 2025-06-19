@@ -12,6 +12,7 @@ This file presents the whole user-interface of the package.
 module BootstrapVirasoro
 
 using EllipticFunctions,
+    BarnesDoubleGamma,
     DataFrames,
     CSV
 

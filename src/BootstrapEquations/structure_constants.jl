@@ -34,10 +34,29 @@ end
 Base.length(c::StructureConstants) =
     sum(length(c.constants[chan]) for chan in keys(c.constants))
 
-function compute_reference!(c::StructureConstants, b::Block)
+function compute_reference!(c::StructureConstants, b::Block, DG)
     chan = b.channel
     V = b.channel_field
-    c.reference[chan][V] = compute_reference(b)
+    c.reference[chan][V] = compute_reference(b, DG)
+end
+
+function compute_reference!(c::StructureConstants, S::ChannelSpectrum, DG)
+    for b in values(S.blocks)
+        chan = b.channel
+        V = b.channel_field
+        if V in keys(c.constants[chan]) && real(c.errors[chan][V]) < 1e-4 &&
+            real(total_dimension(V)) < real(S.Δmax)/3
+            compute_reference!(c, b, DG)
+        end
+    end
+end
+
+function compute_reference!(c::StructureConstants, S::Channels{<:ChannelSpectrum})
+    β = S[1].corr.c.β
+    DG = DoubleGamma(β)
+    for chan in keys(S)
+        compute_reference!(c, S[chan], DG)
+    end
 end
 
 function to_dataframe(c::StructureConstants)

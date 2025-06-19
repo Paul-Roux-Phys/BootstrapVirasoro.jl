@@ -1,5 +1,3 @@
-import BarnesDoubleGamma: digamma_reg, gamma
-
 const ExtDimensions{T} = Tuple{Vararg{ConformalDimension{T}}} # tuples of dimensions
 const FourDimensions{T} = NTuple{4,ConformalDimension{T}}
 const OneDimension{T} = Tuple{ConformalDimension{T}}
