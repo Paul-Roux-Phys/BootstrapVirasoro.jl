@@ -1,19 +1,17 @@
-struct ChiralBlock{T, U} <: Block{T, U}
-
+struct ChiralBlock{T,U} <: Block{T,U}
     c::CentralCharge{T}
-    fields::U
-    corr::CorrelationChiral{T, U}
-    channel::Symbol
+    corr::CorrelationChiral{T,U}
     channel_dimension::ConformalDimension{T}
-    Nmax::Int
+    fields::U
     _coefficients::Vector{T}
     _coefficients_der::Vector{T}
     _missing_terms::Vector{T}
-
+    channel::Symbol
+    Nmax::Int
 end
 
 function ChiralBlock(
-    corr::CorrelationChiral{T, U},
+    corr::CorrelationChiral{T,U},
     chan::Symbol,
     d::ConformalDimension,
     Nmax::Int;
@@ -29,17 +27,34 @@ function ChiralBlock(
         missing_terms = []
     else
         r, s = indices(d)
-        missing_terms = [(N, r, s) in CNmn.keys ? CNmn[N, r, s] : zero(T) for N = 0:Nmax]
+        missing_terms =
+            [(N, r, s) in CNmn.keys ? CNmn[N, r, s] : zero(T) for N = 0:Nmax]
     end
 
-    ChiralBlock{T,U}(corr.c, corr.fields, corr, chan, d, Nmax, coeffs, coeffs_der, missing_terms)
+    ChiralBlock{T,U}(
+        corr.c,
+        corr,
+        d,
+        corr.fields,
+        coeffs,
+        coeffs_der,
+        missing_terms,
+        chan,
+        Nmax,
+    )
 end
 
 ChiralBlock(corr::CorrelationChiral, chan, d::ConformalDimension; der = false) =
     ChiralBlock(corr, chan, d, corr.Nmax, der = der)
 
-ChiralBlock(corr::CorrelationChiral, chan, V::Field, lr::Symbol, Nmax::Int; der = false) =
-    ChiralBlock(corr, chan, V.dims[lr], Nmax, der = der)
+ChiralBlock(
+    corr::CorrelationChiral,
+    chan,
+    V::Field,
+    lr::Symbol,
+    Nmax::Int;
+    der = false,
+) = ChiralBlock(corr, chan, V.dims[lr], Nmax, der = der)
 
 ChiralBlock(corr::CorrelationNonChiral, chan, V::Field, lr, Nmax; der = false) =
     ChiralBlock(corr[lr], chan, V.dims[lr], Nmax, der = der)

@@ -11,13 +11,9 @@ This file presents the whole user-interface of the package.
 
 module BootstrapVirasoro
 
-using EllipticFunctions,
-    BarnesDoubleGamma,
-    DataFrames,
-    CSV
+using EllipticFunctions, BarnesDoubleGamma, DataFrames, CSV
 
 using GenericLinearAlgebra: qr
-
 
 # CFT Data: Central charges, conformal dimensions, fields.
 export LeftRight,
@@ -48,20 +44,10 @@ export Correlation,
     evaluate_der
 
 # Spectra
-export Spectrum,
-    ChannelSpectrum,
-    ChannelSpectra,
-    add!,
-    remove!,
-    fields,
-    hasdiagonals
+export Spectrum, ChannelSpectrum, ChannelSpectra, add!, remove!, fields, hasdiagonals
 
 # Bootstrap equations and solver.
-export BootstrapSystem,
-    evaluate_blocks!,
-    compute_linear_system!,
-    solve!,
-    write_csv
+export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!, write_csv
 
 """
         LeftRight{T}

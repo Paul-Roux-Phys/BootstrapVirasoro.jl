@@ -5,7 +5,8 @@ Type for representing a non-chiral field.
 
 # keyword arguments:
 
-- `r::Rational`,`s::Rational`. By convention ``V_{(r,s)}`` has left and right momenta ``(P_{(r,s)}, P_{(r,-s)})``.
+- `r::Rational`,`s::Rational`. By convention ``V_{(r,s)}`` has
+left and right momenta ``(P_{(r,s)}, P_{(r,-s)})``.
 - `diagonal::Bool`: set to `true` to get a diagonal field;
 
 # Examples
@@ -32,10 +33,10 @@ true
 struct Field{T}
     c::CentralCharge{T}
     dims::LeftRight{ConformalDimension{T}}
+    r::Union{Rational,Int}
+    s::Union{T,Rational,Int}
     diagonal::Bool
     degenerate::Bool
-    r::Union{Rational, Int}
-    s::Union{T, Rational, Int}
     isKac::Bool
 end
 
@@ -43,10 +44,10 @@ function Field(
     c::CC{T},
     sym::Symbol,
     dim;
-    r=missing,
-    s=missing,
-    degenerate=false,
-    diagonal=false,
+    r = missing,
+    s = missing,
+    degenerate = false,
+    diagonal = false,
 ) where {T}
     if degenerate # degenerate fields are diagonal and must be given from Kac indices
         @assert (r !== missing && s !== missing) "
@@ -57,10 +58,10 @@ function Field(
     if ismissing(r) ⊻ ismissing(s) # xor
         error("You cannot give only r or only s, you must give both")
     end
-    if ismissing(r) && ismissing(s) || r== 0
+    if ismissing(r) && ismissing(s) || r == 0
         diagonal = true
     end
-    dim_left = ConformalDimension(c, sym, dim, r=r, s=s)
+    dim_left = ConformalDimension(c, sym, dim, r = r, s = s)
     if diagonal
         diagonal = true
         dim_right = dim_left
@@ -71,49 +72,56 @@ function Field(
         "
         r * s % 1 != 0 &&
             @info "You defined a field with non-integer r*s, is that intentional?"
-        dim_right = ConformalDimension(c, sym, dim_left, r=r, s=-s)
+        dim_right = ConformalDimension(c, sym, dim_left, r = r, s = -s)
     end
     if ismissing(r) || ismissing(s)
         r, s = 0, 2c.β * dim_left.P
     end
-    degenerate = r % 1 == 0 && real(s) % 1 == 0 &&
-                 imag(s) == 0 && r > 0 &&
-                 s > 0 && diagonal
+    degenerate =
+        r % 1 == 0 && real(s) % 1 == 0 && imag(s) == 0 && r > 0 && s > 0 && diagonal
     r, s = indices(dim_left)
     isKac = dim_left.isKac && dim_right.isKac
 
-    Field{T}(c, LeftRight((dim_left, dim_right)), diagonal, degenerate, r, s, isKac)
+    Field{T}(c, LeftRight((dim_left, dim_right)), r, s, diagonal, degenerate, isKac)
 end
 
 function Field(
     c::CC;
-    r=missing,
-    s=missing,
-    diagonal=false,
-    degenerate=false,
-    Δ=missing,
-    δ=missing,
-    P=missing,
-    p=missing,
+    r = missing,
+    s = missing,
+    diagonal = false,
+    degenerate = false,
+    Δ = missing,
+    δ = missing,
+    P = missing,
+    p = missing,
 )
     r !== missing &&
         s !== missing &&
-        return Field(c, :Δ, 0, r=r, s=s, degenerate=degenerate, diagonal=diagonal)
-    Δ !== missing && return Field(c, :Δ, Δ, diagonal=true)
-    δ !== missing && return Field(c, :δ, δ, diagonal=true)
-    P !== missing && return Field(c, :P, P, diagonal=true)
-    p !== missing && return Field(c, :p, p, diagonal=true)
-    return Field(c, :Δ, 0, r=1, s=1, diagonal=true)
+        return Field(
+            c,
+            :Δ,
+            0,
+            r = r,
+            s = s,
+            degenerate = degenerate,
+            diagonal = diagonal,
+        )
+    Δ !== missing && return Field(c, :Δ, Δ, diagonal = true)
+    δ !== missing && return Field(c, :δ, δ, diagonal = true)
+    P !== missing && return Field(c, :P, P, diagonal = true)
+    p !== missing && return Field(c, :p, p, diagonal = true)
+    return Field(c, :Δ, 0, r = 1, s = 1, diagonal = true)
 end
 
 Field() = Field(CentralCharge())
-function Field(ds::LeftRight{CD})
+function Field(ds::LeftRight{CD{T}}) where {T}
     c = ds[1].c
     degenerate = isdegenerate(ds[1]) && isdegenerate(ds[2])
     isKac = ds[1].isKac && ds[2].isKac
     ds[1] == ds[2] ? diagonal=true : diagonal = false;
     r, s = ds[1].r, ds[1].s
-    Field(c, ds, diagonal, degenerate, r, s, isKac)
+    Field{T}(c, ds, r, s, diagonal, degenerate, isKac)
 end
 Field(d1::CD, d2::CD) = Field((d1, d2)::LeftRight)
 Field(d::CD) = Field((d, d)::LeftRight)
@@ -159,7 +167,7 @@ Shift the field:
 - s -> s+i if !isdiagonal(V)
 - P -> P+i/(2β) if isdiagonal(V)
 """
-function shift(V::Field, i, index=:s)
+function shift(V::Field, i, index = :s)
     if isdiagonal(V)
         Field(shift(V.dims[:left], i, index))
     else
@@ -167,7 +175,7 @@ function shift(V::Field, i, index=:s)
     end
 end
 
-reflect(V) = Field(V.c, r=V.r, s=-V.s)
+reflect(V) = Field(V.c, r = V.r, s = -V.s)
 
 """
         total_dimension(V)

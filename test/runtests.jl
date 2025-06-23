@@ -1,12 +1,10 @@
-using BootstrapVirasoro,
-    Test,
-    Documenter
+using BootstrapVirasoro, Test, Documenter
 
 DocMeta.setdocmeta!(
     BootstrapVirasoro,
     :DocTestSetup,
     :(using BootstrapVirasoro),
-    recursive=true
+    recursive = true,
 )
 Documenter.doctest(BootstrapVirasoro)
 

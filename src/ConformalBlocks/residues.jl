@@ -71,7 +71,10 @@ function Rmn_zero_order(m, n, d::FourDimensions)
         if (
             d[i].isKac &&
             d[j].isKac &&
-            (abs(r[i] + pm * r[j]) <= m - 1 && (r[i] + pm * r[j] - (m - 1)) % 2 == 0) &&
+            (
+                abs(r[i] + pm * r[j]) <= m - 1 &&
+                (r[i] + pm * r[j] - (m - 1)) % 2 == 0
+            ) &&
             (abs(s[i] + pm * s[j]) <= n - 1 && (s[i] + pm * s[j] - (n - 1)) % 2 == 0)
         )
 
@@ -85,14 +88,16 @@ end
 function Rmn_term_nonzero(r, s, i, j, d::FourDimensions)
     B = d[1].c.B
     δRS = δrs(r, s, B)
-    (r != 0 || s != 0) && return (d[j].δ - d[i].δ)^2 - 2 * δRS * (d[i].δ + d[j].δ) + δRS^2
+    (r != 0 || s != 0) &&
+        return (d[j].δ - d[i].δ)^2 - 2 * δRS * (d[i].δ + d[j].δ) + δRS^2
     return (d[j].δ - d[i].δ) * (-1)^(j / 2)
 end
 
 function Rmn_term_reg(r, s, i, j, d::FourDimensions)
     (r != 0 || s != 0) && begin
         signs = reg_signs(r, s, i, j, d)
-        r0, s0 = -signs[2] .* indices(d[i]) .- signs[2] * signs[1] .* indices(d[j])
+        r0, s0 =
+            -signs[2] .* indices(d[i]) .- signs[2] * signs[1] .* indices(d[j])
         P = ConformalDimension(d[1].c, r = r0, s = s0).P
         return 8 * signs[1] * signs[2] * d[i].P * d[j].P * P
     end

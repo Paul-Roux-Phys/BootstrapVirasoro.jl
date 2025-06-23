@@ -1,17 +1,17 @@
-struct InterchiralBlock{T, U} <: Block{T, U}
-    channel::Symbol
+struct InterchiralBlock{T,U} <: Block{T,U}
+    Δmax::T
     fields::Vector{Field{T}}
     blocks::Vector{Block{T,U}}
     shifts::Vector{T}
-    Δmax::T
+    channel::Symbol
     shift::Int
 end
 
-struct LinearCombinationBlock{T, U} <: Block{T, U}
-    channel::Symbol
+struct LinearCombinationBlock{T,U} <: Block{T,U}
     channel_field::Field{T}
     blocks::Vector{Block{T,U}}
     coefficients::Vector{T}
+    channel::Symbol
 end
 
 function my_mod2(s)
@@ -20,10 +20,16 @@ function my_mod2(s)
 end
 
 function LinearCombinationBlock(bs::Vector{<:Block{T,U}}, coeffs) where {T,U}
-    LinearCombinationBlock{T,U}(bs[1].channel, bs[1].channel_field, bs, coeffs)
+    LinearCombinationBlock{T,U}(bs[1].channel_field, bs, coeffs, bs[1].channel)
 end
 
-function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) where {T,U}
+function InterchiralBlock(
+    co::Correlation{T,U},
+    chan,
+    V,
+    Δmax,
+    s_shift = 2,
+) where {T,U}
     @assert real(V.c.β^2) > 0 "interchiral blocks are defined for Re(β^2) > 0"
     fields = []
     shifts = []
@@ -37,7 +43,7 @@ function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) whe
         V0 = Field(V.c, r = V.r, s = my_mod2(V.s))
     end
     Vshift = V0
-    D = 1 
+    D = 1
     if s_shift == 1
         error("Interchiral blocks with shifts s->s+1 not implemented")
     end
@@ -63,13 +69,17 @@ function InterchiralBlock(co::Correlation{T,U}, chan, V, Δmax, s_shift = 2) whe
     blocks = [Block(co, chan, V, Δmax = Δmax) for V in fields]
 
     W = typeof(co[:left]).parameters[2]
-    InterchiralBlock{T,W}(chan, fields, blocks, shifts, Δmax, s_shift)
+    InterchiralBlock{T,W}(Δmax, fields, blocks, shifts, chan, s_shift)
 end
 
 islogarithmic(b::InterchiralBlock) = islogarithmic(b.blocks[1])
 
 reflect(b::InterchiralBlock) = Block(
-    b.corr, b.channel, reflect(b.blocks[1].channel_field), interchiral=true, Δmax = b.Δmax
+    b.corr,
+    b.channel,
+    reflect(b.blocks[1].channel_field),
+    interchiral = true,
+    Δmax = b.Δmax,
 )
 
 function get_indices(V)
@@ -123,9 +133,12 @@ function shift_C122(V1, V2)
     res *= β^(-8inv(β)^2 * s2)
     res *= prod(
         gamma(
-            1 // 2 + 1 // 2 * abs(r1 + 2pm2 * r2) - inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1),
+            1 // 2 + 1 // 2 * abs(r1 + 2pm2 * r2) -
+            inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1),
         ) / gamma(
-            1 // 2 + 1 // 2 * abs(r1 + 2pm2 * r2) + inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1),
+            1 // 2 +
+            1 // 2 * abs(r1 + 2pm2 * r2) +
+            inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1),
         ) for pm1 in (-1, 1) for pm2 in (-1, 1)
     )
 end
@@ -159,7 +172,8 @@ end
 
 function Base.getproperty(b::InterchiralBlock, s::Symbol)
     s === :fields && return [block.channel_field for block in getfield(b, :blocks)]
-    s === :indices && return [indices(block.channel_field) for block in getfield(b, :blocks)]
+    s === :indices &&
+        return [indices(block.channel_field) for block in getfield(b, :blocks)]
     s in (:r, :s, :channel, :channel_field, :corr, :correlation) &&
         return getproperty(getfield(b, :blocks)[1], s)
     s === :shift && return length(b.blocks) > 1 ?
@@ -209,7 +223,13 @@ function Base.show(io::IO, b::InterchiralBlock)
 end
 
 function Base.show(io::IO, b::LinearCombinationBlock)
-    coeffs = [if c ≈ round(Int, c) round(Int, c) else c end for c in b.coefficients]
+    coeffs = [
+        if c ≈ round(Int, c)
+            round(Int, c)
+        else
+            c
+        end for c in b.coefficients
+    ]
     print(io, "($(coeffs[1])) * $(b.blocks[1])")
     for (i, bl) in enumerate(b.blocks[2:end])
         print(io, " + ($(coeffs[i])) * $bl")

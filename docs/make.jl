@@ -7,7 +7,7 @@ DocMeta.setdocmeta!(
     BootstrapVirasoro,
     :DocTestSetup,
     :(using BootstrapVirasoro),
-    recursive = true
+    recursive = true,
 )
 
 makedocs(
@@ -16,7 +16,7 @@ makedocs(
     modules = [BootstrapVirasoro],
     format = Documenter.HTML(
         repolink = "https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl",
-        edit_link = :commit
+        edit_link = :commit,
     ),
     doctest = true,
     pages = [
@@ -25,11 +25,9 @@ makedocs(
         "cft_data.md",
         "conformal_blocks.md",
         "bootstrap_equations.md",
-        "reference.md"
+        "reference.md",
     ],
-    checkdocs=:export
+    checkdocs = :export,
 )
 
-deploydocs(;
-    repo   = "https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl"
-)
+deploydocs(; repo = "https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl")

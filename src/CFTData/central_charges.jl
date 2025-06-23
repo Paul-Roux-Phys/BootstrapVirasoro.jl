@@ -62,7 +62,13 @@ function CentralCharge(s::Symbol, x)
     CentralCharge(β, B, b, c, n)
 end
 
-function CentralCharge(; β = missing, c = missing, B = missing, b = missing, n = missing)
+function CentralCharge(;
+    β = missing,
+    c = missing,
+    B = missing,
+    b = missing,
+    n = missing,
+)
     β !== missing && return CentralCharge(:β, β)
     c !== missing && return CentralCharge(:c, c)
     B !== missing && return CentralCharge(:B, B)

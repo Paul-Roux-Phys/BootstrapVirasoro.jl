@@ -25,9 +25,9 @@ struct ConformalDimension{T}
     p::T
     δ::T
     Δ::T
-    isKac::Bool
     r::Union{Rational,Int}
     s::Union{T,Rational,Int}
+    isKac::Bool
 end
 
 # convenience alias
@@ -81,7 +81,7 @@ function ConformalDimension(
     p = Pto(:p, P, c)
     δ = Pto(:δ, P, c)
     Δ = Pto(:Δ, P, c)
-    ConformalDimension{T}(c, P, p, δ, Δ, isKac, r, s)
+    ConformalDimension{T}(c, P, p, δ, Δ, r, s, isKac)
 end
 
 function ConformalDimension(
@@ -93,7 +93,8 @@ function ConformalDimension(
     P = missing,
     p = missing,
 )
-    (r !== missing && s !== missing) && return ConformalDimension(c, :Δ, 0, r = r, s = s)
+    (r !== missing && s !== missing) &&
+        return ConformalDimension(c, :Δ, 0, r = r, s = s)
     Δ !== missing && return ConformalDimension(c, :Δ, Δ)
     δ !== missing && return ConformalDimension(c, :δ, δ)
     P !== missing && return ConformalDimension(c, :P, P)

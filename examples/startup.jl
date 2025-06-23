@@ -1,9 +1,13 @@
 using Pkg: Pkg
 let
     pkgs = [
-        "Revise", "IJulia", "LanguageServer",
-        "JuliaFormatter", "Plots", "OhMyREPL",
-        "BenchmarkTools"
+        "Revise",
+        "IJulia",
+        "LanguageServer",
+        "JuliaFormatter",
+        "Plots",
+        "OhMyREPL",
+        "BenchmarkTools",
     ]
     for pkg in pkgs
         if Base.find_package(pkg) === nothing

@@ -53,14 +53,18 @@ function PositionCache(τ, _::OneDimension{T}, _::Symbol, Nmax) where {T}
     return PositionCache{T}(τ, prefactor, q, log(q), q_powers)
 end
 
-PositionCache(x, co::CorrelationChiral, chan) = PositionCache(x, co.fields, chan, co.Nmax)
+PositionCache(x, co::CorrelationChiral, chan) =
+    PositionCache(x, co.fields, chan, co.Nmax)
 PositionCache(x, co::CorrelationNonChiral, chan) =
     PositionCache(x, co[:left].fields, chan, co.Nmax)
 PositionCache(x, b::Block) = PositionCache(x, b.corr, b.channel)
 
 function LRPositionCache(x, co::Correlation{T,U}, chan) where {T,U}
     xbar = conj_q(x, co)
-    return LRPositionCache{T}(PositionCache(x, co, chan), PositionCache(xbar, co, chan))
+    return LRPositionCache{T}(
+        PositionCache(x, co, chan),
+        PositionCache(xbar, co, chan),
+    )
 end
 LRPositionCache(x, b::Block) = LRPositionCache(x, b.corr, b.channel)
 
@@ -72,30 +76,14 @@ LRPositionCache(x, b::Block) = LRPositionCache(x, b.corr, b.channel)
     return res
 end
 
-@inline evaluate_series(b::ChiralBlock, x::PositionCache) = evalpoly(x, b._coefficients)
+@inline evaluate_series(b::ChiralBlock, x::PositionCache) =
+    evalpoly(x, b._coefficients)
 @inline evaluate_series_der(b::ChiralBlock, x::PositionCache) =
     evalpoly(x, b._coefficients_der)
 evaluate_series(b::ChiralBlock, x::Number) =
     evaluate_series(b, PositionCache(x, b.corr, b.channel))
 evaluate_series_der(b::ChiralBlock, x::Number) =
     evaluate_series_der(b, PositionCache(x, b.corr, b.channel))
-
-function crossratio(chan, x)
-    chan === :s && return x
-    chan === :t && return 1 - x
-    chan === :u && return 1 / x
-    error("""Incorrect channel specification in crossratio(channel, x):
-          must be in $channels""")
-end
-function modular_param(chan, τ)
-    chan === :s && return τ
-    chan === :t && return -1/τ
-    chan === :u && return τ/(τ+1)
-end
-channel_position(x, _::Correlation{T,U}, chan,) where {T,U<:FourPoints} =
-    crossratio(chan, x)
-channel_position(x, _::Correlation{T,U}, chan) where {T,U<:OnePoint{T}} =
-    modular_param(chan, x)
 
 conj_q(x, _::Correlation{T,U}) where {T,U<:FourPoints} = conj(x)
 conj_q(τ, _::Correlation{T,U}) where {T,U<:OnePoint} = -conj(τ)
@@ -136,7 +124,8 @@ end
 @inline evaluate_lr(b::FactorizedBlock, x) = evaluate_lr(b.chiral_blocks, x)
 @inline evaluate_lr(b::LogarithmicBlock, x) = evaluate_lr(b.chiral_blocks, x)
 @inline evaluate_lr_op(b::LogarithmicBlock, x) = evaluate_lr(b.chiral_blocks_op, x)
-@inline evaluate_lr_der(b::LogarithmicBlock, x) = evaluate_lr_der(b.chiral_blocks_der, x)
+@inline evaluate_lr_der(b::LogarithmicBlock, x) =
+    evaluate_lr_der(b.chiral_blocks_der, x)
 
 @inline function evaluate(b::FactorizedBlock{T,U}, x::LRPositionCache)::T where {T,U}
     return prod(evaluate_lr(b, x))

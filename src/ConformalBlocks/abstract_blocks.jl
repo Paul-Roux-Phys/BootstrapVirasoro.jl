@@ -23,7 +23,7 @@ Chiral block for the correlation
 Channel: s, Δ_{2, 1//2}
 ```
 """
-abstract type Block{T, U} end # general conformal block. Can be interchiral, non-chiral or chiral
+abstract type Block{T,U} end # general conformal block. Can be interchiral, non-chiral or chiral
 
 N_max(d::CD, Δmax) = max(0, ceil(Int, real(Δmax - d.Δ)))
 N_max(V::Field, Δmax) = max(0, ceil(Int, real(Δmax - total_dimension(V))))
@@ -51,7 +51,7 @@ function Block(
     Δmax = nothing,
     interchiral = false,
     s_shift = 2,
-    parity=0 # 0 for no reflection, ±1 for even/odd
+    parity = 0, # 0 for no reflection, ±1 for even/odd
 ) where {T,U}
     # compute Nmax for this block
     if Nmax === nothing && Δmax === nothing
