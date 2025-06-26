@@ -58,6 +58,7 @@ function compute_reference!(c::StructureConstants, S::Channels{<:ChannelSpectrum
     for chan in keys(S)
         compute_reference!(c, S[chan], DG)
     end
+    return c.reference
 end
 
 function to_dataframe(c::StructureConstants)

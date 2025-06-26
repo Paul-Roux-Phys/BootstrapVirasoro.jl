@@ -9,13 +9,13 @@ This is a Julia package for performing numerical bootstrap computation in 2-dime
 For more information, please refer to [the documentation](https://paul-roux-phys.github.io/BootstrapVirasoro.jl/stable/).
 
 BibTex: 
-@misc{roux251,
-	author = "Roux, Paul",
-	title = {BarnesDoubleGamma.jl},
-	type = {code},
-	url = {https://juliapackages.com/p/barnesdoublegamma},
-	year = {2025},
-}
+@misc{roux251,  
+	author = "Roux, Paul",  
+	title = {BootstrapVirasoro.jl},  
+	type = {code},  
+	url = {https://juliapackages.com/p/bootstrapvirasoro},  
+	year = {2025},  
+}  
 
 ## Installation
 
@@ -30,7 +30,7 @@ using Pkg; Pkg.add("BootstrapVirasoro")
 in a Julia script, or
 
 ```julia-repl
-julia> ]add BarnesDoubleGamma
+julia> ]add BootstrapVirasoro
 # or
 julia> ]add https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl.git
 ```

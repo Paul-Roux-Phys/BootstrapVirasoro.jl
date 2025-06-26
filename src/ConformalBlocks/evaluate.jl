@@ -19,19 +19,15 @@ end
 
 function PositionCache(x, ds::FourDimensions{T}, chan::Symbol, Nmax) where {T}
     ds = permute_dimensions(ds, chan)
-    c = ds[1].c.c
 
     q = qfromx(x)
 
-    a = (c-1)/24
-    e0 = -ds[1].δ - ds[2].δ - a
-    e1 = -ds[1].δ - ds[4].δ - a
-    e2 = sum(ds[i].δ for i = 1:4) + a
+    e0 = -ds[1].Δ - ds[2].δ
+    chan === :u && (e0 += 2ds[1].Δ)
+    e1 = -ds[1].Δ - ds[4].δ
+    e2 = sum(ds[i].δ for i = 1:3) + ds[4].Δ
 
     prefactor = x^e0 * (1 - x)^e1 * jtheta3(0, q)^(-4 * e2)
-    if chan === :u
-        prefactor *= x^(2ds[1].Δ)
-    end
 
     sq = 16q
     q_powers = ones(T, Nmax+1)
