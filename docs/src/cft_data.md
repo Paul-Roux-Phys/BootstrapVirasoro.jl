@@ -5,6 +5,8 @@ The package has a few types to represent objects in a Virasoro CFT:
 * `CentralCharge`s
 * `ConformalDimension`s
 * `Field`s
+* `Correlation`s
+* `Block`s
 
 ## Central charges
 
@@ -18,9 +20,6 @@ By convention we keep $\beta = ib$. In $O(n)$ and $U(n)$ models
 the central charge is related to $n$ via
 
 $$n = - 2 \cos(\pi \beta^2)$$
-
-The program allows to conveniently create central charges from any
-of these four parameters, and to retrieve the value of any parameter:
 
 ```@docs
 CentralCharge
@@ -46,9 +45,6 @@ code](https://gitlab.com/s.g.ribault/Bootstrap_Virasoro.git), but
 similar to our more recent conventions, such as in [Sylvain's review on
 solvable CFTs](https://github.com/ribault/CFT-Review).
 
-The program lets us define these objects and access the various
-parametrisations:
-
 ```@docs
 ConformalDimension
 P_rs
@@ -62,11 +58,10 @@ shift(::ConformalDimension, i)
 
 ## Fields
 
-For our purposes, a field is the data of left and right conformal dimensions.
+We see a field as the data of left and right conformal dimensions, plus labels
+indicating whether the field is diagonal and degenerate.
 We denote $V_{(r, s)}$ a field with left and right dimensions
 $(\Delta_{(r, s)}, \Delta_{(r, -s)})$.
-
-The program exposes a `Field` struct and convenient constructors:
 
 ```@docs
 Field
@@ -75,15 +70,51 @@ isdegenerate
 shift(V::Field, i)
 ```
 
+## Correlation functions
+
+The residues of conformal blocks only depend on the external insertion point.
+We store this data in a `Correlation` object, which can represent any concrete
+(one-point or four-point) correlation.
+
+```@docs
+Correlation
+```
+
+## Conformal blocks
+
+We compute conformal blocks via the
+[Zamolodchikov Spectra](https://en.wikipedia.org/wiki/Virasoro_conformal_block).
+Blocks can be created via a unified interface, which does a best-effort dispatch
+to the right type of conformal block depending on its inputs. A block object
+contains the values of the coefficients of the block as a series in the nome `q`.
+
+```@docs
+Block
+```
+
+Blocks can be evaluated at a position. For four-point blocks, this is the cross-ratio `x`
+for one-point blocks this is the modular parameter $\tau$.
+
+```jl
+c = CentralCharge(c=0.54)
+V1 = Field(c, r=2, s=3//2)
+co = Correlation(V1, Δmax=15)
+b = Block(co, :s, V)
+τ = 0.4 + 2.1im
+b(z)
+```
+
 ## Spectra
 
 The program exposes two types to deal with CFT spectra.
 
 The type `Spectrum` simply contains a list of conformal dimensions or fields, with conformal dimensions bounded by some ``\Delta_{\mathrm{max}}``.
 
-The type `ChannelSpectrum` contains all the data needed to evaluate blocks corresponding to a correlation and a list of channel fields in a given channel.
+The type `ChannelSpectrum` constructs all the blocks corresponding to a correlation and a list of channel fields in a given channel.
 
 ```@docs
 Spectrum
 ChannelSpectrum
 ```
+
+## BootstrapMatrix

@@ -2,3 +2,5 @@ ltximg/
 **/build/
 **/Manifest.toml
 **/.vscode
+/.virtual_documents/
+/examples/.ipynb_checkpoints/

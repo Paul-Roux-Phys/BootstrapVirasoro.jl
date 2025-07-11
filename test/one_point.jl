@@ -13,9 +13,10 @@ Nmax = 40
 co = Correlation(V1, Nmax)
 
 τ = big"0.3" + big"2" * im # τ in H/PSL_2(ZZ)
-τ2_cache = PositionCache(2τ, co, :s)
+τ_cache = PositionCache(τ, co, :s)
 q = qfromτ(τ)
-x = xfromq(q)
+q_s = exp(im * (π * τ))
+x = xfromq(exp(im * (π * τ)))
 
 V_s = Field(c_s, P = sqrt(big(2)) * V.dims[:left].P)
 V2_s = Field(c_s, P = sqrt(big(2)) * V2.dims[:left].P)
@@ -44,9 +45,9 @@ co_s = Correlation(Vs..., Nmax)
 
     @test isapprox(co_l_s._CNmn[:s][6, 2, 2] * 16^6 / 2, co_l._CNmn[:s][3, 1, 2])
 
-    qsq = τ2_cache.q
+    q = τ_cache.q
     @test qfromx(xfromq(q)) ≈ q
-    @test qfromx(x) ≈ q
+    @test qfromx(x)^2 ≈ q
 
     b = Block(co, :s, V, :left)
     b_s = Block(co_s, :s, V_s, :left)
@@ -54,24 +55,24 @@ co_s = Correlation(Vs..., Nmax)
     b2 = Block(co, :s, V2, :left)
     b2_s = Block(co_s, :s, V2_s, :left)
 
-    h = evaluate_series(b, τ2_cache)
-    @test h ≈ Base.evalpoly(τ2_cache.q, b._coefficients)
+    h = evaluate_series(b, τ_cache)
+    @test h ≈ Base.evalpoly(τ_cache.q, b._coefficients)
 
-    q_s = 16BootstrapVirasoro.qfromx(x)
+    # q_s = 16BootstrapVirasoro.qfromx(x)
 
-    @test q_s ≈ 16 * q
+    # @test q_s ≈ 16 * q
 
     h_s = evaluate_series(b_s, x)
     @test isapprox(h, h_s, rtol = 1e-14)
 
-    F = evaluate(b, 2τ)
+    F = evaluate(b, τ)
     F_s = evaluate(b_s, x)
 
-    F2 = evaluate(b2, 2τ)
+    F2 = evaluate(b2, τ)
     F2_s = evaluate(b2_s, x)
 
     @test isapprox(
-        F / BootstrapVirasoro.total_prefactor(b, τ2_cache),
+        F / BootstrapVirasoro.total_prefactor(b, τ_cache),
         F_s / BootstrapVirasoro.total_prefactor(b_s, x),
         rtol = 1e-16,
     )
@@ -158,12 +159,12 @@ end
     b_s = Block(co_s, :s, V0_s, Nmax)
     b_sϵ = Block(co_s, :s, V0ϵ, Nmax)
 
-    lr_cache = BootstrapVirasoro.LRPositionCache(2τ, b)
+    lr_cache = BootstrapVirasoro.LRPositionCache(τ, b)
     xlr_cache = BootstrapVirasoro.LRPositionCache(x, b_s)
     @test isapprox(
-        evaluate(bϵ[:left], 2τ),
+        evaluate(bϵ[:left], τ),
         co._Rmn[:left][:s][V0.r, V0.s] / ϵ *
-        BootstrapVirasoro.evaluate_lr_op(b, lr_cache)[:left] + evaluate(b[:left], 2τ),
+        BootstrapVirasoro.evaluate_lr_op(b, lr_cache)[:left] + evaluate(b[:left], τ),
         rtol = 1e-40,
     ) # F_{Prs + ϵ} = R/ϵ F_{Pr,-s} + F^reg
 
@@ -172,12 +173,12 @@ end
     import BootstrapVirasoro: evaluate_series
 
     @test isapprox(
-        evaluate_series(b[:left], τ2_cache),
+        evaluate_series(b[:left], τ_cache),
         evaluate_series(b_s[:left], x),
         rtol = 1e-40,
     ) # regularized series
 
-    Freg = evaluate(b[:left], 2τ)
+    Freg = evaluate(b[:left], τ)
     Rrs = co._Rmn[:left][:s][V0.r, V0.s]
     Fminus = BootstrapVirasoro.evaluate_lr_op(b, lr_cache)[:left]
     Freg_s = evaluate(b_s[:left], x)
@@ -186,13 +187,13 @@ end
 
     @test isapprox(
         Freg_s / prefac(b_s[:left], x),
-        (Freg + 8log(big"2") * Rrs * Fminus) / prefac(b[:left], 2τ),
+        (Freg + 8log(big"2") * Rrs * Fminus) / prefac(b[:left], τ),
         rtol = 1e-40,
     ) # regularized block
 
     @test isapprox(
         (Freg_s - 4log(big"2") * Rrs_s * Fminus_s) / prefac(b_s[:left], x),
-        Freg / prefac(b[:left], 2τ),
+        Freg / prefac(b[:left], τ),
         rtol = 1e-40,
     ) # regularized block
 end
@@ -212,24 +213,26 @@ end
     P43_s = V_s.dims[:left].P
 
     @test isapprox(
-        evaluate_series(b[:left], τ2_cache),
+        evaluate_series(b[:left], τ_cache),
         evaluate_series(b_s[:left], x),
         rtol = 1e-40,
     ) # regularized series match
 
     missing_terms = b[:left]._missing_terms
-    missing_term = log(q^2) * Base.evalpoly(q^2, missing_terms)
+    missing_term = log(q) * Base.evalpoly(q, missing_terms)
 
     @test isapprox(
-        evaluate(b[:left], 2τ) / total_prefactor(b[:left], 2τ),
-        evaluate_series(b[:left], τ2_cache) + missing_term,
+        evaluate(b[:left], τ) / total_prefactor(b[:left], τ),
+        evaluate_series(b[:left], τ_cache) + missing_term,
         rtol = 1e-40,
     ) # the regularised block is as expected
 
     missing_terms_s = b_s[:left]._missing_terms
-    missing_term_s = log(16q) * Base.evalpoly(16q, missing_terms_s)
+    missing_term_s = log(16q_s) * Base.evalpoly(16q_s, missing_terms_s)
 
-    @test isapprox(log(q) / log(16q) * missing_term_s, missing_term, rtol = 1e-40)
+    @test 2 * Base.evalpoly(q, missing_terms) ≈ Base.evalpoly(16q_s, missing_terms_s)
+
+    @test isapprox(log(q_s) / log(16q_s) * missing_term_s, missing_term, rtol = 1e-40)
 
     @test isapprox(
         evaluate(b_s[:left], x) / total_prefactor(b_s[:left], x),
@@ -238,7 +241,7 @@ end
     ) # the regularised block is as expected
 
     @test isapprox(
-        evaluate(b[:left], 2τ) / total_prefactor(b[:left], 2τ) - missing_term,
+        evaluate(b[:left], τ) / total_prefactor(b[:left], τ) - missing_term,
         evaluate(b_s[:left], x) / total_prefactor(b_s[:left], x) - missing_term_s,
         rtol = 1e-40,
     )
@@ -256,11 +259,11 @@ b2 = Block(co, :s, V2, Nmax)
 b_s = Block(co_s, :s, V_s, Nmax)
 b2_s = Block(co_s, :s, V2_s, Nmax)
 
-pref = total_prefactor(b[:left], 2τ) * total_prefactor(b[:right], conj_q(2τ, b.corr))
+pref = total_prefactor(b[:left], τ) * total_prefactor(b[:right], conj_q(τ, b.corr))
 pref_s =
     total_prefactor(b_s[:left], x) * total_prefactor(b_s[:right], conj_q(x, b_s.corr))
 pref2 =
-    total_prefactor(b2[:left], 2τ) * total_prefactor(b2[:right], conj_q(2τ, b.corr))
+    total_prefactor(b2[:left], τ) * total_prefactor(b2[:right], conj_q(τ, b.corr))
 pref2_s =
     total_prefactor(b2_s[:left], x) *
     total_prefactor(b2_s[:right], conj_q(x, b_s.corr))
@@ -278,9 +281,9 @@ pref2_s =
 end
 
 @testset "Full log block" begin
-    @test isapprox(evaluate(b, 2τ) / pref, evaluate(b_s, x) / pref_s)
+    @test isapprox(evaluate(b, τ) / pref, evaluate(b_s, x) / pref_s)
 
-    @test isapprox(evaluate(b2, 2τ) / pref2, evaluate(b2_s, x) / pref2_s)
+    @test isapprox(evaluate(b2, τ) / pref2, evaluate(b2_s, x) / pref2_s)
 end
 
 @testset "Interchiral" begin

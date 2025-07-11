@@ -2,7 +2,7 @@
 @inline qfromx(x) = exp(- (π * ellipticK(1 - x) / ellipticK(x)))
 """Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0, q)^4 / jtheta3(0, q)^4
-@inline qfromτ(τ) = exp(im*(π*τ))
+@inline qfromτ(τ) = exp(2*im*(π*τ))
 
 struct PositionCache{T}
     x::T

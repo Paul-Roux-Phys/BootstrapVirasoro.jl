@@ -14,7 +14,7 @@ julia> co = Correlation(V1, V1, V1, V1, 10);
 
 julia> V = Field(c, r=2, s=1//2); b = Block(co, :s, V)
 Non chiral factorised block for the correlation
-< (2, 3//2) (2, 3//2) (2, 3//2) (2, 3//2) >
+< V_{(2, 3//2)} V_{(2, 3//2)} V_{(2, 3//2)} V_{(2, 3//2)} >
 channel: s, V_{(2, 1//2)}
 
 julia> b = Block(co[:left], :s, V.dims[:left])
