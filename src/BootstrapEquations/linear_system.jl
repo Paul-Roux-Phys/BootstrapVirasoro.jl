@@ -62,11 +62,12 @@ function evaluate_blocks!(sys::BootstrapSystem)
     return sys.block_values
 end
 
-function new_random_point!(random_points, N; transfo = missing, square = true)
+function new_random_point!(random_points, N; transfo = missing, square = true, cond=p->true)
     xmin, xmax, sep = square ? (0.1, 0.5, 0.2) : (-0.4, 1.4, 0.4)
     while true
         z = xmin + (xmax - xmin) * rand() + (1 + 4 * rand()) * im / 10
-        if minimum(append!(abs.(z .- random_points), 1)) > sep / sqrt(N)
+        if minimum(append!(abs.(z .- random_points), 1)) > sep / sqrt(N) &&
+            cond(z) == true
             push!(random_points, z)
             break
         end
@@ -81,12 +82,12 @@ N = the number of points.
 function = a function that we may apply on the points
 square = whether to use a square (otherwise, a rectangle)
 """
-function random_points(N; transfo = missing, square = true)
+function random_points(N; transfo = nothing, square = true, cond=p->true)
     res = []
     for _ = 1:N
-        new_random_point!(res, N, transfo = transfo, square = square)
+        new_random_point!(res, N, transfo = transfo, square = square, cond=cond)
     end
-    return transfo !== missing ? transfo.(res) : res
+    return transfo !== nothing ? transfo.(res) : res
 end
 
 function crossratio(chan, x)
@@ -99,8 +100,20 @@ end
 function modular_param(chan, τ)
     chan === :s && return τ
     chan === :t && return -1/τ
-    chan === :u && return τ/(τ+1)
+    chan === :u && return (τ-2)/(τ-1)
 end
+
+"""
+Recipe to ensure q(x(τ)) = q(τ), as well as for -1/τ, (τ-2)/(τ-1).
+"""
+function square_to_τ(τ)
+    res = 2*real(τ) - 0.25 + imag(τ) * im + 3*im
+    if real(τ) < 0.2
+        res += 0.2
+    end
+    return res
+end
+
 channel_position(x, _::Correlation{T,U}, chan) where {T,U<:FourPoints} =
     crossratio(chan, x)
 channel_position(x, _::Correlation{T,U}, chan) where {T,U<:OnePoint{T}} =
@@ -111,7 +124,7 @@ function BootstrapSystem(
     knowns = nothing,
     extrapoints::Int = 6,
     pos = nothing,
-) where {T,U<:ChannelSpectrum{T}}
+) where {T,U<:ChannelSpectrum}
     # if consts is empty, normalise the field with smallest indices
     chans = keys(S)
     co = S[1].corr
@@ -125,7 +138,12 @@ function BootstrapSystem(
         nb_positions = length(pos)
     else
         nb_positions = nb_lines ÷ (length(S) - 1)
-        pos = Vector{T}(random_points(nb_positions))
+        if co.fields <: OnePoint
+            transfo = τ -> square_to_τ(τ)
+        else
+            transfo = nothing
+        end
+        pos = Vector{T}(random_points(nb_positions, transfo = transfo))
     end
     pos_chan = Channels{Vector{T}}(
         Tuple([channel_position(x, co, chan) for x in pos] for chan in keys(S)),

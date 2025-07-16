@@ -45,7 +45,7 @@ julia> co.fields
 (V_{(2, 3//2)}, V_{(2, 3//2)}, V_{(2, 3//2)}, V_{(2, 3//2)})
 
 julia> co[:left]
-CorrelationChiral{ComplexF64} with external dimensions
+ChiralCorrelation{ComplexF64} with external dimensions
 (Δ_{2, 3//2}, Δ_{2, 3//2}, Δ_{2, 3//2}, Δ_{2, 3//2})
 ```
 """
@@ -68,7 +68,7 @@ const Channels{T} = NamedTuple{(:s, :t, :u),NTuple{3,T}} # type for holding data
 Channels(t::NTuple{3,T}) where {T} = Channels{T}(t)
 Channels(a::T, b::T, c::T) where {T} = Channels{T}((a, b, c))
 
-struct CorrelationChiral{T,U<:ExtDimensions{T}} <: Correlation{T,U}
+struct ChiralCorrelation{T,U<:ExtDimensions{T}} <: Correlation{T,U}
     fields::U
     c::CentralCharge{T}
     _Rmn::Channels{RmnTable{T}}
@@ -93,7 +93,7 @@ function Base.setindex!(C::CNmnTable, value, N, m::Int, n::Int)
     return value
 end
 
-function CorrelationChiral(d::U, Nmax::Int) where {T,U<:ExtDimensions{T}}
+function ChiralCorrelation(d::U, Nmax::Int) where {T,U<:ExtDimensions{T}}
     @assert all((dim.c === d[1].c for dim in d)) """
     External fields in the argument of the Correlation constructor do not all have the same
     CentralCharge
@@ -118,10 +118,10 @@ function CorrelationChiral(d::U, Nmax::Int) where {T,U<:ExtDimensions{T}}
     Rmnreg = Channels(Tuple(Tuple(vals[i][2] for i = 1:3)))
     CNmn = Channels(Tuple(Tuple(vals[i][3] for i = 1:3)))
 
-    CorrelationChiral{T,U}(d, d[1].c, Rmn, Rmnreg, CNmn, Nmax)
+    ChiralCorrelation{T,U}(d, d[1].c, Rmn, Rmnreg, CNmn, Nmax)
 end
 
-CorrelationChiral(d1, d2, d3, d4, Nmax) = CorrelationChiral((d1, d2, d3, d4), Nmax)
+ChiralCorrelation(d1, d2, d3, d4, Nmax) = ChiralCorrelation((d1, d2, d3, d4), Nmax)
 
 struct CorrelationNonChiral{T,U} <: Correlation{T,U}
     fields::ExtFields{T}
@@ -157,7 +157,7 @@ function CorrelationNonChiral(V::U, Nmax::Int) where {T,U<:ExtFields{T}}
     """
 
     dims = Tuple(Tuple(v.dims[lr] for v in V) for lr in (:left, :right))
-    corr_chiral = Tuple(CorrelationChiral(dims[lr], Nmax) for lr in (:left, :right))
+    corr_chiral = Tuple(ChiralCorrelation(dims[lr], Nmax) for lr in (:left, :right))
 
     Rmn = Tuple(corr_chiral[lr]._Rmn for lr in (:left, :right))
     Rmnreg = Tuple(corr_chiral[lr]._Rmn_reg for lr in (:left, :right))
@@ -167,7 +167,7 @@ function CorrelationNonChiral(V::U, Nmax::Int) where {T,U<:ExtFields{T}}
 end
 
 function Base.getindex(c::CorrelationNonChiral, s::Symbol)
-    s in (:left, :right) && return CorrelationChiral(
+    s in (:left, :right) && return ChiralCorrelation(
         Tuple(v.dims[s] for v in c.fields),
         c.c,
         c._Rmn[s],
@@ -179,7 +179,7 @@ function Base.getindex(c::CorrelationNonChiral, s::Symbol)
 end
 
 function CorrelationNonChiral(
-    corr_chiral::LeftRight{CorrelationChiral{T,U}},
+    corr_chiral::LeftRight{ChiralCorrelation{T,U}},
 ) where {T,U}
     dims_left = corr_chiral[:left].fields
     dims_right = corr_chiral[:left].fields
@@ -197,20 +197,20 @@ function Correlation()
     CorrelationNonChiral(Field(), 0)
 end
 
-Correlation(ds::ExtDimensions, Nmax::Int) = CorrelationChiral(ds, Nmax)
+Correlation(ds::ExtDimensions, Nmax::Int) = ChiralCorrelation(ds, Nmax)
 Correlation(Vs::ExtFields, Nmax::Int) = CorrelationNonChiral(Vs, Nmax)
 Correlation(Vs::ExtFields, lr::Symbol, Nmax::Int) =
-    CorrelationChiral(Tuple(v.dims[lr] for v in Vs), Nmax)
+    ChiralCorrelation(Tuple(v.dims[lr] for v in Vs), Nmax)
 Correlation(d1::ConformalDimension, d2, d3, d4, Nmax::Int) =
-    CorrelationChiral((d1, d2, d3, d4), Nmax)
+    ChiralCorrelation((d1, d2, d3, d4), Nmax)
 Correlation(V1::Field, V2, V3, V4, Nmax::Int) =
     CorrelationNonChiral((V1, V2, V3, V4), Nmax)
 Correlation(V1::Field, V2, V3, V4, lr::Symbol, Nmax::Int) =
-    CorrelationChiral((V1.dims[lr], V2.dims[lr], V3.dims[lr], V4.dims[lr]), Nmax)
-Correlation(d::ConformalDimension, Nmax::Int) = CorrelationChiral((d,), Nmax)
+    ChiralCorrelation((V1.dims[lr], V2.dims[lr], V3.dims[lr], V4.dims[lr]), Nmax)
+Correlation(d::ConformalDimension, Nmax::Int) = ChiralCorrelation((d,), Nmax)
 Correlation(V::Field, Nmax::Int) = CorrelationNonChiral((V,), Nmax)
-Correlation(V::Field, lr, Nmax::Int) = CorrelationChiral((V.dims[lr],), Nmax)
-Correlation(co_left::CorrelationChiral, co_right::CorrelationChiral) =
+Correlation(V::Field, lr, Nmax::Int) = ChiralCorrelation((V.dims[lr],), Nmax)
+Correlation(co_left::ChiralCorrelation, co_right::ChiralCorrelation) =
     CorrelationNonChiral((co_left, co_right))
 Correlation(args...; Δmax = 10.0) = Correlation(args..., N_max(CD(), Δmax))
 
@@ -238,11 +238,11 @@ function Base.show(io::IO, C::CNmnTable{T}) where {T}
     println(io, ")")
 end
 
-function Base.show(io::IO, ::MIME"text/plain", co::CorrelationChiral{T}) where {T}
-    print(io, "CorrelationChiral{$T} with external dimensions\n$(co.fields)")
+function Base.show(io::IO, ::MIME"text/plain", co::ChiralCorrelation{T}) where {T}
+    print(io, "ChiralCorrelation{$T} with external dimensions\n$(co.fields)")
 end
 
-function Base.show(io::IO, co::CorrelationChiral)
+function Base.show(io::IO, co::ChiralCorrelation)
     print(io, "< ")
     for d in co.fields
         print(io, d, " ")

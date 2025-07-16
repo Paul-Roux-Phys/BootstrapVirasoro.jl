@@ -100,11 +100,6 @@ end
 
 function Base.getproperty(b::NonChiralBlock, s::Symbol)
     s === :c && return getfield(b.channel_field.dims[:left], s)
-    s === :corr && begin
-        left_corr = getfield(b, :chiral_blocks)[:left].corr
-        right_corr = getfield(b, :chiral_blocks)[:right].corr
-        return Correlation(left_corr, right_corr)
-    end
     s === :fields && return getproperty(b, :corr).fields
     s === :channel && return getproperty(getfield(b, :chiral_blocks)[:left], s)
     s in (:r, :s) && return getproperty(getfield(b, :channel_field), s)

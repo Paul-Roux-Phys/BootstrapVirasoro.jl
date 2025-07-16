@@ -1,6 +1,6 @@
 struct ChiralBlock{T,U} <: Block{T,U}
     c::CentralCharge{T}
-    corr::CorrelationChiral{T,U}
+    corr::ChiralCorrelation{T,U}
     channel_dimension::ConformalDimension{T}
     fields::U
     _coefficients::Vector{T}
@@ -11,7 +11,7 @@ struct ChiralBlock{T,U} <: Block{T,U}
 end
 
 function ChiralBlock(
-    corr::CorrelationChiral{T,U},
+    corr::ChiralCorrelation{T,U},
     chan::Symbol,
     d::ConformalDimension,
     Nmax::Int;
@@ -44,11 +44,11 @@ function ChiralBlock(
     )
 end
 
-ChiralBlock(corr::CorrelationChiral, chan, d::ConformalDimension; der = false) =
+ChiralBlock(corr::ChiralCorrelation, chan, d::ConformalDimension; der = false) =
     ChiralBlock(corr, chan, d, corr.Nmax, der = der)
 
 ChiralBlock(
-    corr::CorrelationChiral,
+    corr::ChiralCorrelation,
     chan,
     V::Field,
     lr::Symbol,

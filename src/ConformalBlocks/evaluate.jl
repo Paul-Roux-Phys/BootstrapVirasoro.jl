@@ -49,20 +49,18 @@ function PositionCache(τ, _::OneDimension{T}, _::Symbol, Nmax) where {T}
     return PositionCache{T}(τ, prefactor, q, log(q), q_powers)
 end
 
-PositionCache(x, co::CorrelationChiral, chan) =
+PositionCache(x, co::ChiralCorrelation, chan) =
     PositionCache(x, co.fields, chan, co.Nmax)
-PositionCache(x, co::CorrelationNonChiral, chan) =
-    PositionCache(x, co[:left].fields, chan, co.Nmax)
-PositionCache(x, b::Block) = PositionCache(x, b.corr, b.channel)
+PositionCache(x, b::ChiralBlock) = PositionCache(x, b.corr, b.channel)
 
-function LRPositionCache(x, co::Correlation{T,U}, chan) where {T,U}
+function LRPositionCache(x, co::CorrelationNonChiral{T,U}, chan) where {T,U}
     xbar = conj_q(x, co)
     return LRPositionCache{T}(
-        PositionCache(x, co, chan),
-        PositionCache(xbar, co, chan),
+        PositionCache(x, co[:left], chan),
+        PositionCache(xbar, co[:right], chan),
     )
 end
-LRPositionCache(x, b::Block) = LRPositionCache(x, b.corr, b.channel)
+LRPositionCache(x, b::NonChiralBlock) = LRPositionCache(x, b.correlation, b.channel)
 
 @inline function evalpoly(x::PositionCache, coeffs::Vector{T}) where {T}
     res = zero(T)
@@ -83,6 +81,16 @@ evaluate_series_der(b::ChiralBlock, x::Number) =
 
 conj_q(x, _::Correlation{T,U}) where {T,U<:FourPoints} = conj(x)
 conj_q(τ, _::Correlation{T,U}) where {T,U<:OnePoint} = -conj(τ)
+
+prefactor(b::ChiralBlock{T,U}, x::PositionCache) where {T,U<:FourPoints} =
+    x.prefactor
+prefactor(b::ChiralBlock{T,U}, x::PositionCache) where {T,U<:OnePoint} =
+    x.prefactor
+prefactor(b::ChiralBlock, x::Number) = prefactor(b, PositionCache(x, b))
+prefactor(b::NonChiralBlock, x::LRPositionCache) = prefactor(b.chiral_blocks[:left], x.left) *
+    prefactor(b.chiral_blocks[:right], x.right)
+prefactor(b::NonChiralBlock, x::Number) = prefactor(b, LRPositionCache(x, b))
+
 
 total_prefactor(b::ChiralBlock{T,U}, x::PositionCache) where {T,U<:FourPoints} =
     x.prefactor * (x.q_powers[2])^b.channel_dimension.δ
@@ -123,7 +131,7 @@ end
 @inline evaluate_lr_der(b::LogarithmicBlock, x) =
     evaluate_lr_der(b.chiral_blocks_der, x)
 
-@inline function evaluate(b::FactorizedBlock{T,U}, x::LRPositionCache)::T where {T,U}
+function evaluate(b::FactorizedBlock{T,U}, x::LRPositionCache)::T where {T,U}
     return prod(evaluate_lr(b, x))
 end
 
