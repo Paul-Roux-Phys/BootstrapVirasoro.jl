@@ -16,7 +16,7 @@ function Dmn(m::Int, n::Int, B::T)::T where {T}
     return m * n * f1 * f2 * f3
 end
 
-function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
+function Rmn_term_vanishes(r, s, i, j, d::NTuple{4,CD})
     !(d[i].isKac && d[j].isKac) && return false
 
     rs = [d[i].r for i = 1:4]
@@ -41,7 +41,7 @@ function Rmn_term_vanishes(r, s, i, j, d::FourDimensions)
     return false
 end
 
-function reg_signs(r, s, i, j, d::FourDimensions)
+function reg_signs(r, s, i, j, d::NTuple{4,CD})
     rs = [d[i].r for i = 1:4]
     ss = [d[i].s for i = 1:4]
 
@@ -52,7 +52,7 @@ function reg_signs(r, s, i, j, d::FourDimensions)
     end
 end
 
-function Rmn_zero_order(m, n, d::FourDimensions)
+function Rmn_zero_order(m, n, d::NTuple{4,CD})
     order = 0
 
     if !((d[1].isKac && d[2].isKac) || (d[3].isKac && d[4].isKac))
@@ -85,7 +85,7 @@ function Rmn_zero_order(m, n, d::FourDimensions)
     return order
 end
 
-function Rmn_term_nonzero(r, s, i, j, d::FourDimensions)
+function Rmn_term_nonzero(r, s, i, j, d::NTuple{4,CD})
     B = d[1].c.B
     δRS = δrs(r, s, B)
     (r != 0 || s != 0) &&
@@ -93,7 +93,7 @@ function Rmn_term_nonzero(r, s, i, j, d::FourDimensions)
     return (d[j].δ - d[i].δ) * (-1)^(j / 2)
 end
 
-function Rmn_term_reg(r, s, i, j, d::FourDimensions)
+function Rmn_term_reg(r, s, i, j, d::NTuple{4,CD})
     (r != 0 || s != 0) && begin
         signs = reg_signs(r, s, i, j, d)
         r0, s0 =
@@ -104,19 +104,19 @@ function Rmn_term_reg(r, s, i, j, d::FourDimensions)
     return 2d[j].P
 end
 
-function Rmn_term(r, s, i, j, d::FourDimensions)
+function Rmn_term(r, s, i, j, d::NTuple{4,CD})
     Rmn_term_vanishes(r, s, i, j, d) && return Rmn_term_reg(r, s, i, j, d)
     return Rmn_term_nonzero(r, s, i, j, d)
 end
 
-function Rmn_term(r, s, d::FourDimensions{T})::T where {T}
+function Rmn_term(r, s, d::NTuple{4, CD{T}})::T where {T}
     prod(Rmn_term(r, s, i, j, d) for (i, j) in ((1, 2), (3, 4)))
 end
 
 #=
 write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
 =#
-function computePns(factors::Matrix{T}, Nmax, ds::FourDimensions) where {T}
+function computePns(factors::Matrix{T}, Nmax, _::NTuple{4,CD}) where {T}
     # Pns[n, r+1] = P_n(r), r>=0, n>0
     # factors[(r, s)] = Rmn_term(r, s)
     Pns = Matrix{T}(undef, Nmax, Nmax)
@@ -138,7 +138,7 @@ function computePns(factors::Matrix{T}, Nmax, ds::FourDimensions) where {T}
     return Pns
 end
 
-function computeDRmns(factors::Matrix{T}, Nmax, ds::FourDimensions) where {T}
+function computeDRmns(factors::Matrix{T}, Nmax, ds::NTuple{4,CD}) where {T}
     DRs = Matrix{T}(undef, Nmax, Nmax)
     Pns = computePns(factors, Nmax, ds)
     @inbounds for n = 1:Nmax
@@ -153,11 +153,11 @@ function computeDRmns(factors::Matrix{T}, Nmax, ds::FourDimensions) where {T}
 end
 
 """
-    computeRmns!
+    computeRmns
 
 Compute the ``Δ``-residues ``R_{m, n}`` for all `m`, `n` such that m*n ≤ Nmax
 """
-function computeRmns(Nmax, ds::FourDimensions{T}) where {T}
+function computeRmns(Nmax, ds::NTuple{4, CD{T}}) where {T}
     factors = Matrix{T}(undef, Nmax, 2Nmax)
     for r = 1:Nmax
         for s = 1:(2Nmax-1)
@@ -184,7 +184,7 @@ end
 #===========================================================================================
 One-point case
 ===========================================================================================#
-function Rmn_term_vanishes(r, s, D::OneDimension)
+function Rmn_term_vanishes(r, s, D::NTuple{1,CD})
     d = D[1]
     # The term r, s in Rmn is zero if m + r = 0 and n + s = 0
     if d.isKac && d.r + r == 0 && d.s + s == 0
@@ -194,7 +194,7 @@ function Rmn_term_vanishes(r, s, D::OneDimension)
     return false
 end
 
-function Rmn_zero_order(m, n, D::OneDimension)
+function Rmn_zero_order(m, n, D::NTuple{1,CD})
     d = D[1]
     if d.isKac &&
        d.r % 2 == 1 &&
@@ -206,15 +206,15 @@ function Rmn_zero_order(m, n, D::OneDimension)
     return 0
 end
 
-function Rmn_term_nonzero(r, s, d::OneDimension)
+function Rmn_term_nonzero(r, s, d::NTuple{1,CD})
     B = d[1].c.B
     δ1 = d[1].δ
     return δrs(r, s, B) - δ1
 end
 
-Rmn_term_reg(r, s, d::OneDimension) = -2 * d[1].P
+Rmn_term_reg(r, s, d::NTuple{1,CD}) = -2 * d[1].P
 
-function Rmn_term(r, s, d::OneDimension)
+function Rmn_term(r, s, d::NTuple{1,CD})
     Rmn_term_vanishes(r, s, d) && return Rmn_term_reg(r, s, d)
     return Rmn_term_nonzero(r, s, d)
 end
@@ -222,7 +222,7 @@ end
 #=
 write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
 =#
-function computePns(factors::Matrix{T}, Nmax, d::OneDimension) where {T}
+function computePns(factors::Matrix{T}, Nmax, d::NTuple{1,CD}) where {T}
     # Pns[n, r+1] = P_n(r), r>=0, n>0
     Pns = Matrix{T}(undef, Nmax, Nmax)
     for a = 1:Nmax
@@ -237,7 +237,7 @@ function computePns(factors::Matrix{T}, Nmax, d::OneDimension) where {T}
     return Pns
 end
 
-function computeDRmns(factors::Matrix{T}, Nmax, d::OneDimension) where {T}
+function computeDRmns(factors::Matrix{T}, Nmax, d::NTuple{1,CD}) where {T}
     Pns = computePns(factors, Nmax, d)
     DRs = Matrix{T}(undef, Nmax, Nmax)
     @inbounds for n = 1:Nmax
@@ -250,7 +250,7 @@ function computeDRmns(factors::Matrix{T}, Nmax, d::OneDimension) where {T}
     return DRs
 end
 
-function computeRmns(Nmax, ds::OneDimension{T}) where {T}
+function computeRmns(Nmax, ds::NTuple{1, CD{T}}) where {T}
     factors = Matrix{T}(undef, Nmax, 2Nmax)
     for a = 1:Nmax
         for b = 1:2Nmax
@@ -278,7 +278,7 @@ end
 #===========================================================================================
 Coefficients CNmn
 ===========================================================================================#
-function computeCNmns!(Nmax, c::CC{T}, Rs) where {T}
+function computeCNmns(Nmax, c::CC{T}, Rs) where {T}
     B = c.B
     Cs = CNmnTable{T}(Array{T}(undef, (Nmax, Nmax, Nmax)), Set{Tuple{Int,Int,Int}}())
     δ_cache = [δrs(mp, np, B) for mp = 1:Nmax, np = 1:Nmax]

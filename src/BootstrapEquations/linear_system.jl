@@ -19,9 +19,7 @@ end
 
 function BootstrapMatrix{T}() where {T}
     BootstrapMatrix{T}(
-        Channels{Vector{Field{T}}}(
-            Tuple(Vector{Field{T}}() for chan in (:s, :t, :u)),
-        ),
+        (; (chan => Vector{Field{T}}() for chan in (:s, :t, :u))...),
         Matrix{T}(undef, 0, 0),
         Vector{T}(undef, 0),
     )
@@ -52,8 +50,8 @@ function evaluate_blocks(bs::Dict, xs)
 end
 
 function evaluate_blocks(S::Channels{U}, xs) where {T,U<:ChannelSpectrum{T}}
-    return Channels{Dict{Field{T},Vector{T}}}(
-        Tuple(evaluate_blocks(S[chan].blocks, xs[chan]) for chan in keys(S)),
+    return (;
+        (chan => evaluate_blocks(S[chan].blocks, xs[chan]) for chan in keys(S))...
     )
 end
 
@@ -62,12 +60,17 @@ function evaluate_blocks!(sys::BootstrapSystem)
     return sys.block_values
 end
 
-function new_random_point!(random_points, N; transfo = missing, square = true, cond=p->true)
+function new_random_point!(
+    random_points,
+    N;
+    square = true,
+    cond = p -> true,
+)
     xmin, xmax, sep = square ? (0.1, 0.5, 0.2) : (-0.4, 1.4, 0.4)
     while true
         z = xmin + (xmax - xmin) * rand() + (1 + 4 * rand()) * im / 10
         if minimum(append!(abs.(z .- random_points), 1)) > sep / sqrt(N) &&
-            cond(z) == true
+           cond(z) == true
             push!(random_points, z)
             break
         end
@@ -82,10 +85,10 @@ N = the number of points.
 function = a function that we may apply on the points
 square = whether to use a square (otherwise, a rectangle)
 """
-function random_points(N; transfo = nothing, square = true, cond=p->true)
+function random_points(N; transfo = nothing, square = true, cond = p -> true)
     res = []
     for _ = 1:N
-        new_random_point!(res, N, transfo = transfo, square = square, cond=cond)
+        new_random_point!(res, N, square = square, cond = cond)
     end
     return transfo !== nothing ? transfo.(res) : res
 end
@@ -99,19 +102,8 @@ function crossratio(chan, x)
 end
 function modular_param(chan, τ)
     chan === :s && return τ
-    chan === :t && return -1/τ
-    chan === :u && return (τ-2)/(τ-1)
-end
-
-"""
-Recipe to ensure q(x(τ)) = q(τ), as well as for -1/τ, (τ-2)/(τ-1).
-"""
-function square_to_τ(τ)
-    res = 2*real(τ) - 0.25 + imag(τ) * im + 3*im
-    if real(τ) < 0.2
-        res += 0.2
-    end
-    return res
+    chan === :t && return -1 / τ
+    chan === :u && return (τ - 2) / (τ - 1)
 end
 
 channel_position(x, _::Correlation{T,U}, chan) where {T,U<:FourPoints} =
@@ -124,8 +116,7 @@ function BootstrapSystem(
     knowns = nothing,
     extrapoints::Int = 6,
     pos = nothing,
-) where {T,U<:ChannelSpectrum}
-    # if consts is empty, normalise the field with smallest indices
+) where {T,U<:ChannelSpectrum{T}}
     chans = keys(S)
     co = S[1].corr
     if knowns === nothing
@@ -138,15 +129,15 @@ function BootstrapSystem(
         nb_positions = length(pos)
     else
         nb_positions = nb_lines ÷ (length(S) - 1)
-        if co.fields <: OnePoint
-            transfo = τ -> square_to_τ(τ)
+        if typeof(co.fields) <: OnePoint
+            transfo = x -> τfromx(x)
         else
             transfo = nothing
         end
         pos = Vector{T}(random_points(nb_positions, transfo = transfo))
     end
-    pos_chan = Channels{Vector{T}}(
-        Tuple([channel_position(x, co, chan) for x in pos] for chan in keys(S)),
+    pos_chan = (;
+        (chan => [channel_position(x, co, chan) for x in pos] for chan in keys(S))...
     )
     # compute position cache
     pos_cache_data = Vector{Vector{LRPositionCache{T}}}(undef, length(S)) # result container
@@ -156,8 +147,8 @@ function BootstrapSystem(
     end
     pos_cache = Channels{Vector{LRPositionCache{T}}}(Tuple(pos_cache_data))
     # blocks = evaluate_blocks(S, pos_cache)
-    blocks = Channels{Dict{Field{T},Vector{T}}}(
-        Tuple(Dict{Field{T},Vector{T}}() for chan in chans),
+    blocks = (;
+        (chan => Dict{Field{T},Vector{T}}() for chan in chans)...
     )
     matrix = BootstrapMatrix{T}()
     return BootstrapSystem{T,U}(co, pos, pos_cache, S, blocks, matrix, knowns)
@@ -207,8 +198,17 @@ factor(_::Correlation{T,U}, chan, x) where {T,U<:FourPoints} = one(T)
 function factor(co::Correlation{T,U}, chan, τ) where {T,U<:OnePoint}
     chan === :s && return one(T)
     Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
-    chan === :t && return (-1/τ)^(-Δ₁) * (-1/conj(τ))^(-bΔ₁)
-    chan === :u && return (-1/(τ+1))^(Δ₁) * (-1/conj(τ+1))^(-bΔ₁)
+    chan === :t && return τ^-Δ₁ * conj(τ)^-bΔ₁
+    chan === :u && return (τ - 1)^-Δ₁ * conj(τ - 1)^-bΔ₁
+end
+
+function hasdiagonal(b::BootstrapSystem)
+    for chan in (:s, :t, :u)
+        for V in keys(b.spectra[chan].blocks)
+            V.diagonal && return true, chan, V
+        end
+    end
+    return (false, :s, nothing)
 end
 
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
@@ -219,38 +219,43 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
         chan in chans
     )
 
-    unknowns = Channels{Vector{Field{T}}}(
-        Tuple(
+    unknowns = (;
+        (chan =>
             sort(
                 [
                     V for V in fields(b.spectra[chan]) if
                     !(V in keys(known_consts[chan]))
                 ],
-                by = V->real(total_dimension(V)),
+                by = V -> real(total_dimension(V)),
             ) for chan in chans
-        ),
+        )...
     )
 
-    # if no consts are known, fix a normalisation: first str cst in the s channel = 1
+    # if no consts are known, fix a normalisation
     if all([isempty(known_consts[chan]) for chan in chans])
-        smallest_dim = reduce(
-            (V1, V2) ->
-                real(total_dimension(V1)) < real(total_dimension(V2)) ? V1 : V2,
-            unknowns[:s],
-        )
-        fix!(known_consts, :s, smallest_dim, 1)
+        hasdiag, chan, diag = hasdiagonal(b)
+        if hasdiag
+            normalised_field = diag
+        else
+            normalised_field = reduce(
+                (V1, V2) ->
+                    real(total_dimension(V1)) < real(total_dimension(V2)) ? V1 : V2,
+                unknowns[chan],
+            )
+        end
+        fix!(known_consts, chan, normalised_field, 1)
         b.structure_constants = known_consts
-        idx = findfirst(==(smallest_dim), unknowns[:s])
-        deleteat!(unknowns[:s], idx)
+        idx = findfirst(==(normalised_field), unknowns[chan])
+        deleteat!(unknowns[chan], idx)
     end
 
-    knowns = Channels{Vector{Field{T}}}(
-        Tuple(
+    knowns = (;
+        (chan =>
             [
                 V for V in fields(b.spectra[chan]) if
                 V in keys(b.structure_constants[chan])
             ] for chan in chans
-        ),
+        )...
     )
 
     nb_positions = length(b.positions)
@@ -273,13 +278,13 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
         col_idx += 1
     end
     for V in unknowns[:t]
-        LHS[1:nb_positions, col_idx] = .- facts[:t] .* b.block_values[:t][V]
+        LHS[1:nb_positions, col_idx] = .-facts[:t] .* b.block_values[:t][V]
         LHS[(nb_positions+1):end, col_idx] = zer
         col_idx += 1
     end
     for V in unknowns[:u]
         LHS[1:nb_positions, col_idx] = zer
-        LHS[(nb_positions+1):end, col_idx] = .- facts[:u] .* b.block_values[:u][V]
+        LHS[(nb_positions+1):end, col_idx] = .-facts[:u] .* b.block_values[:u][V]
         col_idx += 1
     end
 

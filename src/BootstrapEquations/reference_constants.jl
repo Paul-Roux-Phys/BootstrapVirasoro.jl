@@ -13,6 +13,8 @@ function Cref(V₁, V₂, V₃, DG)
     )
 end
 
+Cref(V₁, V₂, V₃) = Cref(V₁, V₂, V₃, DoubleGamma(V₁.c.β))
+
 function Bref(DG, c, r, s, reg = 1/big(10^15))
     β = c.β
     if r%1 == 0 && s % 1 == 0
@@ -32,7 +34,7 @@ end
 
 function Bref(V::Field, DG, reg = 1/big"10"^15)
     c = V.c
-    if isdiagonal(V)
+    if V.diagonal
         return Bref(DG, c, V.dims[:left].P)
     else
         return Bref(DG, c, V.r, V.s, reg)
@@ -44,4 +46,10 @@ function compute_reference(b::Block{T,U}, DG) where {T,U<:FourPoints}
     V₁, V₂, V₃, V₄ = permute_fields(b.correlation.fields, chan)
     V = b.channel_field
     return Cref(V₁, V₂, V, DG) * Cref(V₃, V₄, V, DG) / Bref(V, DG)
+end
+
+function compute_reference(b::Block{T,U}, DG) where {T,U<:OnePoint}
+    V₁ = b.correlation.fields[1]
+    V = b.channel_field
+    return Cref(V₁, V, V, DG) / Bref(V, DG)
 end

@@ -1,10 +1,11 @@
 """Nome `q` from the cross-ratio `x`"""
-@inline qfromx(x) = exp(- (π * ellipticK(1 - x) / ellipticK(x)))
+ qfromx(x) = exp(- (π * ellipticK(1 - x) / ellipticK(x)))
 """Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0, q)^4 / jtheta3(0, q)^4
-@inline qfromτ(τ) = exp(2*im*(π*τ))
+ qfromτ(τ) = exp(2*im*(π*τ))
+τfromx(x) = (log(qfromx(x)) / π) / im / 2
 
-struct PositionCache{T}
+struct PosCache{T}
     x::T
     prefactor::T
     q::T
@@ -12,13 +13,10 @@ struct PositionCache{T}
     q_powers::Vector{T}
 end
 
-struct LRPositionCache{T}
-    left::PositionCache{T}
-    right::PositionCache{T}
-end
+const LRPosCache = LeftRight{PosCache}
 
-function PositionCache(x, ds::FourDimensions{T}, chan::Symbol, Nmax) where {T}
-    ds = permute_dimensions(ds, chan)
+function PosCache(x, ds::NTuple{4, CD{T}}, chan::Symbol, Δmax) where {T}
+    ds = permute_4(ds, chan)
 
     q = qfromx(x)
 
@@ -30,39 +28,39 @@ function PositionCache(x, ds::FourDimensions{T}, chan::Symbol, Nmax) where {T}
     prefactor = x^e0 * (1 - x)^e1 * jtheta3(0, q)^(-4 * e2)
 
     sq = 16q
-    q_powers = ones(T, Nmax+1)
-    for i = 2:(Nmax+1)
+    q_powers = ones(T, Δmax+1)
+    for i = 2:(Δmax+1)
         q_powers[i] = q_powers[i-1] * sq
     end
 
-    return PositionCache{T}(x, prefactor, q, log(sq), q_powers)
+    return PosCache{T}(x, prefactor, q, log(sq), q_powers)
 end
 
-function PositionCache(τ, _::OneDimension{T}, _::Symbol, Nmax) where {T}
+function PosCache(τ, _::NTuple{1, CD{T}}, _::Symbol, Δmax) where {T}
     q = qfromτ(τ)
     prefactor = 1 / etaDedekind(complex(τ))
-    q_powers = ones(T, Nmax+1)
-    for i = 2:(Nmax+1)
+    q_powers = ones(T, Δmax+1)
+    for i = 2:(Δmax+1)
         q_powers[i] = q_powers[i-1] * q
     end
 
-    return PositionCache{T}(τ, prefactor, q, log(q), q_powers)
+    return PosCache{T}(τ, prefactor, q, log(q), q_powers)
 end
 
-PositionCache(x, co::ChiralCorrelation, chan) =
-    PositionCache(x, co.fields, chan, co.Nmax)
-PositionCache(x, b::ChiralBlock) = PositionCache(x, b.corr, b.channel)
+PosCache(x, co::CCo, chan) =
+    PosCache(x, co.fields, chan, co.Δmax)
+PosCache(x, b::CBlock) = PosCache(x, b.corr, b.chan)
 
-function LRPositionCache(x, co::CorrelationNonChiral{T,U}, chan) where {T,U}
+function LeftRight{PosCache}(x, co::NCCo{T}, chan) where {T}
     xbar = conj_q(x, co)
-    return LRPositionCache{T}(
-        PositionCache(x, co[:left], chan),
-        PositionCache(xbar, co[:right], chan),
+    return LRPosCache(
+        PosCache(x, co[:left], chan),
+        PosCache(xbar, co[:right], chan),
     )
 end
-LRPositionCache(x, b::NonChiralBlock) = LRPositionCache(x, b.correlation, b.channel)
+LeftRight{PosCache}(x, b::NCBlock) = LRPosCache(x, b.corr, b.chan)
 
-@inline function evalpoly(x::PositionCache, coeffs::Vector{T}) where {T}
+function evalpoly(x::PosCache, coeffs::Vector{T}) where {T}
     res = zero(T)
     for i = 1:length(coeffs)
         res += coeffs[i] * x.q_powers[i]
@@ -70,86 +68,83 @@ LRPositionCache(x, b::NonChiralBlock) = LRPositionCache(x, b.correlation, b.chan
     return res
 end
 
-@inline evaluate_series(b::ChiralBlock, x::PositionCache) =
-    evalpoly(x, b._coefficients)
-@inline evaluate_series_der(b::ChiralBlock, x::PositionCache) =
-    evalpoly(x, b._coefficients_der)
-evaluate_series(b::ChiralBlock, x::Number) =
-    evaluate_series(b, PositionCache(x, b.corr, b.channel))
-evaluate_series_der(b::ChiralBlock, x::Number) =
-    evaluate_series_der(b, PositionCache(x, b.corr, b.channel))
+eval_series(b::CBlock, x::PosCache) =
+    evalpoly(x, b.coeffs)
+eval_series_der(b::CBlock, x::PosCache) =
+    evalpoly(x, b.coeffs_der)
+eval_series(b::CBlock, x::Number) =
+    eval_series(b, PosCache(x, b.corr, b.chan))
+eval_series_der(b::CBlock, x::Number) =
+    eval_series_der(b, PosCache(x, b.corr, b.chan))
 
-conj_q(x, _::Correlation{T,U}) where {T,U<:FourPoints} = conj(x)
-conj_q(τ, _::Correlation{T,U}) where {T,U<:OnePoint} = -conj(τ)
+conj_q(x, _::Correlation4) = conj(x)
+conj_q(τ, _::Correlation1) = -conj(τ)
 
-prefactor(b::ChiralBlock{T,U}, x::PositionCache) where {T,U<:FourPoints} =
-    x.prefactor
-prefactor(b::ChiralBlock{T,U}, x::PositionCache) where {T,U<:OnePoint} =
-    x.prefactor
-prefactor(b::ChiralBlock, x::Number) = prefactor(b, PositionCache(x, b))
-prefactor(b::NonChiralBlock, x::LRPositionCache) = prefactor(b.chiral_blocks[:left], x.left) *
-    prefactor(b.chiral_blocks[:right], x.right)
-prefactor(b::NonChiralBlock, x::Number) = prefactor(b, LRPositionCache(x, b))
+prefactor(b::ChiralBlock, x::Number) = PosCache(x, b).prefactor
+prefactor(b::NonChiralBlock, x::LRPosCache) = prefactor(b.cblocks.left, x.left) *
+    prefactor(b.cblocks.right, x.right)
+prefactor(b::NonChiralBlock, x::Number) = prefactor(b, LRPosCache(x, b))
 
 
-total_prefactor(b::ChiralBlock{T,U}, x::PositionCache) where {T,U<:FourPoints} =
-    x.prefactor * (x.q_powers[2])^b.channel_dimension.δ
-total_prefactor(b::ChiralBlock{T,U}, x::PositionCache) where {T,U<:OnePoint} =
-    x.prefactor * x.q^b.channel_dimension.δ
-total_prefactor(b, x::Number) = total_prefactor(b, PositionCache(x, b))
+total_prefactor(b::CBlock, x::PosCache, _::Correlation4) = 
+    x.prefactor * (x.q_powers[2])^b.chan_dim.δ
+total_prefactor(b::CBlock, x::PosCache, _::Correlation1) = 
+    x.prefactor * x.q^b.chan_dim.δ
+total_prefactor(b::CBlock, x::PosCache) = total_prefactor(b, x, b.corr)
+total_prefactor(b::CBlock, x::Number) = total_prefactor(b, PosCache(x, b))
 
-function evaluate(b::ChiralBlock{T,U}, x::PositionCache)::T where {T,U}
-    d = b.channel_dimension
+function eval(b::CBlock{T}, x::PosCache)::T where {T}
+    d = b.chan_dim
     p = total_prefactor(b, x)
-    h = evaluate_series(b, x)
+    h = eval_series(b, x)
 
-    if isdegenerate(d)
+    if d.degenerate
         # add log(q or 16q) * \sum C^N_rs (q or 16q)^N
-        h += x.logq * evalpoly(x, b._missing_terms)
+        h += x.logq * evalpoly(x, b.missing_terms)
     end
 
     return p * h
 end
 
-function evaluate_der(b::ChiralBlock{T,U}, x::PositionCache)::T where {T,U}
-    d = b.channel_dimension
+function eval_der(b::CBlock{T}, x::PosCache)::T where {T}
+    d = b.chan_dim
     qor16q = x.q_powers[2]
-    p = x.prefactor * (qor16q)^b.channel_dimension.δ
-    h = evaluate_series(b, x)
-    hprime = evaluate_series_der(b, x)
+    p = x.prefactor * (qor16q)^b.chan_dim.δ
+    h = eval_series(b, x)
+    hprime = eval_series_der(b, x)
     h = muladd(h, 2 * d.P * x.logq, hprime) # H_der = 2*P*log(q or 16q)*H + H'
     return p * h
 end
 
-@inline evaluate_lr(bs::LeftRight{ChiralBlock}, x::LRPositionCache) =
-    evaluate(bs[:left], x.left), evaluate(bs[:right], x.right)
-@inline evaluate_lr_der(bs::LeftRight{ChiralBlock}, x::LRPositionCache) =
-    evaluate_der(bs[:left], x.left), evaluate_der(bs[:right], x.right)
-@inline evaluate_lr(b::FactorizedBlock, x) = evaluate_lr(b.chiral_blocks, x)
-@inline evaluate_lr(b::LogarithmicBlock, x) = evaluate_lr(b.chiral_blocks, x)
-@inline evaluate_lr_op(b::LogarithmicBlock, x) = evaluate_lr(b.chiral_blocks_op, x)
-@inline evaluate_lr_der(b::LogarithmicBlock, x) =
-    evaluate_lr_der(b.chiral_blocks_der, x)
+ eval_lr(bs::LR{CBlock{T}}, x) where {T} =
+    eval(bs.left, x.left), eval(bs.right, x.right)
+ eval_lr_der(bs::LeftRight{CBlock{T}}, x) where {T} =
+    eval_der(bs.left, x.left), eval_der(bs.right, x.right)
+ eval_lr(b::FactorizedBlock{T}, x) where {T} = eval_lr(b.cblocks, x)
+ eval_lr(b::LogBlock, x) = eval_lr(b.cblocks, x)
+ eval_lr_op(b::LogBlock, x) = eval_lr(b.cblocks_op, x)
+ eval_lr_der(b::LogBlock, x) = eval_lr_der(b.cblocks_der, x)
 
-function evaluate(b::FactorizedBlock{T,U}, x::LRPositionCache)::T where {T,U}
-    return prod(evaluate_lr(b, x))
+function eval(b::FactorizedBlock{T}, x::LRPosCache)::T where {T}
+    lr = eval_lr(b, x)
+    return lr[1] * lr[2]
 end
 
-function evaluate(b::LogarithmicBlock{T,U}, x::LRPositionCache)::T where {T,U}
-    V = b.channel_field
+function eval(b::LogBlock{T}, x::LRPosCache)::T where {T}
+    V = b.chan_field
     r, s = indices(V)
     s < 0 && return zero(T) # by convention G_(r, s<0) = 0
-    Prs = V.dims[:left].P
+    Prs = V.dims.left.P
 
-    Freg, Fbar = evaluate_lr(b, x)
-    F, Fregbar = evaluate_lr_op(b, x)
+    Freg, Fbar = eval_lr(b, x)
+    F, Fregbar = eval_lr_op(b, x)
     R, Rbar = b.R, b.Rbar
 
     if isaccidentallynonlogarithmic(b)
         Freg * Fbar + (-1)^b.nbzeros * R / Rbar * F * Fregbar
 
     elseif islogarithmic(b)
-        Fder, Fderbar = evaluate_lr_der(b, x)
+        Fder, Fderbar = eval_lr_der(b, x)
 
         l = b.ell
 
@@ -159,23 +154,23 @@ function evaluate(b::LogarithmicBlock{T,U}, x::LRPositionCache)::T where {T,U}
     end
 end
 
-function evaluate(b::InterchiralBlock{T,U}, x)::T where {T,U}
+function eval(b::IBlock{T}, x)::T where {T}
     res = zero(T)
     for i in eachindex(b.blocks)
-        res += evaluate((b.blocks)[i], x) .* b.shifts[i]
+        res += eval((b.blocks)[i], x) .* b.shifts[i]
     end
     return res
 end
 
-function evaluate(b::LinearCombinationBlock{T,U}, x)::T where {T,U}
+function eval(b::LCBlock{T}, x)::T where {T}
     res = zero(T)
     for i in eachindex(b.blocks)
-        res += evaluate((b.blocks)[i], x) .* b.coefficients[i]
+        res += eval((b.blocks)[i], x) .* b.coefficients[i]
     end
     return res
 end
 
-evaluate(b::ChiralBlock, x::Number) = evaluate(b, PositionCache(x, b))
-evaluate(b::NonChiralBlock, x::Number) = evaluate(b, LRPositionCache(x, b))
-evaluate_der(b::ChiralBlock, x::Number) = evaluate_der(b, PositionCache(x, b))
-evaluate_der(b::NonChiralBlock, x::Number) = evaluate_der(b, LRPositionCache(x, b))
+eval(b::CBlock, x::Number) = eval(b, PosCache(x, b))
+eval(b::NCBlock, x::Number) = eval(b, LRPosCache(x, b))
+eval_der(b::CBlock, x::Number) = eval_der(b, PosCache(x, b))
+eval_der(b::NCBlock, x::Number) = eval_der(b, LRPosCache(x, b))

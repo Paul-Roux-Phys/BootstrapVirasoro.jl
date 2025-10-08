@@ -27,21 +27,24 @@ Non-diagonal:
 ```
 """
 abstract type Spectrum{T} end
+const Spec = Spectrum
 
 struct BulkSpectrum{T} <: Spectrum{T}
     Δmax::T
     fields::Set{Field{T}}
 end
+const BulkSpec = BulkSpectrum
 
-struct BoundarySpectrum{T} <: Spectrum{T}
+struct BdySpectrum{T} <: Spectrum{T}
     Δmax::T
-    fields::Set{ConformalDimension{T}}
+    fields::Set{CD{T}}
 end
+const BdySpec = BdySpectrum
 
-Spectrum{T}(Δmax::T, ds::Set{CD{T}}) where {T} = BoundarySpectrum{T}(Δmax, ds)
+Spectrum{T}(Δmax::T, ds::Set{CD{T}}) where {T} = BdySpectrum{T}(Δmax, ds)
 Spectrum{T}(Δmax::T, ds::Set{Field{T}}) where {T} = BulkSpectrum{T}(Δmax, ds)
 
-function hasdiagonals(s::Spectrum)
+function hasdiagonals(s::BulkSpectrum)
     for V in s.fields
         V.diagonal && return true
     end
@@ -51,26 +54,27 @@ end
 """
         Holds all the data for evaluating blocks in a channel.
 """
-struct ChannelSpectrum{T,U}
+struct ChannelSpectrum{T}
     Δmax::T
-    corr::Correlation
-    channel::Symbol
-    blocks::Dict{Field{T},Block{T,U}}
+    corr::Corr
+    chan::Symbol
+    blocks::Dict{Field{T},Block{T}}
 end
+const ChanSpec = ChannelSpectrum
 
 fields(s::Spectrum) = s.fields
 fields(s::ChannelSpectrum) = keys(s.blocks)
 
-function _add_one!(s::Spectrum, V)
+function _add_one!(s::BulkSpec, V)
     if !(V in s.fields) && real(total_dimension(V)) < real(s.Δmax)
         push!(s.fields, V)
     end
     return V
 end
 
-function _add_one!(s::ChannelSpectrum, V; kwargs...)
+function _add_one!(s::ChanSpec, V; kwargs...)
     if !(V in fields(s)) && real(total_dimension(V)) < real(s.Δmax)
-        b = Block(s.corr, s.channel, V; kwargs...)
+        b = Block(s.corr, s.chan, V; kwargs...)
         (s.blocks)[V] = b
         return b
     end
@@ -113,7 +117,7 @@ function Spectrum(
 ) where {T}
     s = BulkSpectrum{T}(Δmax, Set{Field{T}}())
     if interchiral
-        foreach(V -> if -1 < V.s <= 1
+        foreach(V -> if -1 < real(V.s) <= 1 || (!V.isdegenerate && V.diagonal)
             add!(s, V)
         end, fields)
     else
@@ -123,9 +127,9 @@ function Spectrum(
 end
 
 function Spectrum(fields::AbstractArray{CD{T}}, Δmax; interchiral = false) where {T}
-    s = BoundarySpectrum{T}(Δmax, [])
+    s = BdySpectrum{T}(Δmax, [])
     if interchiral
-        foreach(V -> if -1 < V.s <= 1
+        foreach(V -> if -1 < real(V.s) <= 1
             add!(s, V)
         end, fields)
     else
@@ -135,16 +139,15 @@ function Spectrum(fields::AbstractArray{CD{T}}, Δmax; interchiral = false) wher
 end
 
 function ChannelSpectrum(
-    co::Correlation{T,U},
+    co::Co{T},
     Δmax::Number,
     chan;
     kwargs...,
-) where {T,U}
-    W = typeof(co[:left]).parameters[2]
-    return ChannelSpectrum{T,W}(Δmax, co, chan, Dict{Field{T},Block{T,W}}())
+) where {T}
+    return ChannelSpectrum{T}(Δmax, co, chan, Dict{Field{T},Block{T}}())
 end
 
-function ChannelSpectrum(co::Correlation, s::Spectrum{T}, chan; kwargs...) where {T}
+function ChannelSpectrum(co::Co, s::Spec{T}, chan; kwargs...) where {T}
     schan = ChannelSpectrum(co, co.Nmax, chan; kwargs...)
     for V in fields(s)
         add!(schan, V; kwargs...)
@@ -152,7 +155,7 @@ function ChannelSpectrum(co::Correlation, s::Spectrum{T}, chan; kwargs...) where
     return schan
 end
 
-function Spectrum(s::ChannelSpectrum{T,U}) where {T,U}
+function Spectrum(s::ChannelSpectrum{T}) where {T}
     return Spectrum{T}(s.Δmax, Set(fields(s)))
 end
 
@@ -192,25 +195,15 @@ Base.size(s::Spectrum) = size(s.fields)
 Base.size(s::ChannelSpectrum) = size(s.blocks)
 nb_blocks(s::ChannelSpectrum) = sum(length(b) for b in s.blocks)
 
-function field_compatible_with_signature(
-    co::Correlation{T,U},
-    V,
-    signature,
-    chan,
-) where {T,U<:FourPoints}
-    V1, V2, _, _ = permute_fields(co.fields, chan)
-    return isdiagonal(V) ? (V1.r + V2.r) % 1 == 0 && signature[chan] == 0 :
-           (V.r + V1.r + V2.r) % 1 == 0 && V.r >= signature[chan]
+function field_compatible_with_signature(co::Correlation4, V, sig, chan)
+    V1, V2, _, _ = permute_4(co.fields, chan)
+    return V.diagonal ? (V1.r + V2.r) % 1 == 0 && sig[chan] == 0 :
+           (V.r + V1.r + V2.r) % 1 == 0 && V.r >= sig[chan]
 end
 
-function field_compatible_with_signature(
-    co::Correlation{T,U},
-    V,
-    signature,
-    chan,
-) where {T,U<:OnePoint}
-    return isdiagonal(V) ? signature[chan] == 0 :
-           V.r % 1 == signature[chan] && V.r >= signature[chan]
+function field_compatible_with_signature(co::Correlation1, V, sig, chan)
+    return V.diagonal ? sig[chan] == 0 :
+           V.r % 1 == sig[chan] % 1 && V.r >= sig[chan]
 end
 
 function ChannelSpectra(
@@ -220,8 +213,8 @@ function ChannelSpectra(
     kwargs...,
 ) where {T}
     chans = (:s, :t, :u)
-    schan = Channels{ChannelSpectrum{T}}(
-        Tuple(ChannelSpectrum(co, s.s.Δmax, chan; kwargs...) for chan in chans),
+    schan = (;
+        (chan => ChannelSpectrum(co, s.s.Δmax, chan; kwargs...) for chan in chans)...
     )
     exclude = nothing
     if haskey(kwargs, :exclude)
@@ -235,7 +228,7 @@ function ChannelSpectra(
             for V in s[chan].fields
                 cond = field_compatible_with_signature(co, V, signature, chan)
                 if haskey(kwargs, :parity) && kwargs[:parity] != 0
-                    cond = cond && V.s >= 0
+                    cond = cond && (real(V.s) >= 0 || V.diagonal)
                 end
                 if !isnothing(exclude) && haskey(exclude, chan)
                     cond = cond && !(V in exclude[chan])
@@ -258,13 +251,13 @@ ChannelSpectra(co, S::Spectrum, signature = (s = 0, t = 0, u = 0); kwargs...) =
 
 function Base.show(io::IO, s::BulkSpectrum)
     nondiags =
-        sort([indices(V) for V in s.fields if !isdiagonal(V)], by = x -> (x[1], x[2]))
+        sort([indices(V) for V in s.fields if !V.diagonal], by = x -> (x[1], x[2]))
     diags = sort(
-        [V for V in s.fields if isdiagonal(V) && !isdegenerate(V)],
+        [V for V in s.fields if V.diagonal && !V.isdegenerate],
         by = V -> real(total_dimension(V)),
     )
     degs = sort(
-        [V for V in s.fields if isdegenerate(V)],
+        [V for V in s.fields if V.isdegenerate],
         by = V -> real(total_dimension(V)),
     )
     if !isempty(degs)
@@ -292,9 +285,10 @@ function Base.show(io::IO, s::BulkSpectrum)
             print(io, rs)
         end
     end
+    println(io, "")
 end
 
-function Base.show(io::IO, s::ChannelSpectrum)
-    println(io, "channel $(s.channel), Δmax = $(s.Δmax)")
+function Base.show(io::IO, s::ChanSpec)
+    println(io, "channel $(s.chan), Δmax = $(s.Δmax)")
     show(io, Spectrum(s))
 end

@@ -1,91 +1,76 @@
-struct InterchiralBlock{T,U} <: Block{T,U}
-    Δmax::T
+struct InterchiralBlock{T} <: Block{T}
+    Δmax::Int
+    chan_field::Field{T}
     fields::Vector{Field{T}}
-    blocks::Vector{Block{T,U}}
+    indices::Vector
+    corr::Corr
+    blocks::Vector{Block{T}}
     shifts::Vector{T}
-    channel::Symbol
-    shift::Int
+    chan::Symbol
 end
+const IBlock = InterchiralBlock
 
-struct LinearCombinationBlock{T,U} <: Block{T,U}
+struct LinearCombinationBlock{T} <: Block{T}
     channel_field::Field{T}
-    blocks::Vector{Block{T,U}}
+    blocks::Vector{Block{T}}
     coefficients::Vector{T}
-    channel::Symbol
+    chan::Symbol
 end
+const LCBlock = LinearCombinationBlock
 
 function my_mod2(s)
     s = s % 2
     return s > 1 ? s - 2 : s
 end
 
-function LinearCombinationBlock(bs::Vector{<:Block{T,U}}, coeffs) where {T,U}
-    LinearCombinationBlock{T,U}(bs[1].channel_field, bs, coeffs, bs[1].channel)
+function LinearCombinationBlock(bs::Vector{<:Block{T}}, coeffs) where {T}
+    LinearCombinationBlock{T}(bs[1].chan_field, bs, coeffs, bs[1].chan)
 end
 
-function InterchiralBlock(
-    co::Correlation{T,U},
-    chan,
-    V,
-    Δmax,
-    s_shift = 2,
-) where {T,U}
-    @assert real(V.c.β^2) > 0 "interchiral blocks are defined for Re(β^2) > 0"
+function InterchiralBlock(co::Co{T}, chan, V, Δmax) where {T}
+    @assert real(V.c.β^2) > 0 "interchiral blocks are implemented for Re(β^2) > 0"
     fields = []
     shifts = []
-    if isdiagonal(V)
-        V0 = V
-    else
-        V0 = Field(V.c, r = V.r, s = mod(V.s, s_shift))
-    end
-    extfields = permute_fields(co.fields, chan)
-    if !isdiagonal(V) && V0.s != 1 # bring back s in (-1, 1)
+    extfields = getfields(co, chan)
+    V0 = V
+    if !V.diagonal
         V0 = Field(V.c, r = V.r, s = my_mod2(V.s))
     end
     Vshift = V0
     D = 1
-    if s_shift == 1
-        error("Interchiral blocks with shifts s->s+1 not implemented")
-    end
     while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) < real(Δmax)
         push!(fields, Vshift)
         push!(shifts, D)
         D /= shift_D(extfields, Vshift)
-        Vshift = shift(Vshift, s_shift)
+        Vshift = shift(Vshift, 2)
     end
-    if !isdegenerate(V) && !(V.r isa Int && V.s isa Int)
-        Vshift = shift(V0, -s_shift)
+    if !(V.r isa Int && V.s isa Int && V.r > 0 && V.s > 0)
+        Vshift = shift(V0, -2)
         D = shift_D(extfields, Vshift)
         while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) < real(Δmax)
             push!(fields, Vshift)
             push!(shifts, D)
-            Vshift = shift(Vshift, -s_shift)
+            Vshift = shift(Vshift, -2)
             D *= shift_D(extfields, Vshift)
         end
     end
-    if isdiagonal(V)
-        shifts = 1 ./ shifts
-    end
-    blocks = [Block(co, chan, V, Δmax = Δmax) for V in fields]
+    blocks = [Block(co, chan, V, Δmax) for V in fields]
+    ind = [indices(b.chan_field) for b in blocks]
 
-    W = typeof(co[:left]).parameters[2]
-    InterchiralBlock{T,W}(Δmax, fields, blocks, shifts, chan, s_shift)
+    InterchiralBlock{T}(Δmax, V, fields, ind, co, blocks, shifts, chan)
 end
 
-islogarithmic(b::InterchiralBlock) = islogarithmic(b.blocks[1])
+function islogarithmic(b::IBlock)
+    isempty(b.blocks) && return false
+    islogarithmic(b.blocks[1])
+end
 
-reflect(b::InterchiralBlock) = Block(
-    b.corr,
-    b.channel,
-    reflect(b.blocks[1].channel_field),
-    interchiral = true,
-    Δmax = b.Δmax,
-)
+reflect(b::IBlock) = IBlock(b.corr, b.chan, reflect(b.chan_field), b.Δmax)
 
 function get_indices(V)
     β = V.c.β
-    if isdegenerate(V)
-        return 0, 2*β*V.dims[:left].P
+    if V.diagonal
+        return 0, -2*β*V.dims[:left].P
     else
         return indices(V)
     end
@@ -127,7 +112,7 @@ Ratio ``C_{122}/C_{12^++2^++}``.
 function shift_C122(V1, V2)
     β = V1.c.β
     r1, s1 = get_indices(V1)
-    r2, s2 = get_indices(shift(V2, 1))
+    r2, s2 = get_indices(shift(V2, 2))
 
     res = (-1)^(Int(2r2))
     res *= β^(-8inv(β)^2 * s2)
@@ -161,68 +146,72 @@ function shift_B(V)
 end
 
 """ratio ``D_{V}/D_{V^++}`` for four-point structure constants"""
-function shift_D(Vs::FourFields, V)
+function shift_D(Vs::NTuple{4, Field}, V)
     shift_C123(Vs[1], Vs[2], V)*shift_C123(Vs[3], Vs[4], V) / shift_B(V)
 end
 
 """ ratio ``D_{V}/D_{V^++}`` for torus one-point structure constants"""
-function shift_D(Vs::OneField, V)
+function shift_D(Vs::NTuple{1, Field}, V)
     shift_C122(Vs[1], V) / shift_B(V)
 end
 
-function Base.getproperty(b::InterchiralBlock, s::Symbol)
-    s === :fields && return [block.channel_field for block in getfield(b, :blocks)]
-    s === :indices &&
-        return [indices(block.channel_field) for block in getfield(b, :blocks)]
-    s in (:r, :s, :channel, :channel_field, :corr, :correlation) &&
-        return getproperty(getfield(b, :blocks)[1], s)
-    s === :shift && return length(b.blocks) > 1 ?
-           Int(abs(getfield(b, :blocks)[2].s - getfield(b, :blocks)[1].s)) : 2
-    getfield(b, s)
-end
+# function Base.getproperty(b::InterchiralBlock, s::Symbol)
+#     s === :indices &&
+#         return [indices(block.channel_field) for block in getfield(b, :blocks)]
+#     s in (:r, :s, :channel, :channel_field, :corr, :correlation) &&
+#         return getproperty(getfield(b, :blocks)[1], s)
+#     s === :shift && return length(b.blocks) > 1 ?
+#            Int(abs(getfield(b, :blocks)[2].s - getfield(b, :blocks)[1].s)) : 2
+#     getfield(b, s)
+# end
 
-function Base.getproperty(b::LinearCombinationBlock, s::Symbol)
-    s === :correlation && return getfield(b, :blocks)[1].correlation
-    getfield(b, s)
-end
+# function Base.getproperty(b::LCBlock, s::Symbol)
+#     s === :corr && return getfield(b, :blocks)[1].correlation
+#     getfield(b, s)
+# end
 
-function Base.length(b::InterchiralBlock)
+function Base.length(b::IBlock)
     length(b.fields)
 end
 
-function Base.show(io::IO, ::MIME"text/plain", b::InterchiralBlock)
+# function Base.getproperty(b::IBlock, s::Symbol)
+#     s in (:r, :s) && return getproperty(getfield(b, :blocks)[1], s)
+#     getfield(b, s)
+# end
+
+function Base.show(io::IO, ::MIME"text/plain", b::IBlock)
     svals = [V.s for V in b.fields]
     V = b.fields[1]
-    ns = real.(round.(V.s .- svals))
-    shift_range = Int(minimum(ns)):b.shift:Int(maximum(ns))
+    ns = real.(round.(-V.s .+ svals)) ./ 2
+    shift_range = Int(minimum(ns)):1:Int(maximum(ns))
     if isempty(b.fields)
         print(io, "Empty interchiral block")
-    elseif isdiagonal(b.fields[1])
-        println(io, "Interchiral block with channel $(b.channel) and fields")
-        print(io, "V_{P = $(V.dims[:left].P) + n/β}, n ∈ $(shift_range)}")
+    elseif !b.fields[1].diagonal || b.fields[1].degenerate
+        println(io, "Interchiral block with channel $(b.chan) and fields")
+        print(io, "{ V_{$(b.chan_field.r), $(b.chan_field.s) + 2s}, s ∈ $(shift_range) }")
     else
-        println(io, "Interchiral block with channel $(b.channel) and fields")
-        print(io, "{ V_{$(b.r), $(b.s) + s}, s ∈ $(shift_range) }")
+        println(io, "Interchiral block with channel $(b.chan) and fields")
+        print(io, "V_{P = $(V.dims.left.P) + n/β}, n ∈ $(shift_range)}")
     end
 end
 
-function Base.show(io::IO, b::InterchiralBlock)
+function Base.show(io::IO, b::IBlock)
     svals = [V.s for V in b.fields]
     V = b.fields[1]
-    ns = real(round.(V.s .- svals))
-    shift_range = Int(minimum(ns)):b.shift:Int(maximum(ns))
+    ns = real(round.(-V.s .+ svals)) ./ 2
+    shift_range = Int(minimum(ns)):1:Int(maximum(ns))
     if isempty(b.fields)
         print(io, "Empty interchiral block")
-    elseif isdiagonal(b.fields[1])
+    elseif !b.fields[1].diagonal || b.fields[1].degenerate 
+        print(io, "G^(s)({ ")
+        print(io, "V_{$(b.chan_field.r), $(b.chan_field.s) + 2s}, s ∈ $(shift_range) })")
+    else
         print(io, "G^(s)({ ")
         print(io, "V_{P = $(V.dims[:left].P) + n/β}, n ∈ $(shift_range)})")
-    else
-        print(io, "G^(s)({ ")
-        print(io, "V_{$(b.r), $(b.s) + s}, s ∈ $(shift_range) })")
     end
 end
 
-function Base.show(io::IO, b::LinearCombinationBlock)
+function Base.show(io::IO, b::LCBlock)
     coeffs = [
         if c ≈ round(Int, c)
             round(Int, c)

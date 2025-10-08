@@ -65,7 +65,6 @@ $(\Delta_{(r, s)}, \Delta_{(r, -s)})$.
 
 ```@docs
 Field
-isdiagonal
 isdegenerate
 shift(V::Field, i)
 ```

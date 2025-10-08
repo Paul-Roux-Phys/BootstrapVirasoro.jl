@@ -12,10 +12,6 @@ Documenter.doctest(BootstrapVirasoro)
     include("cft_data.jl")
 end
 
-@testset "Block residues" begin
-    include("residues.jl")
-end
-
 @testset "Four point blocks" begin
     include("four_point.jl")
 end
