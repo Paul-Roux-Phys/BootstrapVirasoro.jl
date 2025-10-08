@@ -294,7 +294,7 @@ end
         s = shift_D(co.fields, V)
         s_s = shift_D(co_s.fields, V_s)
 
-        @test isapprox(s_s / s / 16^(8 / c.β * (V.dims.left.P - 1 / 2 / c.β)), 1) # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^-1/2))
+        @test isapprox(s_s / s / 16^(-8 / c.β * (-V.dims.left.P + 1 / 2 / c.β)), 1) # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^{-1}/2))
 
         Δmax = 10
         b = Block(co, :s, V, Δmax, interchiral=true)

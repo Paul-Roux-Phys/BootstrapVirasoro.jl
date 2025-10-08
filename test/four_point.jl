@@ -279,6 +279,8 @@ end
     V = Field(c, r = 1, s = 4)
     Vop = Field(c, r = 1, s = -V.s)
 
+    Δmax = 25
+
     co = Co(V1, V2, V3, V4, Δmax)
     coϵ = Co(V1, V2, V3, V4ϵ, Δmax)
 
@@ -309,32 +311,37 @@ end
         field1 = Field(c, r = 1 // 2, s = 0)
         field2 = Field(c, r = 1, s = 0)
         fields = [field2, field2, field1, field1]
-        correl = Correlation(fields..., Δmax)
+        Δmax=40
+        co = Correlation(fields..., Δmax)
         x = big"0.4" + big"0.2" * im
 
         # interchiral, logarithmic
         J = Field(c, r = 1, s = 1)
-        b = Block(correl, :s, J, Δmax, interchiral = true)
+        b = Block(co, :s, J, Δmax, interchiral = true)
         @test b(x) ≈
               big"1.320255511354332911164464364785819105156" +
               big"0.4186925417664498703779197115719248226952"*im
 
         # interchiral, non-diagonal
         V3 = Field(c, r = 3, s = 1//3)
-        b = Block(correl, :s, V3, Δmax, interchiral = true)
+        b = Block(co, :s, V3, Δmax, interchiral = true)
         @test b(x) ≈
               big"0.2052943176316875457496459173129386291016" -
               big"0.2003078699572151816572767384428219647201"*im
 
         # interchiral, degenerate
         id = Field(c, r = 1, s = 1, diagonal = true)
-        b = Block(correl, :s, id, Δmax, interchiral = true)
+        b = Block(co, :s, id, Δmax, interchiral = true)
         @test b(x) ≈
               big"1.439312717815166500340922134926376204051" +
               big"0.4561207475025284508099330175652862628828"*im
 
         # interchiral, generic diagonal
-        # not implemented in the python code.
+        V4 = Field(c, r=0, s=big"0.5"+big"0.3"*im)
+        b = Block(co, :s, V4, Δmax, interchiral = true)
+        @test b(x) ≈
+              big"1.39613266525447715410738" + 
+              big"0.1842730483869300950429917"*im
     end
 end
 

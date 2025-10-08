@@ -67,15 +67,6 @@ end
 
 reflect(b::IBlock) = IBlock(b.corr, b.chan, reflect(b.chan_field), b.Δmax)
 
-function get_indices(V)
-    β = V.c.β
-    if V.diagonal
-        return 0, -2*β*V.dims[:left].P
-    else
-        return indices(V)
-    end
-end
-
 """"
         shift_C(V1, V2, V3)
 
