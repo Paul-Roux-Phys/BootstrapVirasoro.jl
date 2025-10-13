@@ -7,17 +7,41 @@ end
 
 struct CNmnTable{T}
     values::Array{T,3}
-    keys::Set{Tuple{Int,Int,Int}}
+    keys::Vector{Set{Tuple{Int, Int}}}
+    δs::Matrix{T}
 end
 
-struct Channels{T}
-    s::T
-    t::T
-    u::T
+# easily create something in each channel with
+# @channels expr(chan)
+# example:
+# @channels Block(co, chan, V, 10)
+# expands to
+# Channels(
+#     Block(co, :s, V, 10),
+#     Block(co, :t, V, 10),
+#     Block(co, :u, V, 10)
+# )
+# a second argument can be passed to give a different name
+# for the chan variable, e.g. this is equivalent to the above
+# @channels Block(co, myvar, V, 10) myvar
+macro channels(body, chan)
+    esc(quote
+        Channels(
+            $( [:( let $(chan) = $(QuoteNode(name))
+                        $(body)
+                    end ) for name in (:s, :t, :u)]... )
+        )
+    end)
 end
-Base.getindex(s::Channels, ch::Symbol) = getfield(s, ch)
-Channels(s::T, t, u) where {T} = Channels{T}(s, t, u)
-Channels(t::NTuple{3,T}) where {T} = Channels{T}(t[1], t[2], t[3])
+macro channels(body)
+    esc(quote
+        Channels(
+            $( [:( let chan = $(QuoteNode(name))
+                        $(body)
+                    end ) for name in (:s, :t, :u)]... )
+        )
+    end)
+end
 
 abstract type ChiralCorrelation{T} <: Correlation{T} end
 const CCo{T} = ChiralCorrelation{T}
@@ -49,10 +73,10 @@ end
 Base.haskey(R::RmnTable, key::Tuple{Int,Int}) = key in R.keys
 
 Base.getindex(C::CNmnTable, N::Int, m::Int, n::Int) = C.values[N, m, n]
-Base.haskey(C::CNmnTable, key::Tuple{Int,Int,Int}) = key in C.keys
+Base.haskey(C::CNmnTable, k::Tuple{Int,Int,Int}) = k[1] < length(C.keys) && (k[2], k[3]) in C.keys[k[1]]
 function Base.setindex!(C::CNmnTable, value, N, m::Int, n::Int)
     C.values[N, m, n] = value
-    push!(C.keys, (N, m, n))
+    push!(C.keys[N], (m, n))
     return value
 end
 
@@ -174,13 +198,14 @@ function Correlation()
 end
 
 Correlation(ds::Tuple{Vararg{CD}}, Δmax::Int) = CCo(ds, Δmax)
+Correlation(ds::Vector{CD{T}}, Δmax::Int) where {T} = CCo(Tuple(ds), Δmax)
 Correlation(Vs::Tuple{Vararg{Field}}, Δmax::Int) = NCCo(Vs, Δmax)
+Correlation(Vs::Vector{Field{T}}, Δmax::Int) where {T} = NCCo(Tuple(Vs), Δmax)
 Correlation(d1::CD, d2, d3, d4, Δmax::Int) = CCo((d1, d2, d3, d4), Δmax)
 Correlation(V1::Field, V2, V3, V4, Δmax::Int) = NCCo((V1, V2, V3, V4), Δmax)
 Correlation(d::ConformalDimension, Δmax::Int) = CCo((d,), Δmax)
 Correlation(V::Field, Δmax::Int) = NCCo((V,), Δmax)
 Correlation(cl::CCo, cr::CCo) = NCCo(cl, cr)
-Correlation(args...; Δmax=10) = Correlation(args..., Δmax)
 
 const Correlation4{T} = Union{ChiralCorrelation4{T}, NonChiralCorrelation4{T}}
 const Correlation1{T} = Union{ChiralCorrelation1{T}, NonChiralCorrelation1{T}}
@@ -211,8 +236,12 @@ end
 
 function Base.show(io::IO, C::CNmnTable{T}) where {T}
     println(io, "CNmnTable{$T}(")
-    for k in sort([k for k in C.keys])
-        println(io, "\t$k => $(C[k...]),")
+    for (N, Cs) in enumerate(C.keys)
+        print("$N => [")
+        for k in sort([k for k in Cs])
+            println(io, "\t$k => $(C[N, k[1], k[2]]),")
+        end
+        println("]")
     end
     println(io, ")")
 end

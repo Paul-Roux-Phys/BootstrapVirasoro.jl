@@ -1,5 +1,3 @@
-using BootstrapVirasoro, Test
-
 @testset "Normal residues" begin
     c = CentralCharge(c = 0.5)
     V1 = Field(c, r = 1, s = 0)
@@ -233,8 +231,7 @@ end
         co.Rmn.left.s[V.r, V.s] / 2 / V.dims.left.P / ϵ * bminus(x) + b(x),
         rtol = 1e-33,
     )
-
-    V12 = Field(c, r = 1, s = 2)
+    
     @test isapprox(
         b(x),
         big"0.51970140827959736684758007395822214" +
@@ -340,11 +337,10 @@ end
         V4 = Field(c, r=0, s=big"0.5"+big"0.3"*im)
         b = Block(co, :s, V4, Δmax, interchiral = true)
         @test b(x) ≈
-              big"1.39613266525447715410738" + 
-              big"0.1842730483869300950429917"*im
+              big"1.396132665254477154107379890952326016033" + 
+              big"0.184273048386930095042991719005258073884"*im
     end
 end
 
-# @testset "Crossing" begin
-
-# end
+@testset "Crossing" begin
+end

@@ -280,8 +280,9 @@ Coefficients CNmn
 ===========================================================================================#
 function computeCNmns(Nmax, c::CC{T}, Rs) where {T}
     B = c.B
-    Cs = CNmnTable{T}(Array{T}(undef, (Nmax, Nmax, Nmax)), Set{Tuple{Int,Int,Int}}())
-    δ_cache = [δrs(mp, np, B) for mp = 1:Nmax, np = 1:Nmax]
+    mns = [Set{Tuple{Int,Int}}() for _ in 1:Nmax]
+    δs = [δrs(mp, np, B) for mp = 1:Nmax, np = 1:Nmax]
+    Cs = CNmnTable{T}(Array{T}(undef, (Nmax, Nmax, Nmax)), mns, δs)
     @inbounds for N = 1:Nmax
         @inbounds for m = 1:Nmax
             maxn = N÷m
@@ -296,7 +297,7 @@ function computeCNmns(Nmax, c::CC{T}, Rs) where {T}
                     for mp = 1:Np
                         for np = 1:(Np÷mp)
                             if haskey(Cs, (Np, mp, np))
-                                _sum += Cs[Np, mp, np] / (δ0 - δ_cache[mp, np])
+                                _sum += Cs[Np, mp, np] / (δ0 - Cs.δs[mp, np])
                             end
                         end
                     end

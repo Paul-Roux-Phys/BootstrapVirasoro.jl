@@ -1,3 +1,14 @@
+struct CentralCharge{T}
+    β::T
+    B::T
+    b::T
+    c::T
+    n::T
+end
+# convenience alias
+const CC = CentralCharge
+
+
 function Bfrom(s::Symbol, x)
     a = (x-1)*(x-25)
     s === :β && return -x^2
@@ -56,6 +67,19 @@ function Base.hash(c::CC, h::UInt)
     return hash(c.β, h)
 end
 
+struct ConformalDimension{T}
+    c::CentralCharge{T}
+    P::T
+    p::T
+    δ::T
+    Δ::T
+    r::Union{Rational,Int}   # r must be rational
+    s::Union{T,Rational,Int} # s can be an arbitrary number to represent a
+    isKac::Bool              # diagonal field. Still needs to be exact in
+    degenerate::Bool         # case of a non-diagonal field
+end
+# convenience alias
+const CD = ConformalDimension
 
 function Pfrom(s::Symbol, x, c::CC)
     s === :Δ && return sqrt(complex(x - (c.c-1)/24))
@@ -161,6 +185,17 @@ function Base.show(io::IO, d::CD{T}) where {T}
         print(io, "Δ_{P=$(d.P)}")
     end
 end
+
+struct Field{T}
+    c::CC{T}
+    dims::LeftRight{ConformalDimension{T}}
+    r::Union{Rational,Int}
+    s::Union{T,Rational,Int}
+    diagonal::Bool
+    degenerate::Bool
+    isKac::Bool
+end
+
 
 function _Field(c::CC{T}, sym::Symbol, dim, r, s, diagonal) where {T}
     @assert !(ismissing(r) ⊻ ismissing(s)) "

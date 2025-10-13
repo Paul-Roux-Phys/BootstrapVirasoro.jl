@@ -13,7 +13,7 @@ function Block(co::CCo, d::CD=CD(), Δmax=nothing; der=false)
     CBlock(co, :s, d, Δmax, der)
 end
 
-function Block(co::NCCo, chan::Symbol, V::Field=CD(), Δmax=nothing; interchiral=false, itcr=false)
+function Block(co::NCCo, chan::Symbol, V::Field=Field(), Δmax=nothing; interchiral=false, itcr=false)
     Δmax === nothing && (Δmax = co.Δmax)
     (interchiral || itcr) ? IBlock(co, chan, V, Δmax) : NCBlock(co, chan, V, Δmax)
 end

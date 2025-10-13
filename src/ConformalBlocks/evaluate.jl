@@ -165,7 +165,7 @@ end
 function eval(b::LCBlock{T}, x)::T where {T}
     res = zero(T)
     for i in eachindex(b.blocks)
-        res += eval((b.blocks)[i], x) .* b.coefficients[i]
+        res += eval((b.blocks)[i], x) .* b.coeffs[i]
     end
     return res
 end

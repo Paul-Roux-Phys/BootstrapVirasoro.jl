@@ -24,30 +24,7 @@ CFT Data: Central charges, conformal dimensions, fields.
 export CentralCharge, CC
 export ConformalDimension, CD
 export LeftRight, Field, swap_lr, shift, reflect, total_dimension
-
-struct CentralCharge{T}
-    β::T
-    B::T
-    b::T
-    c::T
-    n::T
-end
-# convenience alias
-const CC = CentralCharge
-
-struct ConformalDimension{T}
-    c::CentralCharge{T}
-    P::T
-    p::T
-    δ::T
-    Δ::T
-    r::Union{Rational,Int}   # r must be rational
-    s::Union{T,Rational,Int} # s can be an arbitrary number to represent a
-    isKac::Bool              # diagonal field. Still needs to be exact in
-    degenerate::Bool         # case of a non-diagonal field
-end
-# convenience alias
-const CD = ConformalDimension
+export Channels, @channels, Chans
 
 struct LeftRight{T}
     left::T
@@ -56,27 +33,32 @@ end
 const LR = LeftRight
 Base.getindex(x::LeftRight, s::Symbol) = getfield(x, s)
 
-struct Field{T}
-    c::CC{T}
-    dims::LeftRight{ConformalDimension{T}}
-    r::Union{Rational,Int}
-    s::Union{T,Rational,Int}
-    diagonal::Bool
-    degenerate::Bool
-    isKac::Bool
+struct Channels{T}
+    s::T
+    t::T
+    u::T
 end
+const Chans = Channels
+Base.getindex(s::Channels, ch::Symbol) = getfield(s, ch)
+Base.setindex!(s::Channels, value, ch::Symbol) = setfield!(s, ch, value)
+Channels(s::T, t, u) where {T} = Channels{T}(s, t, u)
+Channels(t::NTuple{3,T}) where {T} = Channels{T}(t[1], t[2], t[3])
+Channels(s) = Channels(s, s, s)
 
 #=======================================================
 Conformal blocks and correlations.
 ========================================================#
 export Correlation, Corr, Co
 export Block, IBlock
+export ChannelSpectrum, ChanSpec, add!, remove!
+export LoopSpectrum 
 
 abstract type Correlation{T} end
 const Corr = Correlation # type alias
 const Co = Correlation # type alias
 
 abstract type Block{T} end # general conformal block. Can be interchiral, non-chiral or chiral
+abstract type Spectrum{T} end
 
 # # Spectra
 # export Spectrum, ChannelSpectrum, ChannelSpectra, add!, remove!, fields, hasdiagonals
@@ -94,10 +76,12 @@ include("ConformalBlocks/correlations.jl")
 # AbstractBlocks serve as an interface to all types of blocks.
 include("ConformalBlocks/abstract_blocks.jl")
 
-# Linear bootstrap equations
-include("BootstrapEquations/Spectrum.jl")
-# include("BootstrapEquations/structure_constants.jl")
-# include("BootstrapEquations/linear_system.jl")
+# Linear bootstrap equations (crossing symmetry or modular covariance)
+const NB_CHANNELS = 3
+const CHANNELS = (:s, :t, :u)
+include("BootstrapEquations/spectrum.jl")
+include("BootstrapEquations/structure_constants.jl")
+include("BootstrapEquations/linear_system.jl")
 
 end
 
@@ -245,5 +229,34 @@ julia> b = Block(co[:left], :s, V.dims[:left])
 Chiral block for the correlation
 < Δ_{2, 3//2} Δ_{2, 3//2} Δ_{2, 3//2} Δ_{2, 3//2} >
 Channel: s, Δ_{2, 1//2}
+```
+"""
+
+"""
+    Spectrum(fields, Δmax; interchiral=false)
+
+Abstract type for representing a CFT spectrum.
+
+# examples
+
+```jldoctest
+julia> c = CentralCharge(β=1/(big"0.8"+big"0.1"*im));
+
+julia> V1 = Field(c, r=2, s=0);
+
+julia> co = Correlation(V1, Δmax=10.);
+
+julia> fields = [Field(c, r=r, s=s) for r in 2:30 for s in -1+1//r:1//r:1 if r*s% 1 == 0];
+
+julia> s = Spectrum(fields, 10.0)
+Non-diagonal:
+(2, -1//2), (2, 0), (2, 1//2), (2, 1)
+(3, -2//3), (3, -1//3), (3, 0), (3, 1//3), (3, 2//3), (3, 1)
+
+julia> add!(s, Field(c, r=1, s=0)); s
+Non-diagonal:
+(1, 0)
+(2, -1//2), (2, 0), (2, 1//2), (2, 1)
+(3, -2//3), (3, -1//3), (3, 0), (3, 1//3), (3, 2//3), (3, 1)
 ```
 """

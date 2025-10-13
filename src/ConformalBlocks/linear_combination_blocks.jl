@@ -11,9 +11,9 @@ end
 const IBlock = InterchiralBlock
 
 struct LinearCombinationBlock{T} <: Block{T}
-    channel_field::Field{T}
+    chan_field::Field{T}
     blocks::Vector{Block{T}}
-    coefficients::Vector{T}
+    coeffs::Vector{T}
     chan::Symbol
 end
 const LCBlock = LinearCombinationBlock
@@ -25,6 +25,30 @@ end
 
 function LinearCombinationBlock(bs::Vector{<:Block{T}}, coeffs) where {T}
     LinearCombinationBlock{T}(bs[1].chan_field, bs, coeffs, bs[1].chan)
+end
+
+function Base.:+(b1::LCBlock, b2::LCBlock)
+    LCBlock(vcat(b1.blocks, b2.blocks), vcat(b1.coeffs, b2.coeffs))
+end
+
+function Base.:+(b1::LCBlock, b2::Block)
+    LCBlock(vcat(b1.blocks, b2), vcat(b1.coeffs, 1))
+end
+
+function Base.:+(b1::Block, b2::LCBlock)
+    LCBlock(vcat(b1, b2.blocks), vcat(1, b2.coeffs))
+end
+
+function Base.:+(b1::Block, b2::Block)
+    LCBlock(vcat(b1, b2), vcat(1, 1))
+end
+
+function Base.:-(b1::Block, b2::Block)
+    LCBlock(vcat(b1, b2), vcat(1, -1))
+end
+
+function Base.:*(a::Number, b::Block)
+    LCBlock([b], [a])
 end
 
 function InterchiralBlock(co::Co{T}, chan, V, Δmax) where {T}
@@ -79,18 +103,17 @@ function shift_C123(V1, V2, V3)
     r2, s2 = get_indices(V2)
     r3, s3 = get_indices(shift(V3, 1))
 
-
     res = (-1)^(Int(2r2 + max(2r1, 2r2, 2r3, r1 + r2 + r3)))
-    res *= (β+0im)^(-4inv(β)^2 * s3)
+    res *= (β+0im)^(-4/β^2 * s3)
     res *= prod(
         gamma(
             1 // 2 +
             1 // 2 * abs(pm1 * r1 + pm2 * r2 - r3) +
-            inv(2 * β^2) * (pm1 * s1 + pm2 * s2 - s3),
+            1/(2 * β^2) * (pm1 * s1 + pm2 * s2 - s3),
         ) / gamma(
             1 // 2 +
             1 // 2 * abs(pm1 * r1 + pm2 * r2 + r3) +
-            inv(2 * β^2) * (pm1 * s1 + pm2 * s2 + s3),
+            1/(2 * β^2) * (pm1 * s1 + pm2 * s2 + s3),
         ) for pm1 in (-1, 1) for pm2 in (-1, 1)
     )
 end
@@ -103,18 +126,18 @@ Ratio ``C_{122}/C_{12^++2^++}``.
 function shift_C122(V1, V2)
     β = V1.c.β
     r1, s1 = get_indices(V1)
-    r2, s2 = get_indices(shift(V2, 2))
+    r2, s2 = get_indices(shift(V2, 1))
 
     res = (-1)^(Int(2r2))
-    res *= β^(-8inv(β)^2 * s2)
+    res *= β^(-8/β^2 * s2)
     res *= prod(
         gamma(
             1 // 2 + 1 // 2 * abs(r1 + 2pm2 * r2) -
-            inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1),
+            1/(β^2 * 2) * (pm2 * s1 + 2s2 + pm1),
         ) / gamma(
             1 // 2 +
             1 // 2 * abs(r1 + 2pm2 * r2) +
-            inv(β^2) / 2 * (pm2 * s1 + 2s2 + pm1),
+            1/(β^2 * 2) * (pm2 * s1 + 2s2 + pm1),
         ) for pm1 in (-1, 1) for pm2 in (-1, 1)
     )
 end
@@ -208,10 +231,10 @@ function Base.show(io::IO, b::LCBlock)
             round(Int, c)
         else
             c
-        end for c in b.coefficients
+        end for c in b.coeffs
     ]
     print(io, "($(coeffs[1])) * $(b.blocks[1])")
     for (i, bl) in enumerate(b.blocks[2:end])
-        print(io, " + ($(coeffs[i])) * $bl")
+        print(io, " + ($(coeffs[i+1])) * $bl")
     end
 end

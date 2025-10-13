@@ -12,7 +12,7 @@
 end
 
 @testset "ConformalDimensions" begin
-    C = CC(β=0.8+0.3im)
+    c = CC(β=0.8+0.3im)
     d = CD(c, P=0.8+0.3im)
     @test shift(d, 2).P - d.P ≈ -1/c.β # s = -2βP
 end

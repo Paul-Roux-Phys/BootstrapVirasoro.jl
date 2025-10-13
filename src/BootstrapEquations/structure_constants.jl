@@ -1,13 +1,65 @@
-include("reference_constants.jl")
+function Cref(V₁, V₂, V₃, DG)
+    β = V₁.c.β
+    r₁, s₁ = get_indices(V₁)
+    r₂, s₂ = get_indices(V₂)
+    r₃, s₃ = get_indices(V₃)
 
-"""
-TODO
-"""
+    return prod(
+        1 / DG(
+            (β + 1 / β) / 2 +
+            β / 2 * abs(pm₁ * r₁ + pm₂ * r₂ + pm₃ * r₃) +
+            1 / 2 / β * (pm₁ * s₁ + pm₂ * s₂ + pm₃ * s₃),
+        ) for pm₁ in (-1, 1) for pm₂ in (-1, 1) for pm₃ in (-1, 1)
+    )
+end
+
+Cref(V₁, V₂, V₃) = Cref(V₁, V₂, V₃, DoubleGamma(V₁.c.β))
+
+function Bref(DG, c, r, s, reg = 1 / big(10^15))
+    β = c.β
+    if r % 1 == 0 && s % 1 == 0
+        s += reg
+    end
+    π = oftype(c.β, Base.π) # π in the correct precision
+    return (-1)^(round(Int, r * s)) / 2 / sin(π * (r % 1 + s)) /
+           sin(π * (r + s / β^2)) / prod(
+        DG(β + pm1 * β * r + pm2 * s / β) for pm1 in (-1, 1) for pm2 in (-1, 1)
+    )
+end
+
+function Bref(DG, c, P)
+    β = c.β
+    prod(1 / DG(β^pm1 + pm2 * 2P) for pm1 in (-1, 1) for pm2 in (-1, 1))
+end
+
+function Bref(V::Field, DG, reg = 1 / big"10"^15)
+    c = V.c
+    if V.diagonal
+        return Bref(DG, c, V.dims[:left].P)
+    else
+        return Bref(DG, c, V.r, V.s, reg)
+    end
+end
+
+function compute_reference(co::Correlation4, V::Field, chan, DG)
+    V₁, V₂, V₃, V₄ = getfields(co, chan)
+    return Cref(V₁, V₂, V, DG) * Cref(V₃, V₄, V, DG) / Bref(V, DG)
+end
+
+function compute_reference(co::Correlation1, V::Field, chan, DG)
+    V₁ = getfields(co, chan)
+    return Cref(V₁, V, V, DG) / Bref(V, DG)
+end
+
+compute_reference(b::Block, DG) = compute_reference(b.corr, b.chan_field, b.chan, DG)
+
 struct StructureConstants{T<:Complex}
     constants::Channels{Dict{Field{T},T}}
     errors::Channels{Dict{Field{T},Float32}}
     reference::Channels{Dict{Field{T},T}}
 end
+const StrCst = StructureConstants
+const SC = StructureConstants
 
 function StructureConstants{T}() where {T}
     constants = (; (chan => Dict() for chan in (:s, :t, :u))...)
@@ -16,7 +68,7 @@ function StructureConstants{T}() where {T}
     return StructureConstants{T}(constants, errors, reference)
 end
 
-function Base.getproperty(c::StructureConstants, s::Symbol)
+function Base.getproperty(c::SC, s::Symbol)
     s === :fields && begin
         consts = getfield(c, :constants)
         return vcat([[V for V in keys(consts[chan])] for chan in keys(consts)]...)
@@ -24,23 +76,23 @@ function Base.getproperty(c::StructureConstants, s::Symbol)
     getfield(c, s)
 end
 
-Base.getindex(c::StructureConstants, s::Symbol) = c.constants[s]
+Base.getindex(c::SC, s::Symbol) = c.constants[s]
 
 function fix!(cnst, chan, field, value; error = 0)
     cnst[chan][field] = value
     cnst.errors[chan][field] = error
 end
 
-Base.length(c::StructureConstants) =
+Base.length(c::SC) =
     sum(length(c.constants[chan]) for chan in keys(c.constants))
 
-function compute_reference!(c::StructureConstants, b::Block, DG)
+function compute_reference!(c::SC, b::Block, DG)
     chan = b.channel
     V = b.channel_field
     c.reference[chan][V] = compute_reference(b, DG)
 end
 
-function compute_reference!(c::StructureConstants, S::ChannelSpectrum, DG)
+function compute_reference!(c::SC, S::ChanSpec, DG)
     for b in values(S.blocks)
         chan = b.channel
         V = b.channel_field
@@ -52,7 +104,7 @@ function compute_reference!(c::StructureConstants, S::ChannelSpectrum, DG)
     end
 end
 
-function compute_reference!(c::StructureConstants, S::Channels{<:ChannelSpectrum})
+function compute_reference!(c::SC, S::Channels{<:ChanSpec})
     β = S[1].corr.c.β
     DG = DoubleGamma(β)
     for chan in keys(S)
@@ -61,7 +113,7 @@ function compute_reference!(c::StructureConstants, S::Channels{<:ChannelSpectrum
     return c.reference
 end
 
-function to_dataframe(c::StructureConstants, rmax = nothing)
+function to_dataframe(c::SC, rmax = nothing)
     df = DataFrame(
         Channel = Symbol[],
         Field = String[],
@@ -81,7 +133,7 @@ function to_dataframe(c::StructureConstants, rmax = nothing)
     return df
 end
 
-function Base.show(io::IO, c::StructureConstants; rmax = nothing, plaintext = false)
+function Base.show(io::IO, c::SC; rmax = nothing, plaintext = false)
     df = to_dataframe(c, rmax)
     grouped = groupby(df, :Channel)
     for table in grouped
@@ -138,7 +190,7 @@ function Base.show(io::IO, c::StructureConstants; rmax = nothing, plaintext = fa
     end
 end
 
-function save(io::IO, c::StructureConstants; format::Symbol = :csv)
+function save(io::IO, c::SC; format::Symbol = :csv)
     df = to_dataframe(c)
     if format == :csv
         CSV.write(io, df)
