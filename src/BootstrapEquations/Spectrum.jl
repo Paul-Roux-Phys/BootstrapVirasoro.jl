@@ -1,8 +1,8 @@
 struct ChannelSpectrum{T}
-    Δmax::T
     corr::Corr
-    chan::Symbol
     blocks::Dict{Field{T},Block{T}}
+    Δmax::Int
+    chan::Symbol
 end
 const ChanSpec = ChannelSpectrum
 
@@ -33,18 +33,18 @@ function hasdiagonals(s::ChanSpec)
     return false
 end
 
-function ChannelSpectrum(
-    co::Co{T},
-    chan,
-    Vs::AbstractArray{<:Field},
-    f::Function,
-) where {T}
-    s = ChannelSpectrum{T}(co.Δmax, co, chan, Dict{Field{T},Block{T}}())
-    Threads.@threads for V in Vs
-        add!(s, f(V))
+function ChannelSpectrum(co::Co{T}, chan, Vs::Vector{<:Field}, f::Function) where {T}
+    s = ChannelSpectrum{T}(co, Dict{Field{T},Block{T}}(), co.Δmax, chan)
+    for V in Vs
+        if real(total_dimension(V)) < s.Δmax
+            add!(s, f(V))
+        end
     end
     return s
 end
+
+ChannelSpectrum(co::Co, Vs::Vector{<:Field}, f::Function) =
+    ChannelSpectrum(co, :τ, Vs, f)
 
 function _remove_one!(s::ChanSpec, V)
     delete!(s.blocks, V)
@@ -55,39 +55,13 @@ _remove!(s::ChanSpec, fields::Vector) = foreach(V -> _remove_one!(s, V), fields)
 remove!(s, V) = _remove!(s, V)
 remove(s, Vs) = remove!(deepcopy(s), Vs)
 
+function Base.filter(f, s::ChanSpec{T}) where {T}
+    return ChanSpec{T}(s.corr, filter(kv -> f(kv[1]), s.blocks), s.Δmax, s.chan)
+end
+
 Base.length(s::ChanSpec) = length(s.blocks)
 Base.size(s::ChanSpec) = size(s.blocks)
 nb_blocks(s::ChanSpec) = sum(length(b) for b in s.blocks)
-
-function LoopBlock(co, chan, V, interchiral, parity)
-    if parity == 0 || V.diagonal
-        return Block(co, chan, V, interchiral = interchiral)
-    elseif parity == 1 || parity == -1 && V.s > 0
-        return Block(co, chan, V, interchiral = interchiral) +
-               parity * Block(co, chan, reflect(V), interchiral = interchiral)
-    end
-end
-
-function parity_compat(co::Correlation4, V::Field, chan)
-    V1, V2, _, _ = permute_4(co.fields, chan)
-    r = get_indices(V)[1]
-    return (r + V1.r + V2.r) % 1 == 0
-end
-
-parity_compat(_::Correlation1, _::Field, _) = true
-
-function LoopSpectrum(co, chan, Vs, sig, interchiral = true, parity = 0)
-    Vs = filter(
-        V -> real(total_dimension(V)) < co.Δmax && get_indices(V)[1] >= sig &&
-            parity_compat(co, V, chan),
-        Vs
-    )
-    if parity != 0
-        Vs = filter(V -> V.diagonal || V.s >= 0, Vs)
-    end
-    LB = (V, chan) -> LoopBlock(co, chan, V, interchiral, parity)
-    return ChanSpec(co, chan, Vs, V -> LB(V, chan))
-end
 
 function Base.show(io::IO, s::ChanSpec)
     println(io, "channel $(s.chan), Δmax = $(s.Δmax)")

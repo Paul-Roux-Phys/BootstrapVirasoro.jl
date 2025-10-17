@@ -3,59 +3,41 @@ include("non_chiral_blocks.jl")
 include("linear_combination_blocks.jl")
 include("evaluate.jl")
 
-function Block(co::CCo, chan::Symbol, d::CD=CD(), Δmax=nothing; der=false)
+function Block(co::CCo, chan::Symbol, d::CD = CD(), Δmax = nothing; der = false)
     Δmax === nothing && (Δmax = co.Δmax)
     CBlock(co, chan, d, Δmax, der)
 end
 
-function Block(co::CCo, d::CD=CD(), Δmax=nothing; der=false)
+function Block(co::CCo, d::CD = CD(), Δmax = nothing; der = false)
     Δmax === nothing && (Δmax = co.Δmax)
     CBlock(co, :s, d, Δmax, der)
 end
 
-function Block(co::NCCo, chan::Symbol, V::Field=Field(), Δmax=nothing; interchiral=false, itcr=false)
-    Δmax === nothing && (Δmax = co.Δmax)
-    (interchiral || itcr) ? IBlock(co, chan, V, Δmax) : NCBlock(co, chan, V, Δmax)
+function Block(
+    co::NCCo,
+    chan,
+    V,
+    Δmax = missing;
+    interchiral = false,
+    itcr = false,
+    parity = 0,
+)
+    typeof(co) <: Correlation4 &&
+        chan === missing &&
+        error("A four-point block must have channel :s, :t, :u. Define it with
+              Block(co, chan, V, Δmax)")
+    Δmax === missing && (Δmax = co.Δmax)
+    b = (interchiral || itcr) ? IBlock : NonChiralBlock
+    if parity == 0 || V.diagonal || V.s == 1 || V.s == 0
+        return b(co, chan, V, Δmax)
+    else
+        return b(co, chan, V, Δmax) + parity * b(co, chan, reflect(V), Δmax)
+    end
 end
 
-function Block(co::NCCo, V::Field=CD(), Δmax=nothing; interchiral=false, itcr=false)
-    Δmax === nothing && (Δmax = co.Δmax)
-    (interchiral || itcr) ? IBlock(co, :τ, V, Δmax) : NCBlock(co, :τ, V, Δmax)
+function Block(co::NCCo, V::Field, Δmax=missing; interchiral=false, itcr=false, parity=0)
+    Block(co, :τ, V, Δmax, interchiral=interchiral, itcr=itcr, parity=parity)
 end
-
-# function Block(
-#     co::Correlation{T,U},
-#     chan,
-#     d,
-#     lr = nothing;
-#     Δmax::Union{Int,Nothing} = nothing,
-#     Δmax = nothing,
-#     interchiral = false,
-#     s_shift = 2,
-#     parity = 0, # 0 for no reflection, ±1 for even/odd
-# ) where {T,U}
-#     # compute Δmax for this block
-#     if Δmax === nothing && Δmax === nothing
-#         Δmax = co.Δmax
-#     elseif Δmax === nothing && Δmax !== nothing
-#         Δmax = N_max(d, Δmax)
-#     end
-#     # don't exceed the N for which we computed the residues
-#     Δmax = min(Δmax, co.Δmax)
-#     if interchiral
-#         @assert Δmax !== nothing "must provide Δmax for interchiral block"
-#         b = InterchiralBlock(co, chan, d, Δmax, s_shift)
-#     else
-#         if lr === nothing
-#             b = Block(co, chan, d, Δmax)
-#         else
-#             b = Block(co, chan, d, lr, Δmax)
-#         end
-#     end
-#     (parity == 0 || real(d.s) <= 0 || islogarithmic(b) || isdegenerate(b)) && return b
-#     b_refl = reflect(b)
-#     return LinearCombinationBlock([b, b_refl], [one(T), parity*one(T)])
-# end
 
 # Evaluate blocks with b(z)
 function (b::Block)(args...)

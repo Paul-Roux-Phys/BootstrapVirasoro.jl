@@ -49,7 +49,8 @@ function LogBlock(co::NCCo{T}, chan, V, Δmax) where {T}
     VV = V.s > 0 ? (V, V_op) : (V_op, V) # (V_(r, s > 0), V_(r, -s))
     r, s = VV[1].r, VV[1].s
     left, left_op, right, right_op = Tuple(
-        CBlock(co[lr], chan, v.dims[lr], Δmax, false) for lr in (:left, :right) for v in VV
+        CBlock(co[lr], chan, v.dims[lr], Δmax, false) for lr in (:left, :right)
+        for v in VV
     )
     R, Rbar, l = zero(T), zero(T), zero(T)
     cl, cr = co[:left], co[:right]
@@ -119,7 +120,7 @@ end
 function ell(V::NTuple{4,Field}, r, s)
     β = V[1].c.β
     βsq = β^2
-    res = 4 * (π / tan(s * (π / β^2)))
+    res = 4 * (π / tan(s * (π / βsq)))
     res +=
         4 * sum(digamma_reg(-r + j / βsq) + digamma_reg(r + j / βsq) for j = (1-s):s)
     res -= sum(
@@ -135,17 +136,19 @@ end
 
 function ell(V::NTuple{1,Field}, r, s)
     β = V[1].c.β
+    βsq = β^2
     res = 4 * (π / tan(s * (π / β^2)))
+
     res +=
         4 * sum(
-            digamma_reg(-2 * Prs(r, j, β) / β) + digamma_reg(2 * Prs(r, -j, β) / β)
+    digamma_reg(-r + j/βsq) + digamma_reg(r + j/βsq)
             for j = (1-s):s
         )
     res -=
         2 * sum(
             digamma_reg(
                 1 // 2 +
-                pm1 * inv(β)^2 / 2 +
+                pm1 / β^2 / 2 +
                 (pm2 * V[1].dims[lr].P + 2 * (lr == :left ? -1 : 1) * Prs(r, j, β)) /
                 β,
             ) for j = (1-s):2:(s-1) for pm1 in (-1, 1) for pm2 in (-1, 1) for

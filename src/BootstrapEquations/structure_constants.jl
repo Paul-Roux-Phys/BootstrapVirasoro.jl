@@ -62,8 +62,8 @@ const StrCst = StructureConstants
 const SC = StructureConstants
 
 function StructureConstants{T}() where {T}
-    constants = (; (chan => Dict() for chan in (:s, :t, :u))...)
-    errors = (; (chan => Dict() for chan in (:s, :t, :u))...)
+    constants = @channels Dict{Field{T}, T}()
+    errors = @channels Dict{Field{T}, Float32}()
     reference = deepcopy(constants)
     return StructureConstants{T}(constants, errors, reference)
 end
@@ -121,7 +121,7 @@ function to_dataframe(c::SC, rmax = nothing)
         RelativeError = Float32[],
     )
 
-    for chan in sort(collect(keys(c.constants)), by = string)
+    for chan in CHANNELS
         fields =
             sort(collect(keys(c.constants[chan])), by = V -> real(total_dimension(V)))
         rmax !== nothing && (fields = filter(V -> V.r <= rmax, fields))
@@ -165,7 +165,7 @@ function Base.show(io::IO, c::SC; rmax = nothing, plaintext = false)
                     abs(t.StructureConstant[i]) < 2^(-precision(BigFloat, base = 10) / 3) &&
                     j == 2
                 ) ? 0 : v
-        channel_header = "="^20 * "\nChannel $(table.Channel[1])\n" * "="^20 * "\n"
+        channel_header = " Channel $(table.Channel[1])\n"
         if plaintext
             print(io, channel_header)
             pretty_table(
@@ -176,7 +176,7 @@ function Base.show(io::IO, c::SC; rmax = nothing, plaintext = false)
                 formatters = (fmt_zero,),
             )
         else
-            printstyled(io, channel_header, color = :red, bold = true)
+            printstyled(io, channel_header; bold = true)
             pretty_table(
                 io,
                 t,

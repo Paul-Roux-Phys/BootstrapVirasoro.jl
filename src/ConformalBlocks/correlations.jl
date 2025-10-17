@@ -42,6 +42,7 @@ macro channels(body)
         )
     end)
 end
+# threaded versions
 
 abstract type ChiralCorrelation{T} <: Correlation{T} end
 const CCo{T} = ChiralCorrelation{T}

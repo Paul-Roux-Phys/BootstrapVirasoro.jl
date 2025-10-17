@@ -264,12 +264,10 @@ function get_indices(V)
 end
 
 """Spin(V::Field) = Δleft - Δright."""
-function spin(V::Field)::Int
+function spin(V::Field{T})::Union{Int, Rational, T} where {T}
     V.diagonal && return 0
-    V.isKac && return Int(V.r * V.s)
-    # this should never happen
-    @warn "You are computing the spin of a non diagonal field which was not defined from Kac indices"
-    return V.dims[1].Δ - V.dims[2].Δ
+    spin = V.isKac ? V.r * V.s : V.dims.left.Δ - V.dims.right.Δ
+    return spin % 1 == 0 ? Int(spin) : spin
 end
 
 """
@@ -306,6 +304,7 @@ total_dimension(V::Field) = V.dims[:left].Δ + V.dims[:right].Δ
 # Implement the hashing interface (for Dict, Set)
 function Base.isequal(a::Field, b::Field)
     d = (a.diagonal == b.diagonal)
+    a.isKac && b.isKac && return a.r == b.r && a.s == b.s
     l = isequal(a.dims[:left], b.dims[:left])
     r = isequal(a.dims[:right], b.dims[:right])
     return d && l && r

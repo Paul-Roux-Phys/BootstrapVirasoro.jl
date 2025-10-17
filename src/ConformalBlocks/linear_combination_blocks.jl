@@ -1,11 +1,7 @@
 struct InterchiralBlock{T} <: Block{T}
-    Δmax::Int
     chan_field::Field{T}
-    fields::Vector{Field{T}}
-    indices::Vector
-    corr::Corr
     blocks::Vector{Block{T}}
-    shifts::Vector{T}
+    coeffs::Vector{T}
     chan::Symbol
 end
 const IBlock = InterchiralBlock
@@ -17,11 +13,6 @@ struct LinearCombinationBlock{T} <: Block{T}
     chan::Symbol
 end
 const LCBlock = LinearCombinationBlock
-
-function my_mod2(s)
-    s = s % 2
-    return s > 1 ? s - 2 : s
-end
 
 function LinearCombinationBlock(bs::Vector{<:Block{T}}, coeffs) where {T}
     LinearCombinationBlock{T}(bs[1].chan_field, bs, coeffs, bs[1].chan)
@@ -51,9 +42,13 @@ function Base.:*(a::Number, b::Block)
     LCBlock([b], [a])
 end
 
-function InterchiralBlock(co::Co{T}, chan, V, Δmax) where {T}
+function my_mod2(s)
+    s = s % 2
+    return s > 1 ? s - 2 : s
+end
+
+function InterchiralBlock(co::Co{T}, chan, V, Δmax, _shift=2) where {T}
     @assert real(V.c.β^2) > 0 "interchiral blocks are implemented for Re(β^2) > 0"
-    fields = []
     shifts = []
     extfields = getfields(co, chan)
     V0 = V
@@ -63,25 +58,22 @@ function InterchiralBlock(co::Co{T}, chan, V, Δmax) where {T}
     Vshift = V0
     D = 1
     while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) < real(Δmax)
-        push!(fields, Vshift)
         push!(shifts, D)
         D /= shift_D(extfields, Vshift)
-        Vshift = shift(Vshift, 2)
+        Vshift = shift(Vshift, _shift)
     end
-    if !(V.r isa Int && V.s isa Int && V.r > 0 && V.s > 0)
-        Vshift = shift(V0, -2)
+    if !(V.r isa Int && V.s isa Int)
+        Vshift = shift(V0, -_shift)
         D = shift_D(extfields, Vshift)
         while real(total_dimension(Vshift)) <= real(Δmax) && spin(Vshift) < real(Δmax)
-            push!(fields, Vshift)
             push!(shifts, D)
-            Vshift = shift(Vshift, -2)
+            Vshift = shift(Vshift, -_shift)
             D *= shift_D(extfields, Vshift)
         end
     end
     blocks = [Block(co, chan, V, Δmax) for V in fields]
-    ind = [indices(b.chan_field) for b in blocks]
 
-    InterchiralBlock{T}(Δmax, V, fields, ind, co, blocks, shifts, chan)
+    InterchiralBlock{T}(V, blocks, shifts, chan)
 end
 
 function islogarithmic(b::IBlock)
@@ -169,33 +161,13 @@ function shift_D(Vs::NTuple{1, Field}, V)
     shift_C122(Vs[1], V) / shift_B(V)
 end
 
-# function Base.getproperty(b::InterchiralBlock, s::Symbol)
-#     s === :indices &&
-#         return [indices(block.channel_field) for block in getfield(b, :blocks)]
-#     s in (:r, :s, :channel, :channel_field, :corr, :correlation) &&
-#         return getproperty(getfield(b, :blocks)[1], s)
-#     s === :shift && return length(b.blocks) > 1 ?
-#            Int(abs(getfield(b, :blocks)[2].s - getfield(b, :blocks)[1].s)) : 2
-#     getfield(b, s)
-# end
-
-# function Base.getproperty(b::LCBlock, s::Symbol)
-#     s === :corr && return getfield(b, :blocks)[1].correlation
-#     getfield(b, s)
-# end
-
 function Base.length(b::IBlock)
     length(b.fields)
 end
 
-# function Base.getproperty(b::IBlock, s::Symbol)
-#     s in (:r, :s) && return getproperty(getfield(b, :blocks)[1], s)
-#     getfield(b, s)
-# end
-
 function Base.show(io::IO, ::MIME"text/plain", b::IBlock)
     svals = [V.s for V in b.fields]
-    V = b.fields[1]
+    V = b.chan_field
     ns = real.(round.(-V.s .+ svals)) ./ 2
     shift_range = Int(minimum(ns)):1:Int(maximum(ns))
     if isempty(b.fields)
@@ -217,10 +189,10 @@ function Base.show(io::IO, b::IBlock)
     if isempty(b.fields)
         print(io, "Empty interchiral block")
     elseif !b.fields[1].diagonal || b.fields[1].degenerate 
-        print(io, "G^(s)({ ")
+        print(io, "G^($(b.chan))({ ")
         print(io, "V_{$(b.chan_field.r), $(b.chan_field.s) + 2s}, s ∈ $(shift_range) })")
     else
-        print(io, "G^(s)({ ")
+        print(io, "G^($(b.chan))({ ")
         print(io, "V_{P = $(V.dims[:left].P) + n/β}, n ∈ $(shift_range)})")
     end
 end

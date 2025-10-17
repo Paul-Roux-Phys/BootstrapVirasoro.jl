@@ -23,7 +23,7 @@ CFT Data: Central charges, conformal dimensions, fields.
 =======================================================================#
 export CentralCharge, CC
 export ConformalDimension, CD
-export LeftRight, Field, swap_lr, shift, reflect, total_dimension
+export LeftRight, Field, swap_lr, shift, reflect, total_dimension, spin
 export Channels, @channels, Chans
 
 struct LeftRight{T}
@@ -33,7 +33,7 @@ end
 const LR = LeftRight
 Base.getindex(x::LeftRight, s::Symbol) = getfield(x, s)
 
-struct Channels{T}
+mutable struct Channels{T}
     s::T
     t::T
     u::T
@@ -44,33 +44,31 @@ Base.setindex!(s::Channels, value, ch::Symbol) = setfield!(s, ch, value)
 Channels(s::T, t, u) where {T} = Channels{T}(s, t, u)
 Channels(t::NTuple{3,T}) where {T} = Channels{T}(t[1], t[2], t[3])
 Channels(s) = Channels(s, s, s)
+Channels(f::Function) = Channels(f(:s), f(:t), f(:u))
+Base.length(c::Channels) = 3
 
 #=======================================================
 Conformal blocks and correlations.
 ========================================================#
-export Correlation, Corr, Co
-export Block, IBlock
+export Correlation, Corr, Co, Correlation4, Correlation1
+export ChiralBlock, CBlock, NonChiralBlock, NCBlock, InterchiralBlock
+export IBlock, LinearCombinationBlock, LCBlock, Block
 export ChannelSpectrum, ChanSpec, add!, remove!
-export LoopSpectrum 
 
 abstract type Correlation{T} end
 const Corr = Correlation # type alias
 const Co = Correlation # type alias
 
 abstract type Block{T} end # general conformal block. Can be interchiral, non-chiral or chiral
-abstract type Spectrum{T} end
 
-# # Spectra
-# export Spectrum, ChannelSpectrum, ChannelSpectra, add!, remove!, fields, hasdiagonals
-
-# # Bootstrap equations and solver.
-# export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!
+# Bootstrap equations and solver.
+export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!
+export solve_bootstrap
 
 # The implementations are found in the following included files.
 # CFT Data: central charges, conformal dimensions, fields
 include("CFTData.jl")
 include("ConformalBlocks/correlations.jl")
-
 
 # Conformal blocks
 # AbstractBlocks serve as an interface to all types of blocks.

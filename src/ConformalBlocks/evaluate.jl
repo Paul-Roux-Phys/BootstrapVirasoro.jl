@@ -2,8 +2,8 @@
  qfromx(x) = exp(- (π * ellipticK(1 - x) / ellipticK(x)))
 """Cross ratio `x` from the nome `q`"""
 xfromq(q) = jtheta2(0, q)^4 / jtheta3(0, q)^4
- qfromτ(τ) = exp(2*im*(π*τ))
-τfromx(x) = (log(qfromx(x)) / π) / im / 2
+qfromτ(τ) = exp(2*im*(π*τ))
+τfromx(x) = (log(qfromx(x)) / π) / im
 
 struct PosCache{T}
     x::T
@@ -141,7 +141,7 @@ function eval(b::LogBlock{T}, x::LRPosCache)::T where {T}
     R, Rbar = b.R, b.Rbar
 
     if isaccidentallynonlogarithmic(b)
-        Freg * Fbar + (-1)^b.nbzeros * R / Rbar * F * Fregbar
+        Freg * Fbar + R / Rbar * F * Fregbar
 
     elseif islogarithmic(b)
         Fder, Fderbar = eval_lr_der(b, x)
@@ -157,7 +157,7 @@ end
 function eval(b::IBlock{T}, x)::T where {T}
     res = zero(T)
     for i in eachindex(b.blocks)
-        res += eval((b.blocks)[i], x) .* b.shifts[i]
+        res += eval((b.blocks)[i], x) .* b.coeffs[i]
     end
     return res
 end

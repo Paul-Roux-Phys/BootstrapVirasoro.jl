@@ -1,3 +1,5 @@
+import Random
+
 mutable struct BootstrapSystem{T}
     unknowns::Channels{Vector{Field{T}}}
     LHS::Matrix{T}
@@ -9,13 +11,6 @@ mutable struct BootstrapSystem{T}
     block_values::Channels{Dict{Field{T},Vector{T}}} # all blocks evaluated at all positions
     str_cst::StrCst{T}
 end
-
-# function BootstrapMatrix{T}() where {T}
-#     BootstrapMatrix{T}(
-#         Channels(Vector{Field{T}}())Matrix{T}(undef, 0, 0),
-#         Vector{T}(undef, 0),
-#     )
-# end
 
 function evaluate_blocks(S::ChanSpec, xs)
     bs = S.blocks
@@ -42,11 +37,8 @@ function evaluate_blocks(S::ChanSpec, xs)
     return results
 end
 
-evaluate_blocks(S::Channels{ChanSpec}, xs) =
-    @channels evaluate_blocks(S[chan], xs[chan])
-
 function evaluate_blocks!(sys::BootstrapSystem)
-    sys.block_values = evaluate_blocks(sys.spectra, sys.positions_cache)
+    sys.block_values = @channels evaluate_blocks(sys.spectra[chan], sys.positions_cache[chan])
     return sys.block_values
 end
 
@@ -71,11 +63,17 @@ function = a function that we may apply on the points
 square = whether to use a square (otherwise, a rectangle)
 """
 function random_points(N; transfo = nothing, square = true, cond = p -> true)
+    # Set a temporary seed
+    rng = copy(Random.default_rng())
+    Random.seed!(1234)
     res = []
     for _ = 1:N
         new_random_point!(res, N, square = square, cond = cond)
     end
     return transfo !== nothing ? transfo.(res) : res
+
+    # Restore RNG state
+    Random._GLOBAL_RNG[] = rng
 end
 
 function crossratio(chan, x)
@@ -109,79 +107,49 @@ function BootstrapSystem(
     extrapoints::Int = 6,
     pos = nothing,
 ) where {T}
-    chans = (:s, :t, :u)
-    co = S[1].corr
+    co = S.s.corr
     if knowns === nothing
         knowns = StrCst{T}()
     end
-    nb_unknowns = [length(s) for s in S]
-    nb_unknowns .-= length.([knowns[chan] for chan in chans])
+    nb_unknowns = [length(S[chan]) for chan in CHANNELS]
+    nb_unknowns .-= length.([knowns[chan] for chan in CHANNELS])
     nb_lines = 2 * ((sum(nb_unknowns) + extrapoints) ÷ 2)
     if pos !== nothing
         nb_positions = length(pos)
-        @assert nb_positions > nb_lines ÷ (NB_CHANNELS-1) "
-            You must give enough positions for the system to be overdetermined
-        "
+        @assert nb_positions > nb_lines ÷ (NB_CHANNELS - 1) "
+              You must give enough positions for the system to be overdetermined
+          "
     else
-        nb_positions = nb_lines ÷ (NB_CHANNELS-1)
+        nb_positions = nb_lines ÷ (NB_CHANNELS - 1)
         pos = choose_block_eval_points(nb_positions, co)
     end
 
     # compute position cache
     pos_chan = @channels [channel_position(x, co, chan) for x in pos]
-    pos_cache = @channels Vector{LRPosCache{T}}(undef, length(pos_chan[chan])) # result container
-    Threads.@threads for i in 1:NB_CHANNELS
-        chan = chans[i]
-        pos_cache[chan] = [LRPosCache(x, S[i].corr, chan) for x in pos_chan[chan]]
+    pos_cache = @channels Vector{LRPosCache}(undef, length(pos_chan[chan])) # result container
+    Threads.@threads for i = 1:NB_CHANNELS
+        chan = CHANNELS[i]
+        pos_cache[chan] =
+            [LRPosCache(x, S[CHANNELS[i]].corr, chan) for x in pos_chan[chan]]
     end
 
     # blocks = evaluate_blocks(S, pos_cache)
-    blocks = (; (chan => Dict{Field{T},Vector{T}}() for chan in chans)...)
-    unknowns =  @channels Vector{Field{T}}()
+    blocks = @channels Dict{Field{T},Vector{T}}()
+    unknowns = @channels Vector{Field{T}}()
     LHS = Matrix{T}(undef, 0, 0)
     RHS = Vector{T}()
 
-    return BootstrapSystem{T}(unknowns, LHS, RHS, co, pos, pos_cache, S, blocks, knowns)
-end
-
-function add!(sys::BootstrapSystem, chan, V)
-    new_block = add!(sys.spectra[chan], V)
-    if isnothing(new_block)
-        error("trying to add already present block")
-        return
-    end
-    # add a new position
-    new_random_point!(sys.positions, length(sys.positions))
-    new_pos = sys.positions[end]
-    for chan in CHANNELS
-        new_pos_cache = LRPosCache(new_pos, sys.spectra[chan].corr, chan)
-        push!(sys.positions_cache[chan], new_pos_cache)
-    end
-    for chan in CHANNELS
-        # evaluate previous blocks at the new position
-        new_pos = sys.positions_cache[chan][end]
-        for v in sys.block_values[chan]
-            push!(v, v(new_pos))
-        end
-    end
-    # evaluate the new block at all positions
-    sys.block_values[chan][V] = [new_block(x) for x in sys.positions_cache[chan]]
-end
-
-function remove!(b::BootstrapSystem, chan, V)
-    remove!(b.spectra[chan], V)
-    pop!(b.positions)
-    for chan in CHANNELS
-        pop!(b.positions_cache[chan])
-    end
-    # remove one position for all blocks
-    for chan in CHANNELS
-        for v in b.block_values[chan]
-            pop!(v)
-        end
-    end
-    # remove the block
-    delete!(b.block_values[chan], V)
+    return BootstrapSystem{T}(
+        unknowns,
+        LHS,
+        RHS,
+        co,
+        pos,
+        pos_cache,
+        S,
+        blocks,
+        knowns,
+    )
 end
 
 factor(_::Correlation4{T}, chan, x) where {T} = one(T)
@@ -203,21 +171,11 @@ end
 
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     known_consts = b.str_cst
-    facts = Dict(
-        chan => [factor(b.correlation, chan, pos) for pos in b.positions] for
-        chan in CHANNELS
-    )
+    facts = @channels [factor(b.correlation, chan, pos) for pos in b.positions]
 
-    unknowns = (;
-        (
-            chan => sort(
-                [
-                    V for V in fields(b.spectra[chan]) if
-                    !(V in keys(known_consts[chan]))
-                ],
-                by = V -> real(total_dimension(V)),
-            ) for chan in CHANNELS
-        )...
+    unknowns = @channels sort(
+        [V for V in fields(b.spectra[chan]) if !(V in keys(known_consts[chan]))],
+        by = V -> real(total_dimension(V)),
     )
 
     # if no consts are known, fix a normalisation
@@ -238,18 +196,12 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
         deleteat!(unknowns[chan], idx)
     end
 
-    knowns = (;
-        (
-            chan => [
-                V for V in fields(b.spectra[chan]) if
-                V in keys(b.str_cst[chan])
-            ] for chan in CHANNELS
-        )...
-    )
+    knowns =
+        @channels [V for V in fields(b.spectra[chan]) if V in keys(b.str_cst[chan])]
 
     nb_positions = length(b.positions)
     nb_lines = nb_positions * (length(CHANNELS) - 1)
-    nb_unknowns = [length(s) for s in b.spectra]
+    nb_unknowns = [length(b.spectra[chan]) for chan in CHANNELS]
     nb_unknowns .-= length.([known_consts[chan] for chan in CHANNELS])
 
     # matrix of equations Σ_unknowns (chan1 - chan2) = Σ_knowns (chan2 - chan1)
@@ -261,31 +213,31 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     #   G^s  0   -G^u ]
     LHS = Matrix{T}(undef, nb_lines, sum(nb_unknowns))
     col_idx = 1
-    for V in unknowns[:s]
-        LHS[1:nb_positions, col_idx] = facts[:s] .* b.block_values[:s][V]
-        LHS[(nb_positions+1):end, col_idx] = facts[:s] .* b.block_values[:s][V]
+    for V in unknowns.s
+        LHS[1:nb_positions, col_idx] = facts.s .* b.block_values.s[V]
+        LHS[(nb_positions+1):end, col_idx] = facts.s .* b.block_values.s[V]
         col_idx += 1
     end
-    for V in unknowns[:t]
-        LHS[1:nb_positions, col_idx] = .-facts[:t] .* b.block_values[:t][V]
+    for V in unknowns.t
+        LHS[1:nb_positions, col_idx] = .-facts.t .* b.block_values.t[V]
         LHS[(nb_positions+1):end, col_idx] = zer
         col_idx += 1
     end
-    for V in unknowns[:u]
+    for V in unknowns.u
         LHS[1:nb_positions, col_idx] = zer
-        LHS[(nb_positions+1):end, col_idx] = .-facts[:u] .* b.block_values[:u][V]
+        LHS[(nb_positions+1):end, col_idx] = .-facts.u .* b.block_values.u[V]
         col_idx += 1
     end
 
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
     RHS = Vector{T}(undef, 2nb_positions)
     for i = 1:nb_positions
-        RHS[i] = sum(b.block_values[:t][V][i] for V in knowns[:t]; init = zero(T))
-        RHS[i] -= sum(b.block_values[:s][V][i] for V in knowns[:s]; init = zero(T))
+        RHS[i] = sum(b.block_values.t[V][i] for V in knowns.t; init = zero(T))
+        RHS[i] -= sum(b.block_values.s[V][i] for V in knowns.s; init = zero(T))
         RHS[i+nb_positions] =
-            sum(b.block_values[:u][V][i] for V in knowns[:u]; init = zero(T))
+            sum(b.block_values.u[V][i] for V in knowns.u; init = zero(T))
         RHS[i+nb_positions] -=
-            sum(b.block_values[:s][V][i] for V in knowns[:s]; init = zero(T))
+            sum(b.block_values.s[V][i] for V in knowns.s; init = zero(T))
     end
 
     b.unknowns = unknowns
@@ -295,25 +247,20 @@ end
 
 function solve!(s::BootstrapSystem; precision_factor = 1)
     # solve for two different sets of positions
-    LHS, RHS = s.LHS, s.RHS
     if precision_factor > 1
-        LHS = Matrix{Complex{BigFloat}}(LHS)
-        RHS = Vector{Complex{BigFloat}}(RHS)
+        s.LHS = Matrix{Complex{BigFloat}}(s.LHS)
+        s.RHS = Vector{Complex{BigFloat}}(s.RHS)
     end
     sol1, sol2 = setprecision(BigFloat, precision_factor * precision(BigFloat)) do
-        (
-            s.LHS[3:end, :] \ s.RHS[3:end],
-            s.LHS[1:(end-2), :] \ s.RHS[1:(end-2)],
-        )
+        (s.LHS[3:end, :] \ s.RHS[3:end], s.LHS[1:(end-2), :] \ s.RHS[1:(end-2)])
     end
 
     # compare the two solutions
     errors = @. Float32(abs((sol1 - sol2) / sol2))
 
     # back to dictionary format
-    chans = keys(s.spectra)
-    nb_unknowns = vcat([0], [length(s.unknowns[chan]) for chan in chans])
-    for (i, chan) in enumerate(chans)
+    nb_unknowns = vcat([0], [length(s.unknowns[chan]) for chan in CHANNELS])
+    for (i, chan) in enumerate(CHANNELS)
         for (j, V) in enumerate(s.unknowns[chan])
             index = sum(nb_unknowns[k] for k = 1:(i-1); init = 0) + j
             s.str_cst[chan][V] = sol1[index]
@@ -322,6 +269,14 @@ function solve!(s::BootstrapSystem; precision_factor = 1)
     end
 
     return s.str_cst
+end
+
+function solve_bootstrap(specs::Channels)
+    sys = BootstrapSystem(specs)
+    evaluate_blocks!(sys)
+    compute_linear_system!(sys)
+    solve!(sys)
+    return sys
 end
 
 function clear!(b::BootstrapSystem{T}) where {T}
@@ -340,4 +295,11 @@ function evaluate_correlation(sys, chan)
     block_values =
         Dict(V => b(cache) for (V, b) in consts[chan] if consts.errors[chan] < 1e-4)
     return sum(consts[chan][V] * block_values[V] for V in keys(block_values))
+end
+
+function Base.show(io::IO, b::BootstrapSystem)
+    println(io, "BootstrapSystem{$(typeof(b).parameters[1])}")
+    println(io, b.correlation)
+    println(io, "Number of positions: $(length(b.positions))")
+    println(io, "Matrix size: $(size(b.LHS))") 
 end

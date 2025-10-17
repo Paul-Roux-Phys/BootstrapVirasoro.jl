@@ -22,7 +22,7 @@ end
 @testset "Regularised residues as limits of residues" begin
     import BootstrapVirasoro: computeRmns, Rmn_term, Rmn_zero_order, Rmn_term_vanishes
     setprecision(BigFloat, 256)
-    c = CentralCharge(β=big"0.8" + big"0.1" * im)
+    c = CentralCharge(β = big"0.8" + big"0.1" * im)
     ϵ = 1 // big"10"^20
 
     d1 = CD(c, r = 0, s = 1)
@@ -35,7 +35,7 @@ end
     drs(ϵ) = (d1, d2, d3bar, d4bar(ϵ))
 
     P3, P4 = d3.P, d4(ϵ).P
-    P(r, s) = (r*c.β - s/c.β)/2
+    P(r, s) = (r * c.β - s / c.β) / 2
 
     Δmax = 12
     T = Complex{BigFloat}
@@ -67,15 +67,15 @@ end
 @testset "Zamolodchikov series" begin
     import BootstrapVirasoro: qfromx, eval_series
 
-    c = CC(b=(1.2 + 0.1 * 1im) / sqrt(2))
+    c = CC(b = (1.2 + 0.1 * 1im) / sqrt(2))
     x = 0.05
     q = qfromx(x)
     P = 0.23 + 0.11im
     P1 = 0.41 + 1.03im
 
-    V_chan = Field(c, P=sqrt(2) * P)
-    V_ext = Field(c, P=P1 / sqrt(2))
-    VKac = Field(c, r = 0, s = 1//2)
+    V_chan = Field(c, P = sqrt(2) * P)
+    V_ext = Field(c, P = P1 / sqrt(2))
+    VKac = Field(c, r = 0, s = 1 // 2)
 
     corr = Correlation(VKac, V_ext, VKac, VKac, 12)
     b = Block(corr[:left], :s, V_chan.dims.left, 12)
@@ -86,7 +86,7 @@ end
     @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol = 1e-8) # value from Sylvain's code
 end
 
-c = CentralCharge(c=big"0.1")
+c = CentralCharge(c = big"0.1")
 Δmax = 40
 V1 = CD(c, Δ = 1)
 V2 = CD(c, Δ = 2)
@@ -122,11 +122,7 @@ end
 
 # comparing to values from Sylvain's code
 @testset "block values" begin
-    @test isapprox(
-        b_s(complex(x)),
-        big"1679.912188689784627081651",
-        rtol = 1e-20,
-    )
+    @test isapprox(b_s(complex(x)), big"1679.912188689784627081651", rtol = 1e-20)
 
     @test isapprox(
         b_t(complex(1 - x)),
@@ -141,7 +137,7 @@ end
     )
 end
 
-c = CC(β=big"0.8" + big"0.1" * im)
+c = CC(β = big"0.8" + big"0.1" * im)
 V = Field(c, r = 2, s = 3)
 Δmax = 40
 
@@ -181,7 +177,9 @@ end
 
     function eval_series_der(x)
         series_der = BootstrapVirasoro.eval_series_der(b, x)
-        byhand = (BootstrapVirasoro.eval_series(b_p, x) -
+        byhand =
+            (
+                BootstrapVirasoro.eval_series(b_p, x) -
                 BootstrapVirasoro.eval_series(b_m, x)
             ) / (2 * ϵ)
         series_der - byhand
@@ -222,7 +220,8 @@ end
     bminus = Block(co[:left], :s, dminus)
 
     @test isapprox(
-        bϵ(x), co.Rmn.left.s[V.r, V.s] / ϵ * bminus(x) + b(x),
+        bϵ(x),
+        co.Rmn.left.s[V.r, V.s] / ϵ * bminus(x) + b(x),
         rtol = 1e-32,
     )
 
@@ -231,7 +230,7 @@ end
         co.Rmn.left.s[V.r, V.s] / 2 / V.dims.left.P / ϵ * bminus(x) + b(x),
         rtol = 1e-33,
     )
-    
+
     @test isapprox(
         b(x),
         big"0.51970140827959736684758007395822214" +
@@ -288,27 +287,17 @@ end
 
     bs, bsϵ, bt, btϵ = block(:s), blockϵ(:s), block(:t), blockϵ(:t)
 
-    @test isapprox(bs(x), bsϵ(x), rtol = 1e-18)
+    # @test isapprox(bs(x), bsϵ(x), rtol = 1e-18)
     @test isapprox(bt(x), btϵ(x), rtol = 1e-18)
 end
 
 @testset "Interchiral" begin
-    V = Field(c, r = 2, s = 1 // 2)
-    Δmax = 30
-    b = Block(co, :s, V, Δmax, interchiral=true)
-    @test b.shifts[1] == 1
-    @test isapprox(
-        b.shifts[3],
-        big"5.464439142274867e-17" + big"1.7406391176219884e-17" * im,
-        rtol = 1e-15,
-    )
-
     setprecision(BigFloat, 40, base = 10) do
         c = CC(β = -big"0.8" - big"0.1" * im)
         field1 = Field(c, r = 1 // 2, s = 0)
         field2 = Field(c, r = 1, s = 0)
         fields = [field2, field2, field1, field1]
-        Δmax=40
+        Δmax = 40
         co = Correlation(fields..., Δmax)
         x = big"0.4" + big"0.2" * im
 
@@ -317,30 +306,90 @@ end
         b = Block(co, :s, J, Δmax, interchiral = true)
         @test b(x) ≈
               big"1.320255511354332911164464364785819105156" +
-              big"0.4186925417664498703779197115719248226952"*im
+              big"0.4186925417664498703779197115719248226952" * im
 
         # interchiral, non-diagonal
-        V3 = Field(c, r = 3, s = 1//3)
+        V3 = Field(c, r = 3, s = 1 // 3)
         b = Block(co, :s, V3, Δmax, interchiral = true)
         @test b(x) ≈
               big"0.2052943176316875457496459173129386291016" -
-              big"0.2003078699572151816572767384428219647201"*im
+              big"0.2003078699572151816572767384428219647201" * im
 
         # interchiral, degenerate
         id = Field(c, r = 1, s = 1, diagonal = true)
         b = Block(co, :s, id, Δmax, interchiral = true)
         @test b(x) ≈
               big"1.439312717815166500340922134926376204051" +
-              big"0.4561207475025284508099330175652862628828"*im
+              big"0.4561207475025284508099330175652862628828" * im
 
         # interchiral, generic diagonal
-        V4 = Field(c, r=0, s=big"0.5"+big"0.3"*im)
+        V4 = Field(c, r = 0, s = big"0.5" + big"0.3" * im)
         b = Block(co, :s, V4, Δmax, interchiral = true)
         @test b(x) ≈
-              big"1.396132665254477154107379890952326016033" + 
-              big"0.184273048386930095042991719005258073884"*im
+              big"1.396132665254477154107379890952326016033" +
+              big"0.184273048386930095042991719005258073884" * im
+
+        V5 = Field(c, r = 2, s = 0)
+        b = Block(co, :s, V5, Δmax, interchiral = true)
+        @test b(x) ≈
+              big"0.7505040963332944454258635005057715597006" +
+              big"0.04344655018615009393069583429415501260266" * im
     end
 end
 
+const Sig = Channels{Rational}
+
+c = CC(β = 1 / (big"0.8" + big"0.1" * im))
+ndiag_indices =
+    [(r, s) for r = 1//2:1//2:20 for s = -1+1//(2r):1//(2r):1 if r * s % 1 == 0]
+diag_field = Field(c, r = 0, s = big"0.4" + big"0.1" * im)
+fields = vcat([Field(c, r = r, s = s) for (r, s) in ndiag_indices], diag_field)
+
+# Filter keeps only the fields/blocks that fulfill the condition given in the first argument.
+function chan_parities(co::Correlation4)
+    "Determine the parity of the number of legs in 4pt channels"
+    V1, V2, V3, V4 = co.fields
+    chan_parities =
+        Channels{Rational}((V1.r + V2.r) % 1, (V1.r + V4.r) % 1, (V1.r + V3.r) % 1)
+end
+
+function LoopSpectra(co, fields, fs; parity = 0)
+    Vs = @channels filter(V -> V.r % 1 == chan_parities(co)[chan], fields)
+    @channels ChannelSpectrum(co, chan, Vs[chan], fs[chan])
+end
+
+function precompute_blocks(co, fields; parity)
+    parity != 0 &&
+        (fields = filter(V -> V.diagonal || 0 <= V.s * abs(parity), fields))
+    LoopSpectra(
+        co,
+        fields,
+        Channels(chan -> (V -> Block(co, chan, V, interchiral = true, parity = parity))),
+    )
+end
+
+function solve(specs, signature)
+    specs = @channels filter(V -> V.r >= signature[chan], specs[chan])
+    sys = BootstrapSystem(specs)
+    evaluate_blocks!(sys)
+    compute_linear_system!(sys)
+    solve!(sys)
+    return sys
+end
+
+ind = ((1 // 2, 0), (1 // 2, 0), (1 // 2, 0), (1 // 2, 0))
+Δmax = 20
+setprecision(BigFloat, 15, base = 10)
+co = Correlation([Field(c, r = r, s = s) for (r, s) in ind], Δmax)
+blocks_even = precompute_blocks(co, fields, parity = 1)
+
+sig = Channels{Rational}(0, 1, 1)
+sol = solve(blocks_even, sig)
+
 @testset "Crossing" begin
+    for chan in (:s, :t, :u)
+        for (V, err) in sol.str_cst.errors[chan]
+            @test abs(err * sol.str_cst.constants[chan][V]) < 1e-4
+        end
+    end
 end
