@@ -1,33 +1,33 @@
 push!(LOAD_PATH, joinpath("..", "src"))
 
-using BootstrapVirasoro
 using Documenter
+using Documenter.Remotes: GitHub
+using BootstrapVirasoro
 
 DocMeta.setdocmeta!(
-    BootstrapVirasoro,
-    :DocTestSetup,
-    :(using BootstrapVirasoro),
-    recursive = true,
+        BootstrapVirasoro,
+        :DocTestSetup,
+        :(using BootstrapVirasoro),
 )
 
 makedocs(
-    sitename = "BootstrapVirasoro.jl",
-    repo = "https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl",
-    modules = [BootstrapVirasoro],
-    format = Documenter.HTML(
-        repolink = "https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl",
-        edit_link = :commit,
-    ),
-    doctest = true,
-    pages = [
-        "Home" => "index.md",
-        "installation.md",
-        "cft_data.md",
-        "conformal_blocks.md",
-        "bootstrap_equations.md",
-        "reference.md",
-    ],
-    checkdocs = :export,
+        sitename="BootstrapVirasoro.jl",
+        repo=GitHub("Paul-Roux-Phys", "BootstrapVirasoro.jl"),
+        modules=[BootstrapVirasoro],
+        format=Documenter.HTML(
+                repolink="https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl",
+                edit_link=:commit,
+        ),
+        pages=[
+                "Home" => "index.md",
+                "Installation" => "installation.md",
+                "Conformal blocks" => "conformalblocks.md",
+                "Bootstrap equations" => "bootstrapeqs.md",
+        ],
+        checkdocs=:export,
 )
 
-deploydocs(; repo = "https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl")
+deploydocs(
+        repo=GitHub("Paul-Roux-Phys", "BootstrapVirasoro.jl"),
+        devbranch="main",
+)

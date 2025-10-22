@@ -20,6 +20,6 @@ end
     include("one_point.jl")
 end
 
-# @testset "Bootstrap equations" begin
-#     include("bootstrap_equations.jl")
-# end
+@testset "Loop models submodule" begin
+    include("LoopModels.jl")
+end

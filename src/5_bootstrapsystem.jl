@@ -1,4 +1,17 @@
-import Random
+struct StructureConstants{T<:Complex}
+    constants::Channels{Dict{Field{T},T}}
+    errors::Channels{Dict{Field{T},Float32}}
+end
+const StrCst = StructureConstants
+const SC = StructureConstants
+
+struct ChannelSpectrum{T}
+    corr::Corr
+    blocks::Dict{Field{T},Block{T}}
+    Δmax::Int
+    chan::Symbol
+end
+const ChanSpec = ChannelSpectrum
 
 mutable struct BootstrapSystem{T}
     unknowns::Channels{Vector{Field{T}}}
@@ -10,6 +23,220 @@ mutable struct BootstrapSystem{T}
     spectra::Channels{ChanSpec{T}}    # channel spectra
     block_values::Channels{Dict{Field{T},Vector{T}}} # all blocks evaluated at all positions
     str_cst::StrCst{T}
+end
+
+#======================================================================================
+Structure constants
+======================================================================================#
+function StructureConstants{T}() where {T}
+    constants = @channels Dict{Field{T},T}()
+    errors = @channels Dict{Field{T},Float32}()
+    return StructureConstants{T}(constants, errors)
+end
+
+function Base.getproperty(c::SC, s::Symbol)
+    s === :fields && begin
+        consts = getfield(c, :constants)
+        return vcat([[V for V in keys(consts[chan])] for chan in keys(consts)]...)
+    end
+    getfield(c, s)
+end
+
+Base.getindex(c::SC, s::Symbol) = c.constants[s]
+
+function fix!(cnst, chan, field, value; error = 0)
+    cnst[chan][field] = value
+    cnst.errors[chan][field] = error
+end
+
+Base.length(c::SC) = sum(length(c.constants[chan]) for chan in keys(c.constants))
+
+function to_dataframe(c::SC, rmax = nothing)
+    df = DataFrame(
+        Channel = Symbol[],
+        Field = String[],
+        StructureConstant = Complex[],
+        RelativeError = Float32[],
+    )
+
+    for chan in CHANNELS
+        fields =
+            sort(collect(keys(c.constants[chan])), by = V -> real(total_dimension(V)))
+        rmax !== nothing && (fields = filter(V -> V.r <= rmax, fields))
+        for V in fields
+            push!(df, (chan, string(V), c.constants[chan][V], c.errors[chan][V]))
+        end
+    end
+
+    return df
+end
+
+function Base.show(io::IO, c::SC; rmax = nothing, plaintext = false)
+    df = to_dataframe(c, rmax)
+    grouped = groupby(df, :Channel)
+    for table in grouped
+        t = columntable(select(table, Not(:Channel)))
+        hl_conv = Highlighter(
+            (table, i, j) ->
+                table[:RelativeError][i] < 2^(-precision(BigFloat, base = 10) / 2) && j >= 2,
+            crayon"green",
+        )
+        hl_zero = Highlighter(
+            (table, i, j) ->
+                table[:RelativeError][i] > 1e-2 &&
+                abs(table[:StructureConstant][i]) <
+                2^(-precision(BigFloat, base = 10) / 3) &&
+                j >= 2,
+            crayon"green",
+        )
+        hl_not_conv = Highlighter(
+            (table, i, j) ->
+                table[:RelativeError][i] > 1e-2 &&
+                abs(table[:StructureConstant][i]) >
+                2^(-precision(BigFloat, base = 10) / 3) &&
+                j >= 2,
+            crayon"red",
+        )
+        fmt_zero =
+            (v, i, j) ->
+                (
+                    t.RelativeError[i] > 1e-2 &&
+                    abs(t.StructureConstant[i]) <
+                    2^(-precision(BigFloat, base = 10) / 3) &&
+                    j == 2
+                ) ? 0 : v
+        channel_header = " Channel $(table.Channel[1])\n"
+        if plaintext
+            print(io, channel_header)
+            pretty_table(
+                io,
+                t,
+                header = ["Field", "Structure constant", "Relative error"],
+                header_alignment = :l,
+                formatters = (fmt_zero,),
+            )
+        else
+            printstyled(io, channel_header; bold = true)
+            pretty_table(
+                io,
+                t,
+                header = ["Field", "Structure constant", "Relative error"],
+                header_alignment = :l,
+                header_crayon = crayon"blue",
+                highlighters = (hl_conv, hl_zero, hl_not_conv),
+                formatters = (fmt_zero,),
+            )
+        end
+    end
+end
+
+function save(io::IO, c::SC; format::Symbol = :csv)
+    df = to_dataframe(c)
+    if format == :csv
+        CSV.write(io, df)
+    else
+        show(io, c, plaintext = true)  # fallback to default text show
+    end
+end
+
+#======================================================================================
+Channel spectra
+======================================================================================#
+fields(s::ChanSpec) = keys(s.blocks)
+
+function _add_one!(s::ChanSpec, b)
+    if !(b.chan_field in fields(s)) &&
+       real(total_dimension(b.chan_field)) < real(s.Δmax)
+        (s.blocks)[b.chan_field] = b
+        return b
+    end
+end
+
+_add!(s::ChanSpec, b::Block) = _add_one!(s, b)
+_add!(s::ChanSpec, blocks::Vector) = foreach(b -> _add_one!(s, b), blocks)
+add!(s, bs) = _add!(s, bs)
+
+function add(s, blocks)
+    s2 = deepcopy(s)
+    add!(s2, blocks)
+    return s2
+end
+
+function hasdiagonals(s::ChanSpec)
+    for V in keys(s.blocks)
+        V.diagonal && return true
+    end
+    return false
+end
+
+function ChannelSpectrum(co::Co{T}, chan, Vs::Vector{<:Field}, f::Function) where {T}
+    s = ChannelSpectrum{T}(co, Dict{Field{T},Block{T}}(), co.Δmax, chan)
+    for V in Vs
+        if real(total_dimension(V)) < s.Δmax
+            add!(s, f(V))
+        end
+    end
+    return s
+end
+
+ChannelSpectrum(co::Co, Vs::Vector{<:Field}, f::Function) =
+    ChannelSpectrum(co, :τ, Vs, f)
+
+function _remove_one!(s::ChanSpec, V)
+    delete!(s.blocks, V)
+end
+
+_remove!(s::ChanSpec, V) = _remove_one!(s, V)
+_remove!(s::ChanSpec, fields::Vector) = foreach(V -> _remove_one!(s, V), fields)
+remove!(s, V) = _remove!(s, V)
+remove(s, Vs) = remove!(deepcopy(s), Vs)
+
+function Base.filter(f, s::ChanSpec{T}) where {T}
+    return ChanSpec{T}(s.corr, filter(kv -> f(kv[1]), s.blocks), s.Δmax, s.chan)
+end
+
+Base.length(s::ChanSpec) = length(s.blocks)
+Base.size(s::ChanSpec) = size(s.blocks)
+nb_blocks(s::ChanSpec) = sum(length(b) for b in s.blocks)
+
+function Base.show(io::IO, s::ChanSpec)
+    println(io, "channel $(s.chan), Δmax = $(s.Δmax)")
+    nondiags =
+        sort([indices(V) for V in fields(s) if !V.diagonal], by = x -> (x[1], x[2]))
+    diags = sort(
+        [V for V in fields(s) if V.diagonal && !V.degenerate],
+        by = V -> real(total_dimension(V)),
+    )
+    degs = sort(
+        [V for V in fields(s) if V.degenerate],
+        by = V -> real(total_dimension(V)),
+    )
+    if !isempty(degs)
+        println(io, "Degenerate:")
+        for V in degs
+            println(io, V)
+        end
+    end
+    if !isempty(diags)
+        println(io, "Diagonal:")
+        for V in diags
+            println(io, V)
+        end
+    end
+    if !isempty(nondiags)
+        print(io, "Non-diagonal:")
+        r = -Inf
+        for rs in nondiags
+            if rs[1] != r
+                print(io, "\n")
+            else
+                print(io, ", ")
+            end
+            r = rs[1]
+            print(io, rs)
+        end
+    end
+    println(io, "")
 end
 
 function evaluate_blocks(S::ChanSpec, xs)
@@ -37,8 +264,12 @@ function evaluate_blocks(S::ChanSpec, xs)
     return results
 end
 
+#======================================================================================
+Bootstrap System
+======================================================================================#
 function evaluate_blocks!(sys::BootstrapSystem)
-    sys.block_values = @channels evaluate_blocks(sys.spectra[chan], sys.positions_cache[chan])
+    sys.block_values =
+        @channels evaluate_blocks(sys.spectra[chan], sys.positions_cache[chan])
     return sys.block_values
 end
 
@@ -117,8 +348,8 @@ function BootstrapSystem(
     if pos !== nothing
         nb_positions = length(pos)
         @assert nb_positions > nb_lines ÷ (NB_CHANNELS - 1) "
-              You must give enough positions for the system to be overdetermined
-          "
+           You must give enough positions for the system to be overdetermined
+       "
     else
         nb_positions = nb_lines ÷ (NB_CHANNELS - 1)
         pos = choose_block_eval_points(nb_positions, co)
@@ -284,9 +515,6 @@ function clear!(b::BootstrapSystem{T}) where {T}
     # b.matrix = BootstrapMatrix{T}([chan for chan in keys(b.spectra)])
 end
 
-compute_reference!(sys::BootstrapSystem) =
-    compute_reference!(sys.str_cst, sys.spectra)
-
 function evaluate_correlation(sys, chan)
     z = random_points(1)[1]
     co = sys.correlation
@@ -301,5 +529,5 @@ function Base.show(io::IO, b::BootstrapSystem)
     println(io, "BootstrapSystem{$(typeof(b).parameters[1])}")
     println(io, b.correlation)
     println(io, "Number of positions: $(length(b.positions))")
-    println(io, "Matrix size: $(size(b.LHS))") 
+    println(io, "Matrix size: $(size(b.LHS))")
 end

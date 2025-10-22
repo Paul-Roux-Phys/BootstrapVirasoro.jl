@@ -9,8 +9,7 @@ import BootstrapVirasoro:
     qfromx,
     qfromτ,
     τfromx,
-    total_prefactor,
-    shift_D
+    total_prefactor
 import BootstrapVirasoro.total_prefactor as prefac
 
 setprecision(BigFloat, 256)
@@ -30,9 +29,9 @@ q = qfromτ(τ)
 q_S2 = exp(im * (π * τ))
 x = xfromq(exp(im * (π * τ)))
 
-V_S2 = Field(c_S2, P = sqrt(big(2)) * V.dims.left.P)
-V2_S2 = Field(c_S2, P = sqrt(big(2)) * V2.dims.left.P)
-V1_S2 = Field(c_S2, P = V1.dims.left.P / sqrt(big(2)))
+V_S2 = Field(c_S2, P = sqrt(big(2)) * V[:left].P)
+V2_S2 = Field(c_S2, P = sqrt(big(2)) * V2[:left].P)
+V1_S2 = Field(c_S2, P = V1[:left].P / sqrt(big(2)))
 V_kac = Field(c_S2, r = 0, s = 1 // 2)
 ind_S2 = [(0, 1 // 2), (0, V1.s / 2), (0, 1 // 2), (0, 1 // 2)]
 
@@ -53,11 +52,11 @@ co_S2 = Correlation([Field(c_S2, r = r, s = s) for (r, s) in ind_S2], Δmax)
     @test qfromx(xfromq(q)) ≈ q
     @test qfromx(x)^2 ≈ q
 
-    b = Block(co_l, V.dims.left)
-    b_S2 = Block(co_l_S2, V_S2.dims.left)
+    b = CBlock(co_l, V[:left])
+    b_S2 = CBlock(co_l_S2, :s, V_S2[:left])
 
-    b2 = Block(co_l,V2.dims.left)
-    b2_S2 = Block(co_l_S2, V2_S2.dims.left)
+    b2 = CBlock(co_l, V2[:left])
+    b2_S2 = CBlock(co_l_S2, :s, V2_S2[:left])
 
     h = eval_series(b, τ_cache.left)
     @test h ≈ Base.evalpoly(q, b.coeffs)
@@ -71,10 +70,9 @@ co_S2 = Correlation([Field(c_S2, r = r, s = s) for (r, s) in ind_S2], Δmax)
     F2 = b2(τ)
     F2_S2 = b2_S2(x)
 
-    @test F / BootstrapVirasoro.total_prefactor(b, τ_cache.left) ≈
-          F_S2 / BootstrapVirasoro.total_prefactor(b_S2, x)
+    @test F / prefac(b, τ_cache.left) ≈ F_S2 / prefac(b_S2, x)
 
-    @test F / F2 * 16^(2 * (V.dims[:left].P^2 - V2.dims[:left].P^2)) ≈ F_S2 / F2_S2
+    @test F / F2 * 16^(2 * (V[:left].P^2 - V2[:left].P^2)) ≈ F_S2 / F2_S2
     # up to P-indep prefactors 16^(2P^2)*F_P^t = F_{\sqrt{2} P}^s
 end
 
@@ -86,10 +84,10 @@ end
     Vm = Field(c, P = big"0.5" - ϵ)
 
     co_l = co[:left]
-    b = Block(co_l, :s, V0.dims.left, 40, der = true)
-    b_noder = Block(co_l, :s, V0.dims.left, 40)
-    b_p = Block(co_l, :s, Vp.dims.left, 40)
-    b_m = Block(co_l, :s, Vm.dims.left, 40)
+    b = CBlock(co_l, :s, V0[:left], 40, true)
+    b_noder = CBlock(co_l, :s, V0[:left], 40)
+    b_p = CBlock(co_l, :s, Vp[:left], 40)
+    b_m = CBlock(co_l, :s, Vm[:left], 40)
 
     @test isapprox(b(0.3 + 0.4im), b_noder(0.3 + 0.4im), rtol = 1e-15)
 
@@ -108,9 +106,7 @@ end
 
     function eval_block_der(τ)
         block_der = BootstrapVirasoro.eval_der(b, τ)
-        byhand =
-            (BootstrapVirasoro.eval(b_p, τ) - BootstrapVirasoro.eval(b_m, τ)) /
-            (2 * ϵ)
+        byhand = (b_p(τ) - b_m(τ)) / (2 * ϵ)
         block_der - byhand
     end
 
@@ -123,8 +119,8 @@ end
     @test b(τ) / eval_series(b, τ) ≈ q^(V0.dims[:left].δ) / etaDedekind(τ)
 
     @test BootstrapVirasoro.eval_der(b, τ) ≈
-          q^(V0.dims.left.δ) / etaDedekind(τ) *
-          (hprime_byhand + 2 * V0.dims.left.P * log(q) * h)
+          q^(V0[:left].δ) / etaDedekind(τ) *
+          (hprime_byhand + 2 * V0[:left].P * log(q) * h)
 
     test_vals =
         [big"0.3" + big"0.4" * im, big"0.6" + big"1.2" * im, big"10" + big"0.01" * im]
@@ -136,15 +132,15 @@ end
 @testset "Freg" begin
     V0 = Field(c, r = 2, s = 1)
     ϵ = 1e-40
-    δ0ϵ = V0.dims.left.δ + ϵ
+    δ0ϵ = V0[:left].δ + ϵ
     V0ϵ = Field(c, diagonal = true, δ = δ0ϵ)
     V0_S2 = Field(c_S2, r = 2 * V0.r, s = V0.s)
-    δ0_S2ϵ = V0_S2.dims.left.δ + ϵ
+    δ0_S2ϵ = V0_S2[:left].δ + ϵ
     V0_S2ϵ = Field(c_S2, diagonal = true, δ = δ0_S2ϵ)
-    b = Block(co, :s, V0, Δmax)
-    bϵ = Block(co, :s, V0ϵ, Δmax)
-    b_S2 = Block(co_S2, :s, V0_S2, Δmax)
-    b_S2ϵ = Block(co_S2, :s, V0ϵ, Δmax)
+    b = NCBlock(co, :s, V0, Δmax)
+    bϵ = NCBlock(co, :s, V0ϵ, Δmax)
+    b_S2 = NCBlock(co_S2, :s, V0_S2, Δmax)
+    b_S2ϵ = NCBlock(co_S2, :s, V0ϵ, Δmax)
 
     lr_cache = BootstrapVirasoro.LRPosCache(τ, b)
     xlr_cache = BootstrapVirasoro.LRPosCache(x, b_S2)
@@ -184,13 +180,13 @@ end
     V = Field(c, r = 2, s = 1)
     V_S2 = Field(c_S2, r = 2 * V.r, s = V.s)
 
-    b = Block(co, :s, V, Δmax)
-    b_op = Block(co, :s, Field(V.c, r = V.r, s = -V.s), Δmax)
-    b_S2 = Block(co_S2, :s, V_S2, Δmax)
-    b_op_S2 = Block(co_S2, :s, Field(V_S2.c, r = V_S2.r, s = -V_S2.s), Δmax)
+    b = NCBlock(co, :s, V, Δmax)
+    b_op = NCBlock(co, :s, Field(V.c, r = V.r, s = -V.s), Δmax)
+    b_S2 = NCBlock(co_S2, :s, V_S2, Δmax)
+    b_op_S2 = NCBlock(co_S2, :s, Field(V_S2.c, r = V_S2.r, s = -V_S2.s), Δmax)
 
-    P23 = V.dims.left.P
-    P43_S2 = V_S2.dims.left.P
+    P23 = V[:left].P
+    P43_S2 = V_S2[:left].P
 
     @test eval_series(b[:left], τ_cache.left) ≈ eval_series(b_S2[:left], x)
     # regularized series match
@@ -232,8 +228,8 @@ co = Correlation(Field(c, r = ind[1], s = ind[2]), Δmax)
 ind_S2 = [(0, 1 // 2), (ind[1], ind[2] / 2), (0, 1 // 2), (0, 1 // 2)]
 co_S2 = Correlation([Field(c_S2, r = r, s = s) for (r, s) in ind_S2], Δmax)
 
-bs = [Block(co, V) for V in Vs]
-bs_S2 = [Block(co_S2, :s, V_S2) for V_S2 in Vs_S2]
+bs = [NCBlock(co, V) for V in Vs]
+bs_S2 = [NCBlock(co_S2, :s, V_S2) for V_S2 in Vs_S2]
 
 ell(b) = ell(b.corr.fields, b.chan_field.r, b.chan_field.s)
 
@@ -258,48 +254,6 @@ prefs_S2 = [
     for (i, b) in enumerate(bs)
         @test b(τ) / prefs[i] ≈ bs_S2[i](x) / prefs_S2[i]
     end
-end
-
-@testset "Interchiral" begin
-    P = big"0.53" + big"0.11" * im
-    V = Field(c, P = P, diagonal = true)
-    V_S2 = Field(c_S2, P = sqrt(big"2") * P, diagonal = true)
-
-    s = shift_D(co.fields, V)
-    s_S2 = shift_D(co_S2.fields, V_S2)
-
-    # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^{-1}/2))
-    @test isapprox(s_S2 / s / 16^(4 / c.β^2 * (V.s + 1)), 1)
-
-    b = Block(co, :s, V, interchiral = true)
-    prefactor =
-        BootstrapVirasoro.PosCache(τ, b.blocks[1][:left]).prefactor *
-        BootstrapVirasoro.PosCache(
-            conj_q(τ, b.blocks[1].corr),
-            b.blocks[1][:right],
-        ).prefactor
-
-    b_S2 = Block(co_S2, :s, V_S2, interchiral = true)
-    prefactor_S2 =
-        BootstrapVirasoro.PosCache(x, b_S2.blocks[1][:left]).prefactor *
-        BootstrapVirasoro.PosCache(
-            conj_q(x, b_S2.blocks[1].corr),
-            b_S2.blocks[1][:right],
-        ).prefactor
-
-    for i = 1:3
-        @test isapprox(
-            b.blocks[i](τ) / prefactor,
-            b_S2.blocks[i](x) / prefactor_S2 * 16^(-4b.fields[i].dims.left.P^2),
-            rtol = 1e-20,
-        )
-    end
-
-    @test isapprox(
-        b(τ) / prefactor,
-        b_S2(x) / prefactor_S2 * 16^(-4P^2),
-        rtol = 1e-20,
-    )
 end
 
 setprecision(BigFloat, 40, base = 10)
@@ -328,110 +282,70 @@ ncprefA(τ, co_S2, chan) =
     prefA(τ, co_S2, chan, :left) * prefA(-conj(τ), co_S2, chan, :right)
 
 @testset "Sphere <-> torus prefactors" begin
-    for ind in [(5, 1), (11 // 2, 2 // 11), (3, 1), (2, 0), (1, 1), (3//2, 2//3)]
-        V = Field(c, r = ind[1], s = ind[2])
-        P, Pbar = V.dims.left.P, V.dims.right.P
-        V_S2 = Field(c_S2, r = 2 * V.r, s = V.s)
-        b = Block(co, V)
-        b_S2 = @channels Block(co_S2, chan, V_S2)
+    V1 = co.fields[1]
+    Δ1, Δ1bar = V1[:left].Δ, V1[:right].Δ
 
-        V1 = co.fields[1]
-        Δ1, Δ1bar = V1.dims.left.Δ, V1.dims.right.Δ
+    ds = co_S2[:left].fields
+    e1 = -ds[1].Δ - ds[4].δ
+    e2 = ds[1].Δ + sum(ds[i].δ for i = 2:4)
+    dsbar = co_S2[:right].fields
+    e1bar = -dsbar[1].Δ - dsbar[4].δ
+    e2bar = dsbar[1].Δ + sum(dsbar[i].δ for i = 2:4)
 
-        ds = co_S2[:left].fields
-        e1 = -ds[1].Δ - ds[4].δ
-        e2 = ds[1].Δ + sum(ds[i].δ for i = 2:4)
-        dsbar = co_S2[:right].fields
-        e1bar = -dsbar[1].Δ - dsbar[4].δ
-        e2bar = dsbar[1].Δ + sum(dsbar[i].δ for i = 2:4)
+    ts = Channels(τ, -1/τ, (τ-2)/(τ-1))
+    xs = Channels(x, 1-x, 1/x)
 
-        @test b(τ) * 16^(2P^2 + 2Pbar^2) ≈ b_S2.s(x) * ncprefA(τ, co_S2, :s)
+    @test prefA(τ, co_S2, :s, :left) ≈
+          prefA(ts[:t], co_S2, :t, :left) * (-im * τ)^(-Δ1)
 
-        @test prefA(τ, co_S2, :s, :left) ≈
-              prefA(-1 / τ, co_S2, :t, :left) * (-im * τ)^(-Δ1)
+    @test prefA(τ, co_S2, :s, :left) ≈
+          prefA(ts[:u], co_S2, :u, :left) *
+          exp(im * (π * (e1 + e2))) *
+          (-im * (τ - 1))^(-Δ1)
 
-        @test prefA(τ, co_S2, :s, :left) ≈
-              prefA((τ - 2) / (τ - 1), co_S2, :u, :left) *
-              exp(im * (π * (e1 + e2))) *
-              (-im * (τ - 1))^(-Δ1)
+    @test prefA(-conj(τ), co_S2, :s, :right) ≈
+          prefA(1 / conj(τ), co_S2, :t, :right) * (im * conj(τ))^(-Δ1bar)
 
-        @test prefA(-conj(τ), co_S2, :s, :right) ≈
-              prefA(1 / conj(τ), co_S2, :t, :right) * (im * conj(τ))^(-Δ1bar)
+    @test prefA(-conj(τ), co_S2, :s, :right) ≈
+          prefA(-conj(ts[:u]), co_S2, :u, :right) *
+          exp(-im * (π * (e1bar + e2bar))) *
+          (im * (conj(τ) - 1))^(-Δ1bar)
 
-        @test prefA(-conj(τ), co_S2, :s, :right) ≈
-              prefA(-conj((τ - 2) / (τ - 1)), co_S2, :u, :right) *
-              exp(-im * (π * (e1bar + e2bar))) *
-              (im * (conj(τ) - 1))^(-Δ1bar)
+    @test ncprefA(τ, co_S2, :s) ≈
+          ncprefA(ts[:t], co_S2, :t) * τ^-Δ1 * conj(τ)^-Δ1bar * im^spin(V1)
 
-        @test ncprefA(τ, co_S2, :s) ≈
-              ncprefA(-1 / τ, co_S2, :t) * τ^-Δ1 * conj(τ)^-Δ1bar * im^spin(V1)
-
-        @test ncprefA(τ, co_S2, :s) ≈
-              ncprefA((τ - 2) / (τ - 1), co_S2, :u) *
-              (τ - 1)^(-Δ1) *
-              (conj(τ) - 1)^(-Δ1bar)
-
-        f = ncprefA(τ, co_S2, :s)
-
-        @test b(τ) * 16^(2P^2 + 2Pbar^2) ≈ b_S2.s(x) * f
-
-        @test b(-1 / τ) * 16^(2P^2 + 2Pbar^2) ≈
-              b_S2.t(1 - x) * f * τ^Δ1 * conj(τ)^Δ1bar * (-1)^spin(V1_S2)
-
-        @test b(-1 / τ) * 16^(2P^2 + 2Pbar^2) ≈
-              b_S2.t(1 - x) * ncprefA(-1 / τ, co_S2, :t)
-
-        @test b((τ - 2) / (τ - 1)) * 16^(2P^2 + 2Pbar^2) ≈
-              b_S2.u(1 / x) * f * (τ - 1)^Δ1 * (conj(τ) - 1)^Δ1bar
-
-        @test b(τ) * 16^(2P^2 + 2Pbar^2) ≈ b_S2.s(x) * ncprefA(τ, co_S2, :s)
-
-        @test b(-1 / τ) * 16^(2P^2 + 2Pbar^2) ≈
-              b_S2.t(1 - x) * ncprefA(-1 / τ, co_S2, :t)
-
-        @test b((τ - 2) / (τ - 1)) * 16^(2P^2 + 2Pbar^2) ≈
-              b_S2.u(1 / x) * ncprefA((τ - 2) / (τ - 1), co_S2, :u)
-    end
-end
-
-@testset "Interchiral" begin
-    V = Field(c, r = 11 // 2, s = 2 // 11)
-    P, Pbar = V.dims.left.P, V.dims.right.P
-    V_S2 = Field(c_S2, r = 2 * V.r, s = V.s)
-    b = Block(co, V, interchiral = true)
-    b_S2 = @channels Block(co_S2, chan, V_S2, interchiral = true)
-    chan = :u
-    t = BootstrapVirasoro.modular_param(chan, τ)
-    X = BootstrapVirasoro.crossratio(chan, x)
-    @test b(t) * 16^(2P^2 + 2Pbar^2) ≈ b_S2[chan](X) * ncprefA(t, co_S2, chan)
-    @test b.blocks[2](t) * 16^(2(P - 1 / c.β)^2 + 2(Pbar + 1 / c.β)^2) ≈
-          b_S2[chan].blocks[2](X) * ncprefA(t, co_S2, chan)
-    # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^{-1}/2))
-    @test b.shifts[2] * 16^(-4 / c.β^2 * (V.s + 1)) ≈ b_S2.u.shifts[2]
+    @test ncprefA(τ, co_S2, :s) ≈
+          ncprefA(ts[:u], co_S2, :u) *
+          (τ - 1)^(-Δ1) *
+          (conj(τ) - 1)^(-Δ1bar)
 
     for ind in [
         (5, 1),
-        (5, 0),
-        (4, 1 // 2),
-        (9 // 2, 6 // 9),
         (11 // 2, 2 // 11),
-        (3, 1),
         (2, 0),
         (1, 1),
+        # half integer spin case: sign needed in u-channel!
+        (3 // 2, 1 // 3),
+        (1, 1 // 2),
+        (2, 1 // 4),
+        (1, -1//2),
     ]
         V = Field(c, r = ind[1], s = ind[2])
-        P, Pbar = V.dims.left.P, V.dims.right.P
+        P, Pbar = V[:left].P, V[:right].P
         V_S2 = Field(c_S2, r = 2 * V.r, s = V.s)
-        b = Block(co, V, interchiral = true)
-        b_S2 = @channels Block(co_S2, chan, V_S2, interchiral = true)
+        b = NCBlock(co, V)
+        b_S2 = @channels NCBlock(co_S2, chan, V_S2)
+
+        # @test b[:left](τ) * 16^(2P^2) ≈ b_S2.s[:left](x) * prefA(τ, co_S2, :s, :left)
+        # @test b[:right](conj_q(τ, co)) * 16^(2Pbar^2) ≈ b_S2.s[:right](conj(x)) * prefA(conj_q(τ, co), co_S2, :s, :right)
+
+        # @test b[:left](τ) * 16^(2P^2) ≈ b_S2.s[:left](x) * prefA(τ, co_S2, :s, :left)
+        # @test b[:right](conj_q(τ, co)) * 16^(2Pbar^2) ≈ b_S2.s[:right](conj(x)) * prefA(conj_q(τ, co), co_S2, :s, :right)
+
         for chan in BootstrapVirasoro.CHANNELS
-            t = BootstrapVirasoro.modular_param(chan, τ)
-            X = BootstrapVirasoro.crossratio(chan, x)
-            @test isapprox(
-                b(t) * 16^(2P^2 + 2Pbar^2),
-                b_S2[chan](X) * ncprefA(t, co_S2, chan),
-                rtol = 1e-23,
-            )
+        @test b(ts[chan]) * 16^(2P^2 + 2Pbar^2) ≈   
+            b_S2[chan](xs[chan]) * ncprefA(ts[chan], co_S2, chan) *
+            (chan === :u ? (-1)^(spin(V_S2)) : 1) # additional sign needed in u-channel for odd spin
         end
     end
 end

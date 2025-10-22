@@ -1,16 +1,16 @@
 @testset "Normal residues" begin
-    c = CentralCharge(c = 0.5)
+    c = CC(c = 0.5)
     V1 = Field(c, r = 1, s = 0)
     V2 = Field(c, r = 2, s = 0)
-    corr = Correlation(V1, V2, V2, V1, 6)
+    corr = Corr(V1, V2, V2, V1, 6)
 
     # litteral values are taken from Sylvain's code
     @test isapprox(corr.Rmn.left.s[3, 2], -3.11111e-7, atol = 1e-8)
 
-    c = CentralCharge(c = big"0.1")
+    c = CC(c = big"0.1")
     V1 = Field(c, r = 1 // 2, s = 0)
     V2 = Field(c, r = 3 // 2, s = 0)
-    corr = Correlation(V1, V2, V2, V1, 10)
+    corr = Corr(V1, V2, V2, V1, 10)
 
     @test isapprox(
         corr.CNmn.left.t[4, 1, 4],
@@ -78,7 +78,7 @@ end
     VKac = Field(c, r = 0, s = 1 // 2)
 
     corr = Correlation(VKac, V_ext, VKac, VKac, 12)
-    b = Block(corr[:left], :s, V_chan.dims.left, 12)
+    b = CBlock(corr[:left], :s, V_chan[:left], 12)
 
     h = eval_series(b, complex(x))
 
@@ -94,9 +94,9 @@ V3 = CD(c, Δ = 3)
 V4 = CD(c, Δ = 4)
 co = Correlation(V1, V2, V3, V4, Δmax)
 V = CD(c, Δ = big"0.5")
-b_s = Block(co, :s, V, Δmax)
-b_t = Block(co, :t, V, Δmax)
-b_u = Block(co, :u, V, Δmax)
+b_s = CBlock(co, :s, V, Δmax)
+b_t = CBlock(co, :t, V, Δmax)
+b_u = CBlock(co, :u, V, Δmax)
 x = big"0.05" + big"0" * im
 
 @testset "prefactors" begin
@@ -152,11 +152,11 @@ x = big"0.3" + big"0.1" * im
 
 @testset "Limit as z->0, z->1" begin
     cor = Correlation(V1, V1, V2, V1, 12)
-    block_s = Block(cor, :s, V1, 12)
-    block_t = Block(cor, :t, V1, 12)
+    block_s = NCBlock(cor, :s, V1, 12)
+    block_t = NCBlock(cor, :t, V1, 12)
 
     z = 1e-8 + 1e-10im
-    Δ = V1.dims.left.Δ
+    Δ = V1[:left].Δ
 
     # both blocks should be close to one
     @test abs(1 - block_s(z) * z^Δ * conj(z)^Δ) < 1e-5
@@ -171,9 +171,9 @@ end
     Vp = Field(c, P = big"0.5" + ϵ)
     Vm = Field(c, P = big"0.5" - ϵ)
 
-    b = Block(co[:left], :s, V0.dims.left, 40, der = true)
-    b_p = Block(co[:left], :s, Vp.dims.left, 40)
-    b_m = Block(co[:left], :s, Vm.dims.left, 40)
+    b = CBlock(co[:left], :s, V0[:left], 40, true)
+    b_p = CBlock(co[:left], :s, Vp[:left], 40)
+    b_m = CBlock(co[:left], :s, Vm[:left], 40)
 
     function eval_series_der(x)
         series_der = BootstrapVirasoro.eval_series_der(b, x)
@@ -210,14 +210,14 @@ end
 end
 
 @testset "Regularised blocks" begin
-    b = Block(co[:left], :s, V.dims.left)
+    b = CBlock(co[:left], :s, V[:left])
     ϵ = 1e-40
-    dϵ = CD(c, δ = V.dims.left.δ + ϵ)
-    dPϵ = CD(c, P = V.dims.left.P + ϵ)
-    dminus = CD(c, r = V.r, s = -V.dims.left.s)
-    bϵ = Block(co[:left], :s, dϵ)
-    bPϵ = Block(co[:left], :s, dPϵ)
-    bminus = Block(co[:left], :s, dminus)
+    dϵ = CD(c, δ = V[:left].δ + ϵ)
+    dPϵ = CD(c, P = V[:left].P + ϵ)
+    dminus = CD(c, r = V.r, s = -V[:left].s)
+    bϵ = CBlock(co[:left], :s, dϵ)
+    bPϵ = CBlock(co[:left], :s, dPϵ)
+    bminus = CBlock(co[:left], :s, dminus)
 
     @test isapprox(
         bϵ(x),
@@ -227,7 +227,7 @@ end
 
     @test isapprox(
         bPϵ(x),
-        co.Rmn.left.s[V.r, V.s] / 2 / V.dims.left.P / ϵ * bminus(x) + b(x),
+        co.Rmn.left.s[V.r, V.s] / 2 / V[:left].P / ϵ * bminus(x) + b(x),
         rtol = 1e-33,
     )
 
@@ -241,7 +241,7 @@ end
 
 @testset "Full logarithmic blocks" begin
     setprecision(BigFloat, 50, base = 10)
-    bl(channel) = Block(co, channel, V, Δmax)
+    bl(channel) = NCBlock(co, channel, V, Δmax)
 
     # comparing with Sylvain's code
     @test isapprox(
@@ -280,116 +280,11 @@ end
     co = Co(V1, V2, V3, V4, Δmax)
     coϵ = Co(V1, V2, V3, V4ϵ, Δmax)
 
-    Block(co, :s, V, Δmax)(x)
-
-    block(chan) = Block(co, chan, V, Δmax)
-    blockϵ(chan) = Block(coϵ, chan, V, Δmax)
+    block(chan) = NCBlock(co, chan, V, Δmax)
+    blockϵ(chan) = NCBlock(coϵ, chan, V, Δmax)
 
     bs, bsϵ, bt, btϵ = block(:s), blockϵ(:s), block(:t), blockϵ(:t)
 
     # @test isapprox(bs(x), bsϵ(x), rtol = 1e-18)
     @test isapprox(bt(x), btϵ(x), rtol = 1e-18)
-end
-
-@testset "Interchiral" begin
-    setprecision(BigFloat, 40, base = 10) do
-        c = CC(β = -big"0.8" - big"0.1" * im)
-        field1 = Field(c, r = 1 // 2, s = 0)
-        field2 = Field(c, r = 1, s = 0)
-        fields = [field2, field2, field1, field1]
-        Δmax = 40
-        co = Correlation(fields..., Δmax)
-        x = big"0.4" + big"0.2" * im
-
-        # interchiral, logarithmic
-        J = Field(c, r = 1, s = 1)
-        b = Block(co, :s, J, Δmax, interchiral = true)
-        @test b(x) ≈
-              big"1.320255511354332911164464364785819105156" +
-              big"0.4186925417664498703779197115719248226952" * im
-
-        # interchiral, non-diagonal
-        V3 = Field(c, r = 3, s = 1 // 3)
-        b = Block(co, :s, V3, Δmax, interchiral = true)
-        @test b(x) ≈
-              big"0.2052943176316875457496459173129386291016" -
-              big"0.2003078699572151816572767384428219647201" * im
-
-        # interchiral, degenerate
-        id = Field(c, r = 1, s = 1, diagonal = true)
-        b = Block(co, :s, id, Δmax, interchiral = true)
-        @test b(x) ≈
-              big"1.439312717815166500340922134926376204051" +
-              big"0.4561207475025284508099330175652862628828" * im
-
-        # interchiral, generic diagonal
-        V4 = Field(c, r = 0, s = big"0.5" + big"0.3" * im)
-        b = Block(co, :s, V4, Δmax, interchiral = true)
-        @test b(x) ≈
-              big"1.396132665254477154107379890952326016033" +
-              big"0.184273048386930095042991719005258073884" * im
-
-        V5 = Field(c, r = 2, s = 0)
-        b = Block(co, :s, V5, Δmax, interchiral = true)
-        @test b(x) ≈
-              big"0.7505040963332944454258635005057715597006" +
-              big"0.04344655018615009393069583429415501260266" * im
-    end
-end
-
-const Sig = Channels{Rational}
-
-c = CC(β = 1 / (big"0.8" + big"0.1" * im))
-ndiag_indices =
-    [(r, s) for r = 1//2:1//2:20 for s = -1+1//(2r):1//(2r):1 if r * s % 1 == 0]
-diag_field = Field(c, r = 0, s = big"0.4" + big"0.1" * im)
-fields = vcat([Field(c, r = r, s = s) for (r, s) in ndiag_indices], diag_field)
-
-# Filter keeps only the fields/blocks that fulfill the condition given in the first argument.
-function chan_parities(co::Correlation4)
-    "Determine the parity of the number of legs in 4pt channels"
-    V1, V2, V3, V4 = co.fields
-    chan_parities =
-        Channels{Rational}((V1.r + V2.r) % 1, (V1.r + V4.r) % 1, (V1.r + V3.r) % 1)
-end
-
-function LoopSpectra(co, fields, fs; parity = 0)
-    Vs = @channels filter(V -> V.r % 1 == chan_parities(co)[chan], fields)
-    @channels ChannelSpectrum(co, chan, Vs[chan], fs[chan])
-end
-
-function precompute_blocks(co, fields; parity)
-    parity != 0 &&
-        (fields = filter(V -> V.diagonal || 0 <= V.s * abs(parity), fields))
-    LoopSpectra(
-        co,
-        fields,
-        Channels(chan -> (V -> Block(co, chan, V, interchiral = true, parity = parity))),
-    )
-end
-
-function solve(specs, signature)
-    specs = @channels filter(V -> V.r >= signature[chan], specs[chan])
-    sys = BootstrapSystem(specs)
-    evaluate_blocks!(sys)
-    compute_linear_system!(sys)
-    solve!(sys)
-    return sys
-end
-
-ind = ((1 // 2, 0), (1 // 2, 0), (1 // 2, 0), (1 // 2, 0))
-Δmax = 20
-setprecision(BigFloat, 15, base = 10)
-co = Correlation([Field(c, r = r, s = s) for (r, s) in ind], Δmax)
-blocks_even = precompute_blocks(co, fields, parity = 1)
-
-sig = Channels{Rational}(0, 1, 1)
-sol = solve(blocks_even, sig)
-
-@testset "Crossing" begin
-    for chan in (:s, :t, :u)
-        for (V, err) in sol.str_cst.errors[chan]
-            @test abs(err * sol.str_cst.constants[chan][V]) < 1e-4
-        end
-    end
 end
