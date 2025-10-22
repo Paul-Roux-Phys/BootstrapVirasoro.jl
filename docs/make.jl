@@ -27,7 +27,4 @@ makedocs(
         checkdocs=:export,
 )
 
-deploydocs(
-        repo=GitHub("Paul-Roux-Phys", "BootstrapVirasoro.jl"),
-        devbranch="main",
-)
+deploydocs(; repo = "https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl")
