@@ -4,3 +4,5 @@ ltximg/
 **/.vscode
 /.virtual_documents/
 /examples/.ipynb_checkpoints/
+/examples/tmp.jl
+/test/&
