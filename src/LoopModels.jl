@@ -6,7 +6,7 @@ module LoopModels
 export InterchiralBlock, IBlock
 
 using ..BootstrapVirasoro
-import ..BootstrapVirasoro: indices, getfields, total_dimension, reflect
+import ..BootstrapVirasoro: get_indices, getfields, total_dimension, reflect
 import ..BootstrapVirasoro: reflect
 import SpecialFunctions: gamma
 import BarnesDoubleGamma: DoubleGamma
@@ -27,9 +27,9 @@ See arXiv:2411.17262 (4.13a).
 """
 function shift_C123(V1, V2, V3)
     β = V1.c.β
-    r1, s1 = indices(V1)
-    r2, s2 = indices(V2)
-    r3, s3 = indices(shift(V3, 1))
+    r1, s1 = get_indices(V1)
+    r2, s2 = get_indices(V2)
+    r3, s3 = get_indices(shift(V3, 1))
 
     res = (-1)^(Int(2r2 + max(2r1, 2r2, 2r3, r1 + r2 + r3)))
     res *= (β + 0im)^(-4 / β^2 * s3)
@@ -53,8 +53,8 @@ Ratio ``C_{122}/C_{12^++2^++}``.
 """
 function shift_C122(V1, V2)
     β = V1.c.β
-    r1, s1 = indices(V1)
-    r2, s2 = indices(shift(V2, 1))
+    r1, s1 = get_indices(V1)
+    r2, s2 = get_indices(shift(V2, 1))
 
     res = (-1)^(Int(2r2))
     res *= β^(-8 / β^2 * s2)
@@ -78,7 +78,7 @@ See arXiv:2411.17262 (4.13b).
 """
 function shift_B(V)
     β = V.c.β
-    r, s = indices(shift(V, 1))
+    r, s = get_indices(shift(V, 1))
     res = (-1)^(2r)
     res *= β^(-8inv(β)^2 * s)
     res *= prod(
@@ -146,7 +146,7 @@ function InterchiralBlock(
     shift = 2;
     parity = 0,
 )
-    if parity == 0 || V.diagonal || V.s == 0
+    if parity == 0 || V.diagonal || V.s == 0 || V.s == 1
         _InterchiralBlock(co, chan, V, Δmax, shift)
     else
         _InterchiralBlock(co, chan, V, Δmax, shift) +
@@ -211,9 +211,9 @@ function Base.show(io::IO, b::IBlock)
 end
 function Cref(V₁, V₂, V₃, DG)
     β = V₁.c.β
-    r₁, s₁ = indices(V₁)
-    r₂, s₂ = indices(V₂)
-    r₃, s₃ = indices(V₃)
+    r₁, s₁ = get_indices(V₁)
+    r₂, s₂ = get_indices(V₂)
+    r₃, s₃ = get_indices(V₃)
 
     return prod(
         1 / DG(

@@ -202,7 +202,7 @@ nb_blocks(s::ChanSpec) = sum(length(b) for b in s.blocks)
 function Base.show(io::IO, s::ChanSpec)
     println(io, "channel $(s.chan), Δmax = $(s.Δmax)")
     nondiags =
-        sort([(V.r, V.s) for V in fields(s) if !V.diagonal], by = x -> (x[1], x[2]))
+        sort([indices(V) for V in fields(s) if !V.diagonal], by = x -> (x[1], x[2]))
     diags = sort(
         [V for V in fields(s) if V.diagonal && !V.degenerate],
         by = V -> real(total_dimension(V)),
