@@ -1,3 +1,4 @@
+
 """
         Correlation(fields, Δmax)
 
@@ -79,35 +80,24 @@ struct NonChiralCorrelation1{T} <: NonChiralCorrelation{T}
     Δmax::Int
 end
 
-Dmn_doubleprod_terms(Nmax, B) = [(r * r * B - s * s / B)^2 for r = 1:Nmax-1, s = 1:Nmax-1]
+#===========================================================================================
+Four-point residues
+===========================================================================================#
+function double_prod_in_Dmn(m, n, B)
+    prod((r * r * B - s * s / B)^2 for s = 1:(n-1) for r = 1:(m-1))
+end
 
-function Dmn(m::Int, n::Int, B::T, terms)::T where {T}
+function Dmn(m::Int, n::Int, B::T)::T where {T}
     # treat cases m = 1, n=1 separately
     m == 1 && n == 1 && return 1
     m == 1 && return n * prod(s^2 / B * (s^2 / B - m^2 * B) for s = 1:(n-1))
     n == 1 && return m * prod(r^2 * B * (r^2 * B - n^2 / B) for r = 1:(m-1))
     f1 = prod(r^2 * B * (r^2 * B - n^2 / B) for r = 1:(m-1))
     f2 = prod(s^2 / B * (s^2 / B - m^2 * B) for s = 1:(n-1))
-    f3 = prod(terms[r, s] for s = 1:(n-1) for r = 1:(m-1))
+    f3 = double_prod_in_Dmn(m, n, B)
     return m * n * f1 * f2 * f3
 end
 
-function computeDmns(c::CC{T}, Nmax) where {T}
-    Dmns = Matrix{T}(undef, Nmax, Nmax)
-    B = c.B
-    terms = Dmn_doubleprod_terms(Nmax, B)
-    for m = 1:Nmax
-        for n = 1:Nmax
-            m * n > Nmax && break
-            Dmns[m, n] = Dmn(m, n, B, terms)
-        end
-    end
-    return Dmns
-end
-
-#===========================================================================================
-Four-point residues
-===========================================================================================#
 function Rmn_term_vanishes(r, s, i, j, d::NTuple{4,CD})
     !(d[i].isKac && d[j].isKac) && return false
 
@@ -187,7 +177,7 @@ function Rmn_term_reg(r, s, i, j, d::NTuple{4,CD})
     (r != 0 || s != 0) && begin
         signs = reg_signs(r, s, i, j, d)
         r0, s0 =
-            -signs[2] .* (d[i].r, d[i].s) .- signs[2] * signs[1] .* (d[j].r, d[j].s)
+            -signs[2] .* indices(d[i]) .- signs[2] * signs[1] .* indices(d[j])
         P = ConformalDimension(d[1].c, r = r0, s = s0).P
         return 8 * signs[1] * signs[2] * d[i].P * d[j].P * P
     end
@@ -245,7 +235,7 @@ end
 
 Compute the ``Δ``-residues ``R_{m, n}`` for all `m`, `n` such that m*n ≤ Nmax
 """
-function computeRmns(Nmax, ds::NTuple{4,CD{T}}, Dmns) where {T}
+function computeRmns(Nmax, ds::NTuple{4,CD{T}}) where {T}
     factors = Matrix{T}(undef, Nmax, 2Nmax)
     for r = 1:Nmax
         for s = 1:(2Nmax-1)
@@ -260,9 +250,9 @@ function computeRmns(Nmax, ds::NTuple{4,CD{T}}, Dmns) where {T}
         for n = 1:Nmax
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
-                Rs[m, n] = DRs[m, n] / (2Dmns[m, n])
+                Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
             else
-                Rregs[m, n] = DRs[m, n] / (2Dmns[m, n])
+                Rregs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
             end
         end
     end
@@ -284,8 +274,11 @@ end
 
 function Rmn_zero_order(m, n, D::NTuple{1,CD})
     d = D[1]
-    r, s = d.r, d.s
-    if d.isKac && r % 2 == s % 2 == 1 && abs(r) <= 2 * m - 1 && abs(s) <= 2 * n - 1
+    if d.isKac &&
+       d.r % 2 == 1 &&
+       d.s % 2 == 1 &&
+       abs(d.r) <= 2 * m - 1 &&
+       abs(d.s) <= 2 * n - 1
         return 1
     end
     return 0
@@ -335,7 +328,7 @@ function computeDRmns(factors::Matrix{T}, Nmax, d::NTuple{1,CD}) where {T}
     return DRs
 end
 
-function computeRmns(Nmax, ds::NTuple{1,CD{T}}, Dmns) where {T}
+function computeRmns(Nmax, ds::NTuple{1,CD{T}}) where {T}
     factors = Matrix{T}(undef, Nmax, 2Nmax)
     for a = 1:Nmax
         for b = 1:2Nmax
@@ -351,9 +344,9 @@ function computeRmns(Nmax, ds::NTuple{1,CD{T}}, Dmns) where {T}
         for n = 1:Nmax
             m * n > Nmax && break
             if Rmn_zero_order(m, n, ds) == 0
-                Rs[m, n] = DRs[m, n] / (2Dmns[m, n])
+                Rs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
             else
-                Rregs[m, n] = DRs[m, n] / (2Dmns[m, n])
+                Rregs[m, n] = DRs[m, n] / (2Dmn(m, n, ds[1].c.B))
             end
         end
     end
@@ -459,14 +452,12 @@ function ChiralCorrelation(d::NTuple{4,CD{T}}, Δmax::Int) where {T}
     "
     channel_syms = (:s, :t, :u)
 
-    Dmns = computeDmns(d[1].c, Δmax)
-
     # Launch a task for each channel
     futures = map(1:3) do i
         Threads.@spawn begin
             ch = channel_syms[i]
             dx = permute_4(d, ch)
-            r, rreg = computeRmns(Δmax, dx, Dmns)
+            r, rreg = computeRmns(Δmax, dx)
             cn = computeCNmns(Δmax, d[1].c, r)
             (r, rreg, cn)
         end
@@ -482,8 +473,8 @@ function ChiralCorrelation(d::NTuple{4,CD{T}}, Δmax::Int) where {T}
 end
 
 function ChiralCorrelation(d::NTuple{1,CD{T}}, Δmax::Int) where {T}
-    Dmns = computeDmns(d[1].c, Δmax)
-    Rmn, Rmnreg = computeRmns(Δmax, d, Dmns)
+    # Launch a task for each channel
+    Rmn, Rmnreg = computeRmns(Δmax, d)
     CNmn = computeCNmns(Δmax, d[1].c, Rmn)
     ChiralCorrelation1{T}(d, d[1].c, Rmn, Rmnreg, CNmn, Δmax)
 end
