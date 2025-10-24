@@ -20,7 +20,7 @@
 end
 
 @testset "Regularised residues as limits of residues" begin
-    import BootstrapVirasoro: computeRmns, Rmn_term, Rmn_zero_order, Rmn_term_vanishes
+    import BootstrapVirasoro: computeDmns, computeRmns, Rmn_term, Rmn_zero_order, Rmn_term_vanishes
     setprecision(BigFloat, 256)
     c = CentralCharge(β = big"0.8" + big"0.1" * im)
     ϵ = 1 // big"10"^20
@@ -43,10 +43,11 @@ end
     Pns = Matrix{T}(undef, (Δmax, Δmax))
     factors = Matrix{T}(undef, (Δmax, 2Δmax))
 
-    Rl_reg = computeRmns(Δmax, dls(0))[2]
-    Rlϵ = computeRmns(Δmax, dls(ϵ))[1]
-    Rr_reg = computeRmns(Δmax, drs(0))[2]
-    Rrϵ = computeRmns(Δmax, drs(ϵ))[1]
+    Dmns = computeDmns(c, Δmax)
+    Rl_reg = computeRmns(Δmax, dls(0), Dmns)[2]
+    Rlϵ = computeRmns(Δmax, dls(ϵ), Dmns)[1]
+    Rr_reg = computeRmns(Δmax, drs(0), Dmns)[2]
+    Rrϵ = computeRmns(Δmax, drs(ϵ), Dmns)[1]
 
     Rlreg_1_2 = Rl_reg[1, 2]
     Rlϵ_1_2 = Rlϵ[1, 2] / (P3 - P4 + P(0, 1))

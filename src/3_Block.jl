@@ -112,7 +112,7 @@ function ChiralBlock(co::CCo{T}, chan, d, Δmax = missing, der = false) where {T
     if !d.degenerate
         missing_terms = Vector{T}()
     else
-        r, s = indices(d)
+        r, s = d.r, d.s
         missing_terms = [
             (N > 0 && (r, s) in CNmn.keys[N]) ? CNmn[N, r, s] : zero(T) for N = 0:Δmax
         ]
@@ -129,7 +129,6 @@ getRmn(b::CBlock) = getRmn(b.corr, b.chan)
 getRmnreg(b::CBlock) = getRmnreg(b.corr, b.chan)
 getCNmn(b::CBlock) = getCNmn(b.corr, b.chan)
 getc(b::CBlock) = b.corr.c
-
 
 function Base.show(io::IO, ::MIME"text/plain", b::CBlock)
     println(io, "Chiral block for the correlation")
@@ -150,15 +149,15 @@ function FactorizedBlock(co::NCCo{T}, chan, V, Δmax) where {T}
     FactorizedBlock{T}(V, co, LR(bl, br), Δmax, chan)
 end
 
-function islogarithmic(V::Field)
-    r, s = indices(V)
-    !V.diagonal && r * s != 0 && r % 1 == s % 1 == 0 && r > 0 && s > 0
+function islogarithmic(V::Field, _::Correlation)
+    r, s = V.r, V.s
+    !V.diagonal && r * s != 0 && (r % 1 == s % 1 == 0) && r > 0 && s > 0
 end
 
-islogarithmic(b::NCBlock) = islogarithmic(b.chan_field)
+islogarithmic(b::NCBlock) = islogarithmic(b.chan_field, b.corr)
 
 function isaccidentallynonlogarithmic(co::NCCo, chan, V)
-    !islogarithmic(V) && return false
+    !islogarithmic(V, co) && return false
     return Rmn_zero_order(V.r, V.s, getfields(co[:left], chan)) > 0
 end
 
@@ -214,7 +213,7 @@ reflect(b::NonChiralBlock) =
 
 function NonChiralBlock(co::NCCo, chan, V, Δmax=missing)
     Δmax === missing && (Δmax = co.Δmax)
-    if islogarithmic(V)
+    if islogarithmic(V, co)
         LogBlock(co, chan, V, Δmax)
     else
         FactorizedBlock(co, chan, V, Δmax)

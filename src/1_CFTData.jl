@@ -28,7 +28,6 @@ end
 # convenience alias
 const CC = CentralCharge
 
-
 """
         ConformalDimension(c::CC; Δ, δ, P, p, r, s)
 
@@ -102,7 +101,7 @@ end
 Central charges
 ======================================================================================#
 function Bfrom(s::Symbol, x)
-    a = (x-1)*(x-25)
+    a = (x - 1) * (x - 25)
     s === :β && return -x^2
     s === :c && return (
         if a isa Real && a > 0
@@ -118,11 +117,11 @@ end
 
 function Bto(s::Symbol, x)
     rx = sqrt(complex(x))
-    s === :β && return im*rx
-    s === :c && return 13+6*x+6/x
+    s === :β && return im * rx
+    s === :c && return 13 + 6 * x + 6 / x
     s === :b && return rx
     s === :B && return x
-    s === :n && return -2cos(π*x)
+    s === :n && return -2cos(π * x)
 end
 
 function _CentralCharge(s::Symbol, x)
@@ -169,35 +168,35 @@ end
 Conformal Dimensions
 ======================================================================================#
 function Pfrom(s::Symbol, x, c::CC)
-    s === :Δ && return sqrt(complex(x - (c.c-1)/24))
+    s === :Δ && return sqrt(complex(x - (c.c - 1) / 24))
     s === :δ && return sqrt(complex(x))
     s === :P && return x
-    s === :p && return im*x
+    s === :p && return im * x
 end
 
 function Pto(s::Symbol, x, c::CC)
-    s === :Δ && return x^2 + (c.c-1)/24
+    s === :Δ && return x^2 + (c.c - 1) / 24
     s === :δ && return x^2
     s === :P && return x
-    s === :p && return -im*x
-    s === :w && return -2*cos(oftype(c.β, π)*c.β*x)
+    s === :p && return -im * x
+    s === :w && return -2 * cos(oftype(c.β, π) * c.β * x)
 end
 
-Prs(r, s, β::Number) = (β*r - s/β) / 2
+Prs(r, s, β::Number) = (β * r - s / β) / 2
 """
 ``P_{(r, s)} = 1/2 * (β r - s / β)``.
 """
 Prs(r, s, c::CC) = Prs(r, s, c.β)
-δrs(r, s, B::Number) = -1/4 * (B*r^2 + 2*r*s + s^2/B)
-δrs(r, s, c::CC) = -1/4 * (c.B*r^2 + 2*r*s + s^2/c.B)
+δrs(r, s, B::Number) = -1 / 4 * (B * r^2 + 2 * r * s + s^2 / B)
+δrs(r, s, c::CC) = -1 / 4 * (c.B * r^2 + 2 * r * s + s^2 / c.B)
 
 function _ConformalDimension(c::CC{T}, sym::Symbol, P, r, s) where {T<:Number}
     β = c.β
     degenerate = false
     isKac = false
     if (r !== missing && s !== missing)
-        r isa Real && r % 1 == 0 ? r = Int(r) : nothing;
-        s isa Real && s % 1 == 0 ? s = Int(s) : nothing;
+        r isa Real && r % 1 == 0 ? r = Int(r) : nothing
+        s isa Real && s % 1 == 0 ? s = Int(s) : nothing
         P = Prs(r, s, β)
         if (r isa Rational || r isa Integer) && (s isa Rational || s isa Integer)
             isKac = true
@@ -214,7 +213,7 @@ function _ConformalDimension(c::CC{T}, sym::Symbol, P, r, s) where {T<:Number}
         "
         P = Pto(:P, Pfrom(sym, P, c), c)
         r = 0
-        s = - 2β * P
+        s = -2β * P
     end
     p = Pto(:p, P, c)
     δ = Pto(:δ, P, c)
@@ -240,8 +239,6 @@ function ConformalDimension(
 end
 
 ConformalDimension() = ConformalDimension(CC())
-
-indices(d::CD) = d.r, d.s
 
 function Base.:+(d1::CD, d2::CD)
     ConformalDimension(d1.c, Δ = d1.Δ + d2.Δ)
@@ -287,37 +284,28 @@ function _Field(c::CC{T}, sym::Symbol, dim, r, s, diagonal) where {T}
     @assert !(ismissing(r) ⊻ ismissing(s)) "
     You cannot give only r or only s, you must give neither or both
 "
-
     if ismissing(r) || r == 0
         diagonal = true
     end
-    dim_left = _ConformalDimension(c, sym, dim, r, s)
+    dl = _ConformalDimension(c, sym, dim, r, s)
 
     if diagonal
-        dim_right = dim_left
+        dr = dl
     else
         @assert (r !== missing && s !== missing) "
             A non-diagonal field must be given from Kac indices.
             If you mean to define a diagonal field, use `diagonal=true`.
         "
-        dim_right = ConformalDimension(c, r = r, s = -s)
+        dr = CD(c, r = r, s = -s)
     end
     if ismissing(r)
-        r, s = 0, -2c.β * dim_left.P
+        r, s = 0, -2c.β * dl.P
     end
-    r, s = indices(dim_left)
-    isKac = dim_left.isKac && dim_right.isKac
-    degenerate = dim_left.degenerate && dim_right.degenerate
+    r, s = dl.r, dl.s
+    isKac = dl.isKac && dr.isKac
+    degenerate = dl.degenerate && dr.degenerate
 
-    Field{T}(
-        c,
-        LeftRight{CD{T}}(dim_left, dim_right),
-        r,
-        s,
-        diagonal,
-        degenerate,
-        isKac,
-    )
+    Field{T}(c, LR{CD{T}}(dl, dr), r, s, diagonal, degenerate, isKac)
 end
 
 function Field(
@@ -342,8 +330,8 @@ function Field(ds::LeftRight{CD{T}}) where {T}
     c = ds.left.c
     degenerate = ds.left.degenerate && ds.right.degenerate
     isKac = ds.left.isKac && ds.right.isKac
-    ds.left == ds.right ? diagonal=true : diagonal = false;
-    r, s = indices(ds.left)
+    ds.left == ds.right ? diagonal = true : diagonal = false
+    r, s = ds.left.r, ds.left.s
     Field{T}(c, ds, r, s, diagonal, degenerate, isKac)
 end
 Field(ds::Tuple{CD{T},CD{T}}) where {T} = Field(LeftRight{CD{T}}(ds[1], ds[2]))
@@ -353,15 +341,14 @@ Field() = Field(CC())
 
 Base.getindex(V::Field, s::Symbol) = getfield(V.dims, s)
 
-indices(V::Field) = V.r, V.s
-function get_indices(V)
+function indices(V)
     # not the same as indices because it returns (0, -2βP) also for degenerate fields
     # the latter returns integer (r, s) for the degenerate fields.
     β = V.c.β
     if V.diagonal
-        return 0, -2*β*V[:left].P
+        return 0, -2 * β * V[:left].P
     else
-        return indices(V)
+        return V.r, V.s
     end
 end
 
@@ -391,7 +378,7 @@ function shift(V::Field, i)
     if V.diagonal
         Field(shift(V.dims[:left], i))
     else
-        Field(shift(V.dims[:left], i), shift(V.dims[:right], -i))
+        Field(V.c, r=V.r, s=V.s+i)
     end
 end
 
@@ -457,6 +444,6 @@ function Base.show(io::IO, V::Field)
             end
         end
     else
-        print(io, "$(indices(V))")
+        print(io, "($(V.r), $(V.s))")
     end
 end
