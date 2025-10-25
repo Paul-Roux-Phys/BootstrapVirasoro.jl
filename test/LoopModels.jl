@@ -3,6 +3,32 @@ import BootstrapVirasoro: xfromq, conj_q, PosCache, etaDedekind
 import BootstrapVirasoro.LoopModels: shift_D
 setprecision(BigFloat, 40, base=10)
 
+@testset "ConformalDimensions" begin
+    c = CC(β = 0.8+0.3im)
+    d = CD(c, P = 0.8+0.3im)
+    @test shift(d, 2).P - d.P ≈ -1/c.β # s = -2βP
+end
+
+@testset "ConformalDimensions" begin
+    c = CC(β = 0.8+0.3im)
+    d = CD(c, P = 0.8+0.3im)
+    @test shift(d, 2).s - d.s == 2
+    @test shift(d, 2).P - d.P ≈ -1/c.β # s = -2βP
+end
+
+@testset "Fields" begin
+    #ensure the relation between p and P does not change
+    c = CC(c = -1.1 + 0.2im)
+    V = Field(c, r = 2, s = 5, diagonal = true)
+    # test shift()
+    @test shift(V, 2).r == 2
+    @test shift(V, 2)[:right].s == 7
+    V = Field(c, P = 0.5, diagonal = true)
+    @test abs(shift(V, 1)[:left].P - V[:left].P + 1/c.β/2) < 1e-14
+    V = Field(c, r=2, s=5)
+    @test shift(V, 2)[:right].s == -7
+end
+
 @testset "Interchiral 4pt" begin
         c = CC(β=-big"0.8" - big"0.1" * im)
         field1 = Field(c, r=1 // 2, s=0)
@@ -195,7 +221,9 @@ ncprefA(τ, co_S2, chan) =
                 (2, 0),
                 (1, 1),
                 (1, 1//2),
-                (1, -1//2)
+                (1, -1//2),
+                (1//2, 1),
+                (3//2, 1)
         ]
                 V = Field(c, r=ind[1], s=ind[2])
                 P, Pbar = V[:left].P, V[:right].P

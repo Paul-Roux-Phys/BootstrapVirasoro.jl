@@ -84,17 +84,17 @@ function Base.show(io::IO, c::SC; rmax = nothing, plaintext = false)
         hl_zero = Highlighter(
             (table, i, j) ->
                 table[:RelativeError][i] > 1e-2 &&
-                abs(table[:StructureConstant][i]) <
-                2^(-precision(BigFloat, base = 10) / 3) &&
-                j >= 2,
+                    abs(table[:StructureConstant][i]) <
+                    2^(-precision(BigFloat, base = 10) / 3) &&
+                    j >= 2,
             crayon"green",
         )
         hl_not_conv = Highlighter(
             (table, i, j) ->
                 table[:RelativeError][i] > 1e-2 &&
-                abs(table[:StructureConstant][i]) >
-                2^(-precision(BigFloat, base = 10) / 3) &&
-                j >= 2,
+                    abs(table[:StructureConstant][i]) >
+                    2^(-precision(BigFloat, base = 10) / 3) &&
+                    j >= 2,
             crayon"red",
         )
         fmt_zero =
@@ -202,7 +202,7 @@ nb_blocks(s::ChanSpec) = sum(length(b) for b in s.blocks)
 function Base.show(io::IO, s::ChanSpec)
     println(io, "channel $(s.chan), Δmax = $(s.Δmax)")
     nondiags =
-        sort([indices(V) for V in fields(s) if !V.diagonal], by = x -> (x[1], x[2]))
+        sort([(V.r, V.s) for V in fields(s) if !V.diagonal], by = x -> (x[1], x[2]))
     diags = sort(
         [V for V in fields(s) if V.diagonal && !V.degenerate],
         by = V -> real(total_dimension(V)),
@@ -476,15 +476,10 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     b.RHS = RHS
 end
 
-function solve!(s::BootstrapSystem; precision_factor = 1)
+function solve!(s::BootstrapSystem)
     # solve for two different sets of positions
-    if precision_factor > 1
-        s.LHS = Matrix{Complex{BigFloat}}(s.LHS)
-        s.RHS = Vector{Complex{BigFloat}}(s.RHS)
-    end
-    sol1, sol2 = setprecision(BigFloat, precision_factor * precision(BigFloat)) do
-        (s.LHS[3:end, :] \ s.RHS[3:end], s.LHS[1:(end-2), :] \ s.RHS[1:(end-2)])
-    end
+    sol1 = s.LHS[3:end, :] \ s.RHS[3:end]
+    sol2 = s.LHS[1:(end-2), :] \ s.RHS[1:(end-2)]
 
     # compare the two solutions
     errors = @. Float32(abs((sol1 - sol2) / sol2))

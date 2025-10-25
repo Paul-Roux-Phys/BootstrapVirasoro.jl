@@ -122,7 +122,7 @@ end
 
 function (b::LogBlock{T})(x::LRPosCache)::T where {T}
     V = b.chan_field
-    _, s = indices(V)
+    s = V.s
     s < 0 && return zero(T) # by convention G_(r, s<0) = 0
     Prs = V[:left].P
 

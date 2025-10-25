@@ -12,7 +12,7 @@ API
 =========================================================================#
 export CentralCharge, CC
 export ConformalDimension, CD
-export LeftRight, Field, swap_lr, shift, reflect, total_dimension, spin
+export LeftRight, Field, swap_lr, reflect, total_dimension, spin
 export Channels, @channels, Chans
 export Correlation, Corr, Co, Correlation4, Correlation1
 export ChiralCorrelation, ChiralCorrelation4, ChiralCorrelation1
@@ -33,7 +33,6 @@ import CSV
 import PrettyTables: pretty_table, @crayon_str, Highlighter, Tables.columntable
 import Random
 import Printf: @sprintf
-import GenericLinearAlgebra: qr
 
 #========================================================================
 Package-wide definitions

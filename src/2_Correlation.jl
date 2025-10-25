@@ -2,8 +2,7 @@
 """
         Correlation(fields, Δmax)
 
-Create a Correlation object. The fields can be passed as single
-arguments or as tuples, and there can be 1 or 4 of them. The `Correlation`
+Create a Correlation object. The fields can be passed as independent arguments or as collections, there can be 1 or 4 of them. The `Correlation`
 object stores residues ``R_{m, n}`` and ``C^N_{m, n}`` up to `Δmax`.
 
 Aliased to Corr, Co.
@@ -177,7 +176,7 @@ function Rmn_term_reg(r, s, i, j, d::NTuple{4,CD})
     (r != 0 || s != 0) && begin
         signs = reg_signs(r, s, i, j, d)
         r0, s0 =
-            -signs[2] .* indices(d[i]) .- signs[2] * signs[1] .* indices(d[j])
+            -signs[2] .* (d[i].r, d[i].s) .- signs[2] * signs[1] .* (d[j].r, d[j].s)
         P = ConformalDimension(d[1].c, r = r0, s = s0).P
         return 8 * signs[1] * signs[2] * d[i].P * d[j].P * P
     end

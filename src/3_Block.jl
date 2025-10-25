@@ -1,11 +1,25 @@
 """
-        Block(co, chan, V, Δmax=co.Δmax) # 4pt 𝕊^2 block
-        Block(co, V, Δmax=co.Δmax)       # 1pt 𝕋^2 block
+Block
 
-Given a 
+Abstract supertype for all conformal block types.
+
+# Hierarchy
+
+```text
+Block  (Abstract Type)
+├─ ChiralBlock
+├─ NonChiralBlock  (Abstract Type)
+│  ├─ Factorised block
+│  └─ LogBlock
+└─ LinearCombinationBlock
+```
 """
 abstract type Block{T} end # general conformal block. Can be interchiral, non-chiral or chiral
 
+"""
+Type to represent the series expansion of a chiral block.
+Aliased to CBlock.
+"""
 struct ChiralBlock{T} <: Block{T}
     corr::CCo{T}
     chan_dim::CD{T}
@@ -17,6 +31,10 @@ struct ChiralBlock{T} <: Block{T}
 end
 const CBlock = ChiralBlock
 
+"""
+Abstract supertype to represent the series expansion of a non chiral block.
+Aliased to NCBlock.
+"""
 abstract type NonChiralBlock{T} <: Block{T} end
 const NCBlock = NonChiralBlock
 
@@ -103,7 +121,27 @@ function series_H_der(d::CD{T}, Δmax, CNmn) where {T}
     return H
 end
 
-function ChiralBlock(co::CCo{T}, chan, d, Δmax = missing, der = false) where {T}
+"""
+        ChiralBlock(::ChiralCorrelation4, ::Symbol, ::CD, Δmax=co.Δmax::Int, der=false) # 4pt 𝕊² chiral block
+        ChiralBlock(::ChiralCorrelation1, ::CD, Δmax=co.Δmax::Int, der=false)           # 1pt 𝕋² chiral block
+
+Compute the series coefficients of a chiral block associated to the chiral correlation `co`, in the channel `chan`.
+If `V` is a degenerate field, compute the ``P``-regularisation of the block instead.
+If `der=true`, also compute the coefficients of the series expansion of the derivative of the block.
+
+Aliased to CBlock.
+
+# Arguments
+
+- A chiral correlation object
+- A channel for the block. Only required for four-point blocks.
+- A channel `ConformalDimension` 
+- `Δmax`: integer up to which the series is evaluated.
+- `der`: whether to compute the coefficients of the block's derivative as well.
+"""
+function ChiralBlock() end
+
+function ChiralBlock(co::CCo{T}, chan::Symbol, d::CD, Δmax = missing, der = false) where {T}
     Δmax === missing && (Δmax = co.Δmax)
     CNmn = getCNmn(co, chan)
     coeffs = series_H(d, Δmax, CNmn)
@@ -112,7 +150,7 @@ function ChiralBlock(co::CCo{T}, chan, d, Δmax = missing, der = false) where {T
     if !d.degenerate
         missing_terms = Vector{T}()
     else
-        r, s = indices(d)
+        r, s = d.r, d.s
         missing_terms = [
             (N > 0 && (r, s) in CNmn.keys[N]) ? CNmn[N, r, s] : zero(T) for N = 0:Δmax
         ]
@@ -150,11 +188,12 @@ function FactorizedBlock(co::NCCo{T}, chan, V, Δmax) where {T}
     FactorizedBlock{T}(V, co, LR(bl, br), Δmax, chan)
 end
 
-function islogarithmic(V::Field)
-    r, s = indices(V)
-    !V.diagonal && r * s != 0 && r % 1 == s % 1 == 0 && r > 0 && s > 0
-end
+# function islogarithmic(V::Field)
+    # r, s = V.r, V.s
+    # !V.diagonal && r * s != 0 && r % 1 == s % 1 == 0 && r > 0 && s > 0
+# end
 
+islogarithmic(V::Field) = !V.diagonal && V[:left].degenerate
 islogarithmic(b::NCBlock) = islogarithmic(b.chan_field)
 
 function isaccidentallynonlogarithmic(co::NCCo, chan, V)
@@ -211,6 +250,24 @@ end
 
 reflect(b::NonChiralBlock) =
     FactorizedBlock(b.corr, b.channel, reflect(b.chan_field), b.Δmax)
+
+"""
+        NCBlock(::NonChiralCorrelation, ::Symbol, ::Field, Δmax=co.Δmax::Int) # 4pt 𝕊² chiral block
+        NCBlock(::NonChiralCorrelation, ::Field, Δmax=co.Δmax::Int)           # 1pt 𝕋² chiral block
+
+Compute the series coefficients of the left and right blocks associated to the non chiral correlation `co`, in the channel `chan`.
+If `V` is a degenerate field, compute the ``P``-regularisation of the block instead.
+If `V` is a non-diagonal field with left dimension degenerate, 
+If `der=true`, also compute the coefficients of the series expansion of the derivative of the block.
+
+# Arguments
+
+- A `NonChiralCorrelation` object
+- A channel for the block. Only required for four-point blocks.
+- A channel `Field` 
+- `Δmax`: integer up to which the series is evaluated. Defaults to the correlation's `Δmax`.
+"""
+function NonChiralBlock() end
 
 function NonChiralBlock(co::NCCo, chan, V, Δmax=missing)
     Δmax === missing && (Δmax = co.Δmax)

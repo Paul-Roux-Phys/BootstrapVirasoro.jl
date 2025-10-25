@@ -9,12 +9,13 @@
 
     c3 = CC(β = big"0.1")
     @test typeof(c3) == CC{Complex{BigFloat}}
+
+    c3 = CC(β=1)
+    @test typeof(c3) == CC{Complex{Float64}}
 end
 
 @testset "ConformalDimensions" begin
-    c = CC(β = 0.8+0.3im)
-    d = CD(c, P = 0.8+0.3im)
-    @test shift(d, 2).P - d.P ≈ -1/c.β # s = -2βP
+    c = CC(β = 1.0)
 end
 
 @testset "Fields" begin
@@ -34,9 +35,4 @@ end
     @test V1[:left].δ ≈ V1[:right].δ
     V2 = Field(c1, diagonal = true, r = 2, s = 5)
     @test V2 == V1
-
-    # test shift()
-    @test shift(V1, 2).r == 2
-    V1 = Field(c1, P = 0.5, diagonal = true)
-    @test abs(shift(V1, 1)[:left].P - V1[:left].P + 1/c1.β/2) < 1e-14
 end
