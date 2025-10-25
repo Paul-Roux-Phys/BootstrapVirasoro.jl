@@ -105,7 +105,7 @@ end
     @test abs(eval_series_der(big"10" + big"0.01" * im)) < big"1e-30"
 
     function eval_block_der(τ)
-        block_der = BootstrapVirasoro.eval_der(b, τ)
+        block_der = b(τ, true)
         byhand = (b_p(τ) - b_m(τ)) / (2 * ϵ)
         block_der - byhand
     end
@@ -118,7 +118,7 @@ end
 
     @test b(τ) / eval_series(b, τ) ≈ q^(V0.dims[:left].δ) / etaDedekind(τ)
 
-    @test BootstrapVirasoro.eval_der(b, τ) ≈
+    @test b(τ, true) ≈
           q^(V0[:left].δ) / etaDedekind(τ) *
           (hprime_byhand + 2 * V0[:left].P * log(q) * h)
 

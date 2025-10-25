@@ -190,7 +190,7 @@ end
     @test abs(eval_series_der(big"10" + big"0.01" * im)) < big"1e-45"
 
     function eval_block_der(x)
-        block_der = BootstrapVirasoro.eval_der(b, x)
+        block_der = b(x, true)
         byhand = (b_p(x) - b_m(x)) / (2 * ϵ)
         block_der - byhand
     end

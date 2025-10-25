@@ -1,5 +1,20 @@
-
 """
+Abstract supertype for all correlation types.
+
+# Hierarchy
+
+```text
+Correlation  (Abstract Type)
+├─ Correlation1  (Abstract Type)
+│  ├─ ChiralCorrelation1
+│  └─ NonChiralCorrelation1
+└─ Correlation4  (Abstract Type)
+   ├─ ChiralCorrelation4
+   └─ NonChiralCorrelation4
+```
+
+# Constructors
+
         Correlation(fields, Δmax)
 
 Create a Correlation object. The fields can be passed as independent arguments or as collections, there can be 1 or 4 of them. The `Correlation`

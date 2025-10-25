@@ -9,7 +9,8 @@ The library provides a hierarchy of conformal block types:
 ```@docs
 Block
 ChiralBlock
-ChiralBlock()
+NonChiralBlock
+LinearCombinationBlock
 ```
 
 Defining and computing blocks requires defining a central charge, and conformal dimensions of the external and channel fields.
@@ -30,15 +31,6 @@ $$C^N_{m,n} = R_{m,n}\left(\delta_{N-mn,0} +
 
 used in the Zamolodchikov recursion.
 
-```markdown
-Correlation  (Abstract Type)
-├─ Correlation1  (Abstract Type)
-│  ├─ ChiralCorrelation1
-│  └─ NonChiralCorrelation1
-└─ Correlation4  (Abstract Type)
-   ├─ ChiralCorrelation4
-   └─ NonChiralCorrelation4
-```
 
 They are all created via a common interface 
 

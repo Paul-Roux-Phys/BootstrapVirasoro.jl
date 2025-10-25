@@ -1,6 +1,4 @@
 """
-Block
-
 Abstract supertype for all conformal block types.
 
 # Hierarchy
@@ -17,8 +15,30 @@ Block  (Abstract Type)
 abstract type Block{T} end # general conformal block. Can be interchiral, non-chiral or chiral
 
 """
+# Type
+
 Type to represent the series expansion of a chiral block.
 Aliased to CBlock.
+
+# Constructors 
+
+        ChiralBlock(::ChiralCorrelation4, ::Symbol, ::CD, Δmax=co.Δmax::Int, der=false) # 4pt 𝕊² chiral block
+        ChiralBlock(::ChiralCorrelation1, ::CD, Δmax=co.Δmax::Int, der=false)           # 1pt 𝕋² chiral block
+
+Compute the series coefficients of a chiral block associated to the
+ [`ChiralCorrelation`](@ref Correlation) `co`, in the channel `chan`.
+If `V` is a degenerate field, compute the ``P``-regularisation of the block instead.
+If `der=true`, also compute the coefficients of the series expansion of the derivative of the block.
+
+Aliased to CBlock.
+
+## Arguments
+
+- A chiral correlation object
+- A channel for the block. Only required for four-point blocks.
+- A channel `ConformalDimension` 
+- `Δmax`: integer up to which the series is evaluated.
+- `der`: whether to compute the coefficients of the block's derivative as well.
 """
 struct ChiralBlock{T} <: Block{T}
     corr::CCo{T}
@@ -32,8 +52,45 @@ end
 const CBlock = ChiralBlock
 
 """
-Abstract supertype to represent the series expansion of a non chiral block.
+Holds all of the precomputable data about a position that is needed
+to evaluate blocks:
+powers and log of the nome ``q`` or of ``16q``, value of the part of
+the prefactor of the block that is independent
+of the channel dimension.
+"""
+struct PosCache{T}
+    x::T
+    prefactor::T
+    q::T
+    logq::T
+    q_powers::Vector{T}
+end
+
+"""
+# Type
+
+Abstract supertype to represent the series expansion of a non chiral block,
+either left-right factorised or logarithmic.
+
 Aliased to NCBlock.
+
+# Constructors
+
+        NCBlock(::NonChiralCorrelation, ::Symbol, ::Field, Δmax=co.Δmax::Int) # 4pt 𝕊² chiral block
+        NCBlock(::NonChiralCorrelation, ::Field, Δmax=co.Δmax::Int)           # 1pt 𝕋² chiral block
+
+Compute the series coefficients of the left and right blocks associated to the
+ non chiral correlation `co`, in the channel `chan`.
+If the channel field is degenerate, compute the ``P``-regularisation of the block instead.
+If the channel field is a non-diagonal field of the type ``V_{(r, s>0)}``,
+the block is logarithmic, except if the residue ``R_{r,s}`` vanishes.
+
+## Arguments
+
+- A `NonChiralCorrelation` object
+- A channel for the block. Only required for four-point blocks.
+- A channel `Field` 
+- `Δmax`: integer up to which the series is evaluated. Defaults to the correlation's `Δmax`.
 """
 abstract type NonChiralBlock{T} <: Block{T} end
 const NCBlock = NonChiralBlock
@@ -60,6 +117,29 @@ struct LogBlock{T} <: NonChiralBlock{T}
     chan::Symbol
 end
 
+const LRPosCache = LeftRight{PosCache}
+
+"""
+# Type
+
+Type to represent linear combinations of blocks. Contains
+
+- an array of `Block`s
+- an array of coefficients of the linear combination.
+
+# Constructors
+
+`LinearCombinationBlock`s are constructed by summing blocks
+
+## Examples
+
+```julia
+# define a correlation co, two fields V1, V2.
+b1 = CBlock(co, :s, V1)
+b2 = CBlock(co, :s, V2)
+b = b1 - 2b2 # LinearCombinationBlock
+```
+"""
 abstract type LinearCombinationBlock{T} <: Block{T} end
 const LCBlock = LinearCombinationBlock
 
@@ -70,6 +150,19 @@ struct GenericLCBlock{T} <: LCBlock{T}
     chan::Symbol
 end
 
+qfromx(x) = exp(-(π * ellipticK(1 - x) / ellipticK(x)))
+xfromq(q) = jtheta2(0, q)^4 / jtheta3(0, q)^4
+qfromτ(τ) = exp(2 * im * (π * τ))
+τfromx(x) = (log(qfromx(x)) / π) / im
+
+"""
+        (b::Block)(x)
+        
+Evaluate the block `b` at the parameter `x`.
+If the block is a four-point block, `x` is the cross-ratio.
+If the block is a one-point block, `x` is the torus' modulus.
+"""
+function (b::Block)(x) end
 #=============================================================================
 Chiral Blocks
 =================================++++========================================#
@@ -121,27 +214,13 @@ function series_H_der(d::CD{T}, Δmax, CNmn) where {T}
     return H
 end
 
-"""
-        ChiralBlock(::ChiralCorrelation4, ::Symbol, ::CD, Δmax=co.Δmax::Int, der=false) # 4pt 𝕊² chiral block
-        ChiralBlock(::ChiralCorrelation1, ::CD, Δmax=co.Δmax::Int, der=false)           # 1pt 𝕋² chiral block
-
-Compute the series coefficients of a chiral block associated to the chiral correlation `co`, in the channel `chan`.
-If `V` is a degenerate field, compute the ``P``-regularisation of the block instead.
-If `der=true`, also compute the coefficients of the series expansion of the derivative of the block.
-
-Aliased to CBlock.
-
-# Arguments
-
-- A chiral correlation object
-- A channel for the block. Only required for four-point blocks.
-- A channel `ConformalDimension` 
-- `Δmax`: integer up to which the series is evaluated.
-- `der`: whether to compute the coefficients of the block's derivative as well.
-"""
-function ChiralBlock() end
-
-function ChiralBlock(co::CCo{T}, chan::Symbol, d::CD, Δmax = missing, der = false) where {T}
+function ChiralBlock(
+    co::CCo{T},
+    chan::Symbol,
+    d::CD,
+    Δmax = missing,
+    der = false,
+) where {T}
     Δmax === missing && (Δmax = co.Δmax)
     CNmn = getCNmn(co, chan)
     coeffs = series_H(d, Δmax, CNmn)
@@ -159,7 +238,12 @@ function ChiralBlock(co::CCo{T}, chan::Symbol, d::CD, Δmax = missing, der = fal
     CBlock{T}(co, d, coeffs, coeffs_der, missing_terms, chan, Δmax)
 end
 
-function ChiralBlock(co::ChiralCorrelation1, d::CD = CD(), Δmax=missing, der=false)
+function ChiralBlock(
+    co::ChiralCorrelation1,
+    d::CD = CD(),
+    Δmax = missing,
+    der = false,
+)
     CBlock(co, :τ, d, Δmax, der)
 end
 
@@ -168,6 +252,88 @@ getRmnreg(b::CBlock) = getRmnreg(b.corr, b.chan)
 getCNmn(b::CBlock) = getCNmn(b.corr, b.chan)
 getc(b::CBlock) = b.corr.c
 
+function PosCache(x, ds::NTuple{4,CD{T}}, chan::Symbol, Δmax) where {T}
+    ds = permute_4(ds, chan)
+
+    q = qfromx(x)
+
+    e0 = -ds[1].Δ - ds[2].δ
+    chan === :u && (e0 += 2ds[1].Δ)
+    e1 = -ds[1].Δ - ds[4].δ
+    e2 = sum(ds[i].δ for i = 1:3) + ds[4].Δ
+
+    prefactor = x^e0 * (1 - x)^e1 * jtheta3(0, q)^(-4 * e2)
+
+    sq = 16q
+    q_powers = ones(T, Δmax + 1)
+    for i = 2:(Δmax+1)
+        q_powers[i] = q_powers[i-1] * sq
+    end
+
+    return PosCache{T}(x, prefactor, q, log(sq), q_powers)
+end
+
+function PosCache(τ, _::NTuple{1,CD{T}}, _::Symbol, Δmax) where {T}
+    q = qfromτ(τ)
+    prefactor = 1 / etaDedekind(complex(τ))
+    q_powers = ones(T, Δmax + 1)
+    for i = 2:(Δmax+1)
+        q_powers[i] = q_powers[i-1] * q
+    end
+
+    return PosCache{T}(τ, prefactor, q, log(q), q_powers)
+end
+
+PosCache(x, co::CCo, chan) = PosCache(x, co.fields, chan, co.Δmax)
+PosCache(x, b::CBlock) = PosCache(x, b.corr, b.chan)
+
+function evalpoly(x::PosCache, coeffs::Vector{T}) where {T}
+    res = zero(T)
+    for i = 1:length(coeffs)
+        res += coeffs[i] * x.q_powers[i]
+    end
+    return res
+end
+
+eval_series(b::CBlock, x::PosCache) = evalpoly(x, b.coeffs)
+eval_series_der(b::CBlock, x::PosCache) = evalpoly(x, b.coeffs_der)
+eval_series(b::CBlock, x::Number) = eval_series(b, PosCache(x, b.corr, b.chan))
+eval_series_der(b::CBlock, x::Number) =
+    eval_series_der(b, PosCache(x, b.corr, b.chan))
+
+prefactor(b::ChiralBlock, x::Number) = PosCache(x, b).prefactor
+total_prefactor(b::CBlock, x::PosCache, _::Correlation4) =
+    x.prefactor * (x.q_powers[2])^b.chan_dim.δ
+total_prefactor(b::CBlock, x::PosCache, _::Correlation1) =
+    x.prefactor * x.q^b.chan_dim.δ
+total_prefactor(b::CBlock, x::PosCache) = total_prefactor(b, x, b.corr)
+total_prefactor(b::CBlock, x::Number) = total_prefactor(b, PosCache(x, b))
+
+function (b::CBlock{T})(x::PosCache)::T where {T}
+    d = b.chan_dim
+    p = total_prefactor(b, x)
+    h = eval_series(b, x)
+
+    if d.degenerate
+        # add log(q or 16q) * \sum C^N_rs (q or 16q)^N
+        h += x.logq * evalpoly(x, b.missing_terms)
+    end
+
+    return p * h
+end
+
+function (b::CBlock{T})(x::PosCache, _::Bool)::T where {T}
+    d = b.chan_dim
+    qor16q = x.q_powers[2]
+    p = x.prefactor * (qor16q)^b.chan_dim.δ
+    h = eval_series(b, x)
+    hprime = eval_series_der(b, x)
+    h = muladd(h, 2 * d.P * x.logq, hprime) # H_der = 2*P*log(q or 16q)*H + H'
+    return p * h
+end
+
+(b::CBlock)(x::Number) = b(PosCache(x, b))
+(b::CBlock)(x::Number, _::Bool) = b(PosCache(x, b), true)
 
 function Base.show(io::IO, ::MIME"text/plain", b::CBlock)
     println(io, "Chiral block for the correlation")
@@ -189,8 +355,8 @@ function FactorizedBlock(co::NCCo{T}, chan, V, Δmax) where {T}
 end
 
 # function islogarithmic(V::Field)
-    # r, s = V.r, V.s
-    # !V.diagonal && r * s != 0 && r % 1 == s % 1 == 0 && r > 0 && s > 0
+# r, s = V.r, V.s
+# !V.diagonal && r * s != 0 && r % 1 == s % 1 == 0 && r > 0 && s > 0
 # end
 
 islogarithmic(V::Field) = !V.diagonal && V[:left].degenerate
@@ -251,25 +417,9 @@ end
 reflect(b::NonChiralBlock) =
     FactorizedBlock(b.corr, b.channel, reflect(b.chan_field), b.Δmax)
 
-"""
-        NCBlock(::NonChiralCorrelation, ::Symbol, ::Field, Δmax=co.Δmax::Int) # 4pt 𝕊² chiral block
-        NCBlock(::NonChiralCorrelation, ::Field, Δmax=co.Δmax::Int)           # 1pt 𝕋² chiral block
-
-Compute the series coefficients of the left and right blocks associated to the non chiral correlation `co`, in the channel `chan`.
-If `V` is a degenerate field, compute the ``P``-regularisation of the block instead.
-If `V` is a non-diagonal field with left dimension degenerate, 
-If `der=true`, also compute the coefficients of the series expansion of the derivative of the block.
-
-# Arguments
-
-- A `NonChiralCorrelation` object
-- A channel for the block. Only required for four-point blocks.
-- A channel `Field` 
-- `Δmax`: integer up to which the series is evaluated. Defaults to the correlation's `Δmax`.
-"""
 function NonChiralBlock() end
 
-function NonChiralBlock(co::NCCo, chan, V, Δmax=missing)
+function NonChiralBlock(co::NCCo, chan, V, Δmax = missing)
     Δmax === missing && (Δmax = co.Δmax)
     if islogarithmic(V)
         LogBlock(co, chan, V, Δmax)
@@ -277,7 +427,8 @@ function NonChiralBlock(co::NCCo, chan, V, Δmax=missing)
         FactorizedBlock(co, chan, V, Δmax)
     end
 end
-NonChiralBlock(co::NonChiralCorrelation1, V, Δmax=missing) = NCBlock(co, :τ, V, Δmax)
+NonChiralBlock(co::NonChiralCorrelation1, V, Δmax = missing) =
+    NCBlock(co, :τ, V, Δmax)
 
 Base.getindex(b::NCBlock, s::Symbol) = b.cblocks[s]
 
@@ -317,6 +468,59 @@ function ell(V::NTuple{1,Field}, r, s)
         )
     res / β
 end
+
+function LeftRight{PosCache}(x, co::NCCo{T}, chan) where {T}
+    xbar = conj_q(x, co)
+    return LRPosCache(PosCache(x, co[:left], chan), PosCache(xbar, co[:right], chan))
+end
+LeftRight{PosCache}(x, b::NCBlock) = LRPosCache(x, b.corr, b.chan)
+
+conj_q(x, _::Correlation4) = conj(x)
+conj_q(τ, _::Correlation1) = -conj(τ)
+
+prefactor(b::NonChiralBlock, x::LRPosCache) =
+    prefactor(b.cblocks.left, x.left) * prefactor(b.cblocks.right, x.right)
+prefactor(b::NonChiralBlock, x::Number) = prefactor(b, LRPosCache(x, b))
+
+eval_lr(bs::LR{CBlock{T}}, x) where {T} = bs.left(x.left), bs.right(x.right)
+eval_lr_der(bs::LeftRight{CBlock{T}}, x) where {T} =
+    bs.left(x.left, true), bs.right(x.right, true)
+eval_lr(b::FactorizedBlock{T}, x) where {T} = eval_lr(b.cblocks, x)
+eval_lr(b::LogBlock, x) = eval_lr(b.cblocks, x)
+eval_lr_op(b::LogBlock, x) = eval_lr(b.cblocks_op, x)
+eval_lr_der(b::LogBlock, x) = eval_lr_der(b.cblocks_der, x)
+
+function (b::FactorizedBlock{T})(x::LRPosCache)::T where {T}
+    lr = eval_lr(b, x)
+    return lr[1] * lr[2]
+end
+
+function (b::LogBlock{T})(x::LRPosCache)::T where {T}
+    V = b.chan_field
+    s = V.s
+    s < 0 && return zero(T) # by convention G_(r, s<0) = 0
+    Prs = V[:left].P
+
+    Freg, Fbar = eval_lr(b, x)
+    F, Fregbar = eval_lr_op(b, x)
+    R, Rbar = b.R, b.Rbar
+
+    if isaccidentallynonlogarithmic(b)
+        Freg * Fbar + R / Rbar * F * Fregbar
+
+    elseif islogarithmic(b)
+        Fder, Fderbar = eval_lr_der(b, x)
+
+        l = b.ell
+
+        (Freg - R / 2 / Prs * Fder) * Fbar +
+        R / Rbar * F * (Fregbar - Rbar / 2 / Prs * Fderbar) +
+        R / 2 / Prs * l * F * Fbar
+    end
+end
+
+(b::NCBlock)(x::Number) = b(LRPosCache(x, b))
+(b::NCBlock)(x::Number, _::Bool) = b(LRPosCache(x, b), true)
 
 function Base.show(io::IO, b::NCBlock)
     print(io, "G^($(b.chan))($(b.chan_field))")
@@ -363,6 +567,14 @@ end
 
 function Base.:*(a::Number, b::Block)
     LCBlock([b], [a])
+end
+
+function (b::LCBlock{T})(x)::T where {T}
+    res = zero(T)
+    for i in eachindex(b.blocks)
+        res += (b.blocks)[i](x) .* b.coeffs[i]
+    end
+    return res
 end
 
 function Base.show(io::IO, b::LCBlock)
