@@ -15,3 +15,5 @@ This is the documentation page for the `BootstrapVirasoro` package. `BootstrapVi
 * [Installation](installation.md)
 * [Computing conformal blocks](conformalblocks.md)
 * [Solving bootstrap equations](bootstrapeqs.md)
+* [`LoopModels` submodule](loopmodels.md)
+* [Internals](internals.md)

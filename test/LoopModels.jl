@@ -26,7 +26,7 @@ end
     V = Field(c, P = 0.5, diagonal = true)
     @test abs(shift(V, 1)[:left].P - V[:left].P + 1/c.β/2) < 1e-14
     V = Field(c, r=2, s=5)
-    @test shift(V, 2)[:right].s == -7
+    @test shift(V, 2)[:right].s == 7
 end
 
 @testset "Interchiral 4pt" begin

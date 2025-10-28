@@ -4,6 +4,7 @@ Functionality relevant for bootstraping loop models.
 module LoopModels
 
 export InterchiralBlock, IBlock, shift
+export divide_by_reference, substract_res
 
 using ..BootstrapVirasoro
 import ..BootstrapVirasoro: getfields, total_dimension, reflect
@@ -23,12 +24,11 @@ const IBlock = InterchiralBlock
 # the latter returns integer (r, s) for the degenerate fields.
 function indices(V)
     if V.degenerate
-        0, -2*V.c.β*V[:left].P
+        0, -2 * V.c.β * V[:left].P
     else
         V.r, V.s
     end
 end
-
 
 """ s → s+shift"""
 shift(d::CD, shift) = CD(d.c, r = d.r, s = d.s + shift)
@@ -43,10 +43,9 @@ function shift(V::Field, i)
     if V.diagonal
         Field(shift(V.dims[:left], i))
     else
-        Field(V.c, r=V.r, s=V.s + i)
+        Field(V.c, r = V.r, s = V.s + i)
     end
 end
-
 
 """"
         shift_C(V1, V2, V3)
@@ -288,5 +287,65 @@ function compute_reference(co::Correlation1, V::Field, chan, DG)
 end
 
 compute_reference(b::Block, DG) = compute_reference(b.corr, b.chan_field, b.chan, DG)
+
+# residue of non-diagonal structure constants
+function strcst_residue(β², r, s, r1, s1, r2, s2)
+    res = 1
+    if r < r && s * min(r, abs(r1 - r2)) % 2 == 1
+        res *= -1
+    end
+    res *= prod(
+        2cospi(j * β² + (s - s1 - pm * s2)/2)
+        for pm in (-1, 1) 
+        for j = -(r - 1 - abs(r1 + pm * r2))/2:1:(r-1-abs(r1 + pm * r2))/2
+    )
+end
+
+function strcst_residue(V, V1, V2, V3, V4)
+    V.diagonal && return 0
+    β² = V.c.β^2
+    r, s, = V.r, V.s
+    r1, s1, r2, s2 = V1.r, V1.s, V2.r, V2.s
+    r3, s3, r4, s4 = V3.r, V3.s, V4.r, V4.s
+    res = -1
+    if (r+1) * s % 2 == 1
+        res *= -1
+    end
+    res *= strcst_residue(β², r, s, r1, s1, r2, s2)
+    res *= strcst_residue(β², r, s, r3, s3, r4, s4)
+end
+
+function divide_by_reference(s::SC, co)
+    res = deepcopy(s)
+    DG = DoubleGamma(co.fields[1].c.β)
+    normalised, chan = find_normalised(s)
+    norm = compute_reference(co, normalised, chan, DG)
+    for chan in BootstrapVirasoro.CHANNELS
+        for k in keys(s.constants[chan])
+            if res.errors[chan][k] < 1e-4
+                res.constants[chan][k] *= norm / compute_reference(co, k, chan, DG)
+            else
+                delete!(res.constants[chan], k)
+                delete!(res.errors[chan], k)
+            end
+        end
+    end
+    return res
+end
+
+function substract_res(s::SC, co)
+    res = deepcopy(s)
+    for chan in BootstrapVirasoro.CHANNELS
+        for k in keys(s.constants[chan])
+            if res.errors[chan][k] < 1e-4
+                res.constants[chan][k] -= strcst_residue(k, co.fields...)
+            else
+                delete!(res.constants[chan], k)
+                delete!(res.errors[chan], k)
+            end
+        end
+    end
+    return res
+end
 
 end # end BootstrapVirasoro.LoopModels

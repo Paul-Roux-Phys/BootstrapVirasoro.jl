@@ -22,6 +22,7 @@ mutable struct BootstrapSystem{T}
     positions_cache::Channels{Vector{LRPosCache}} # positions at which eqs are evaluated
     spectra::Channels{ChanSpec{T}}    # channel spectra
     block_values::Channels{Dict{Field{T},Vector{T}}} # all blocks evaluated at all positions
+    factors::Channels{Vector{T}} # overall position-dependent factor multiplying blocks in each channel
     str_cst::StrCst{T}
 end
 
@@ -69,6 +70,11 @@ function to_dataframe(c::SC, rmax = nothing)
     end
 
     return df
+end
+
+function Base.delete!(s::SC, V, chan)
+    delete!(s.constants[chan], V)
+    delete!(s.errors[chan], V)
 end
 
 function Base.show(io::IO, c::SC; rmax = nothing, plaintext = false)
@@ -139,6 +145,33 @@ function save(io::IO, c::SC; format::Symbol = :csv)
     end
 end
 
+function Base.:+(c1::SC{T}, c2::SC) where {T}
+    consts = deepcopy(c1.constants)
+    errs = deepcopy(c1.errors)
+    for chan in BootstrapVirasoro.CHANNELS
+        for (k, v) in c2.constants[chan]
+            if k in keys(c1.constants[chan])
+                consts[chan][k] += v
+                errs[chan][k] += c2.errors[chan][k]
+            else
+                consts[chan][k] = v
+                errs[chan][k] = c2.errors[chan][k]
+            end
+        end
+    end
+    return StructureConstants{T}(consts, errs)
+end
+
+function find_normalised(c::SC)
+    for chan in BootstrapVirasoro.CHANNELS
+        for (k, v) in c.constants[chan]
+            if v ≈ 1 && c.errors[chan][k] ≈ 0
+                return (k, chan)
+            end
+        end
+    end
+end
+
 #======================================================================================
 Channel spectra
 ======================================================================================#
@@ -190,6 +223,19 @@ _remove!(s::ChanSpec, V) = _remove_one!(s, V)
 _remove!(s::ChanSpec, fields::Vector) = foreach(V -> _remove_one!(s, V), fields)
 remove!(s, V) = _remove!(s, V)
 remove(s, Vs) = remove!(deepcopy(s), Vs)
+
+function finddiag(s)
+    for b in values(s.blocks)
+        b.chan_field.diagonal && return b
+    end
+    return nothing
+end
+
+function removediag!(s)
+    V = finddiag(s)
+    V !== nothing && remove!(s, V)
+    return V
+end
 
 function Base.filter(f, s::ChanSpec{T}) where {T}
     return ChanSpec{T}(s.corr, filter(kv -> f(kv[1]), s.blocks), s.Δmax, s.chan)
@@ -369,6 +415,7 @@ function BootstrapSystem(
     unknowns = @channels Vector{Field{T}}()
     LHS = Matrix{T}(undef, 0, 0)
     RHS = Vector{T}()
+    factors = @channels [factor(co, chan, p) for p in pos]
 
     return BootstrapSystem{T}(
         unknowns,
@@ -379,6 +426,7 @@ function BootstrapSystem(
         pos_cache,
         S,
         blocks,
+        factors,
         knowns,
     )
 end
@@ -400,9 +448,16 @@ function hasdiagonal(b::BootstrapSystem)
     return (false, :s, nothing)
 end
 
+function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
+    v = b.factors[chan] .* b.block_values[chan][V]
+    zer = zeros(T, length(b.positions))
+    chan === :s && return vcat(v, v)
+    chan === :t && return vcat(-v, zer)
+    chan === :u && return vcat(zer, -v)
+end
+
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     known_consts = b.str_cst
-    facts = @channels [factor(b.correlation, chan, pos) for pos in b.positions]
 
     unknowns = @channels sort(
         [V for V in fields(b.spectra[chan]) if !(V in keys(known_consts[chan]))],
@@ -442,38 +497,88 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     # Form the matrix
     # [ G^s -G^t  0  ;
     #   G^s  0   -G^u ]
+    # keep a record of the columns where we put each field.
     LHS = Matrix{T}(undef, nb_lines, sum(nb_unknowns))
-    col_idx = 1
-    for V in unknowns.s
-        LHS[1:nb_positions, col_idx] = facts.s .* b.block_values.s[V]
-        LHS[(nb_positions+1):end, col_idx] = facts.s .* b.block_values.s[V]
-        col_idx += 1
-    end
-    for V in unknowns.t
-        LHS[1:nb_positions, col_idx] = .-facts.t .* b.block_values.t[V]
-        LHS[(nb_positions+1):end, col_idx] = zer
-        col_idx += 1
-    end
-    for V in unknowns.u
-        LHS[1:nb_positions, col_idx] = zer
-        LHS[(nb_positions+1):end, col_idx] = .-facts.u .* b.block_values.u[V]
-        col_idx += 1
+    col_idx = 0
+    for chan in CHANNELS
+        for V in unknowns[chan]
+            col_idx += 1
+            LHS[:, col_idx] = computeLHScolumn(b, chan, V)
+        end
     end
 
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
-    RHS = Vector{T}(undef, 2nb_positions)
-    for i = 1:nb_positions
-        RHS[i] = sum(b.block_values.t[V][i] for V in knowns.t; init = zero(T))
-        RHS[i] -= sum(b.block_values.s[V][i] for V in knowns.s; init = zero(T))
-        RHS[i+nb_positions] =
-            sum(b.block_values.u[V][i] for V in knowns.u; init = zero(T))
-        RHS[i+nb_positions] -=
-            sum(b.block_values.s[V][i] for V in knowns.s; init = zero(T))
-    end
+    sumblocks(knowns, chan, i) = sum(
+        b.str_cst.constants[chan][V] * b.block_values[chan][V][i] for
+        V in knowns[chan];
+        init = zero(T),
+    )
+    RHS = vcat(
+        [sumblocks(knowns, :t, i) - sumblocks(knowns, :s, i) for i = 1:nb_positions],
+        [sumblocks(knowns, :u, i) - sumblocks(knowns, :s, i) for i = 1:nb_positions],
+    )
 
     b.unknowns = unknowns
     b.LHS = LHS
     b.RHS = RHS
+end
+
+function findcol(s::BootstrapSystem, b::Block)
+    V = b.chan_field
+    chan = b.chan
+    col = 1
+    uk = s.unknowns
+    chan === :t && (col += length(uk.s)) # t blocks start at this col
+    chan === :u && (col += length(uk.s) + length(uk.u))
+    return col - 1 + findfirst(isequal(V), uk[chan])
+end
+
+function replacediagLHS!(s::BootstrapSystem, new::Block)
+    # locate the column of the block to remove.
+    chan = new.chan
+    old = removediag!(s.spectra[chan])
+    remove!(s.spectra[chan], old.chan_field)
+    add!(s.spectra[chan], new)
+    newV = new.chan_field
+    col = findcol(s, old)
+    s.unknowns[chan][findfirst(==(old.chan_field), s.unknowns[chan])] = newV
+    delete!(s.block_values[chan], old.chan_field)
+    s.block_values[chan][newV] = [new(x) for x in s.positions_cache[chan]]
+    s.LHS[:, col] = computeLHScolumn(s, chan, new.chan_field)
+end
+
+function replacediagRHS!(sys::BootstrapSystem, new::Block, str_cst=1)
+    chan = new.chan
+    old = removediag!(sys.spectra[chan])
+    remove!(sys.spectra[chan], old.chan_field)
+    add!(sys.spectra[chan], new)
+    newV = new.chan_field
+    oldV = old.chan_field
+    sys.block_values[chan][newV] = [new(x) for x in sys.positions_cache[chan]]
+    to_add = sys.str_cst.constants[chan][oldV] .* sys.block_values[chan][oldV] .-
+            str_cst .* sys.block_values[chan][newV]
+    if chan === :s
+        sys.RHS[1:length(sys.positions)] .+= to_add
+        sys.RHS[length(sys.positions)+1:end] .+= to_add
+    elseif chan === :t
+        sys.RHS[1:length(sys.positions)] .-= to_add
+    elseif chan === :u
+        sys.RHS[length(sys.positions)+1:end] .-= to_add
+    end
+    delete!(sys.block_values[chan], oldV)
+    delete!(sys.str_cst, oldV, chan)
+    fix!(sys.str_cst, chan, newV, str_cst)
+end
+
+function replacediag!(sys::BootstrapSystem, new::Block, str_cst=1)
+    # if sys has a diagonal field with unknown str_cst in this channel, change LHS
+    # else change RHS
+    for V in sys.unknowns[new.chan]
+        if V.diagonal
+            return replacediagLHS!(sys, new)
+        end
+    end
+    return replacediagRHS!(sys, new, str_cst)
 end
 
 function solve!(s::BootstrapSystem)
@@ -503,6 +608,19 @@ function solve_bootstrap(specs::Channels)
     compute_linear_system!(sys)
     solve!(sys)
     return sys
+end
+
+function solve_bootstrap_manyP(specs::Channels, diag_blocks)
+    sys = BootstrapSystem(specs)
+    evaluate_blocks!(sys)
+    compute_linear_system!(sys)
+    res = []
+    for b in diag_blocks
+        BootstrapVirasoro.replacediag!(sys, b)
+        solve!(sys)
+        push!(res, deepcopy(sys))
+    end
+    return res
 end
 
 function clear!(b::BootstrapSystem{T}) where {T}
