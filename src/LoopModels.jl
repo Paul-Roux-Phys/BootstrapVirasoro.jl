@@ -8,7 +8,7 @@ export divide_by_reference, substract_res
 
 using ..BootstrapVirasoro
 import ..BootstrapVirasoro: getfields, total_dimension, reflect
-import ..BootstrapVirasoro: reflect
+import ..BootstrapVirasoro: reflect, permute_4, Prs
 import SpecialFunctions: gamma
 import BarnesDoubleGamma: DoubleGamma
 
@@ -256,15 +256,15 @@ function Bref(DG, c, r, s, reg = 1 / big(10^15))
         s += reg
     end
     π = oftype(c.β, Base.π) # π in the correct precision
-    return (-1)^(round(Int, r * s)) / 2 / sin(π * (r % 1 + s)) /
-           sin(π * (r + s / β^2)) / prod(
+    return (-1)^(round(r * s)) / 2 / sin(π * (r % 1 + s)) / sin(π * (r + s / β^2)) /
+           prod(
         DG(β + pm1 * β * r + pm2 * s / β) for pm1 in (-1, 1) for pm2 in (-1, 1)
     )
 end
 
 function Bref(DG, c, P)
     β = c.β
-    prod(1 / DG(β^pm1 + pm2 * 2P) for pm1 in (-1, 1) for pm2 in (-1, 1))
+    prod(1 / DG(β + pm2 * 2P) / DG(1/β + pm2 * 2P) for pm2 in (-1, 1))
 end
 
 function Bref(V::Field, DG, reg = 1 / big"10"^15)
@@ -277,12 +277,12 @@ function Bref(V::Field, DG, reg = 1 / big"10"^15)
 end
 
 function compute_reference(co::Correlation4, V::Field, chan, DG)
-    V₁, V₂, V₃, V₄ = getfields(co, chan)
+    V₁, V₂, V₃, V₄ = permute_4(co.fields, chan)
     return Cref(V₁, V₂, V, DG) * Cref(V₃, V₄, V, DG) / Bref(V, DG)
 end
 
 function compute_reference(co::Correlation1, V::Field, chan, DG)
-    V₁ = getfields(co, chan)
+    V₁ = co.fields[1]
     return Cref(V₁, V, V, DG) / Bref(V, DG)
 end
 
@@ -295,9 +295,8 @@ function strcst_residue(β², r, s, r1, s1, r2, s2)
         res *= -1
     end
     res *= prod(
-        2cospi(j * β² + (s - s1 - pm * s2)/2)
-        for pm in (-1, 1) 
-        for j = -(r - 1 - abs(r1 + pm * r2))/2:1:(r-1-abs(r1 + pm * r2))/2
+        2cospi(j * β² + (s - s1 - pm * s2) / 2) for pm in (-1, 1) for
+        j = -(r - 1 - abs(r1 + pm * r2))/2:1:(r-1-abs(r1 + pm * r2))/2
     )
 end
 
@@ -308,11 +307,11 @@ function strcst_residue(V, V1, V2, V3, V4)
     r1, s1, r2, s2 = V1.r, V1.s, V2.r, V2.s
     r3, s3, r4, s4 = V3.r, V3.s, V4.r, V4.s
     res = -1
-    if (r+1) * s % 2 == 1
+    if (r + 1) * s % 2 == 1
         res *= -1
     end
     res *= strcst_residue(β², r, s, r1, s1, r2, s2)
-    res *= strcst_residue(β², r, s, r3, s3, r4, s4)
+    res *= strcst_residue(β², r, s, r4, s4, r3, s3)
 end
 
 function divide_by_reference(s::SC, co)
@@ -335,10 +334,16 @@ end
 
 function substract_res(s::SC, co)
     res = deepcopy(s)
+    diag, _ = find_normalised(s)
+    β = diag.c.β
+    w = 2cos(2 * (π * β * diag[:left].P))
     for chan in BootstrapVirasoro.CHANNELS
+        Vs = permute_4(co.fields, chan)
         for k in keys(s.constants[chan])
-            if res.errors[chan][k] < 1e-4
-                res.constants[chan][k] -= strcst_residue(k, co.fields...)
+            if res.errors[chan][k] < 1e-4 && k.r isa Int && k.s isa Int
+                res.constants[chan][k] -=
+                    strcst_residue(k, Vs...) /
+                    (w - 2cos(2 * (π * β * Prs(k.r, k.s, β))))
             else
                 delete!(res.constants[chan], k)
                 delete!(res.errors[chan], k)

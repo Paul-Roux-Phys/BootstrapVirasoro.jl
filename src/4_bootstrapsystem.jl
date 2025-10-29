@@ -529,7 +529,7 @@ function findcol(s::BootstrapSystem, b::Block)
     col = 1
     uk = s.unknowns
     chan === :t && (col += length(uk.s)) # t blocks start at this col
-    chan === :u && (col += length(uk.s) + length(uk.u))
+    chan === :u && (col += length(uk.s) + length(uk.t))
     return col - 1 + findfirst(isequal(V), uk[chan])
 end
 
@@ -592,8 +592,8 @@ function solve!(s::BootstrapSystem)
     # back to dictionary format
     nb_unknowns = vcat([0], [length(s.unknowns[chan]) for chan in CHANNELS])
     for (i, chan) in enumerate(CHANNELS)
-        for (j, V) in enumerate(s.unknowns[chan])
-            index = sum(nb_unknowns[k] for k = 1:(i-1); init = 0) + j
+        for V in s.unknowns[chan]
+            index = findcol(s, s.spectra[chan].blocks[V])
             s.str_cst[chan][V] = sol1[index]
             s.str_cst.errors[chan][V] = errors[index]
         end
