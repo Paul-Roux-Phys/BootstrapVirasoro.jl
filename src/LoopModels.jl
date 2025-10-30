@@ -252,7 +252,7 @@ Cref(V₁, V₂, V₃) = Cref(V₁, V₂, V₃, DoubleGamma(V₁.c.β))
 
 function Bref(DG, c, r, s, reg = 1 / big(10^15))
     β = c.β
-    if r % 1 == 0 && s % 1 == 0
+    if r isa Int && s isa Int
         s += reg
     end
     π = oftype(c.β, Base.π) # π in the correct precision
@@ -281,12 +281,12 @@ function compute_reference(co::Correlation4, V::Field, chan, DG)
     return Cref(V₁, V₂, V, DG) * Cref(V₃, V₄, V, DG) / Bref(V, DG)
 end
 
-function compute_reference(co::Correlation1, V::Field, chan, DG)
+function compute_reference(co::Correlation1, V::Field, _, DG)
     V₁ = co.fields[1]
     return Cref(V₁, V, V, DG) / Bref(V, DG)
 end
 
-compute_reference(b::Block, DG) = compute_reference(b.corr, b.chan_field, b.chan, DG)
+compute_reference(b::Block, DG) = compute_reference(b.blocks[1].corr, b.chan_field, b.chan, DG)
 
 # residue of non-diagonal structure constants
 function strcst_residue(β², r, s, r1, s1, r2, s2)

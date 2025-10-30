@@ -523,9 +523,7 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     b.RHS = RHS
 end
 
-function findcol(s::BootstrapSystem, b::Block)
-    V = b.chan_field
-    chan = b.chan
+function findcol(s::BootstrapSystem, V::Field, chan)
     col = 1
     uk = s.unknowns
     chan === :t && (col += length(uk.s)) # t blocks start at this col
@@ -540,7 +538,7 @@ function replacediagLHS!(s::BootstrapSystem, new::Block)
     remove!(s.spectra[chan], old.chan_field)
     add!(s.spectra[chan], new)
     newV = new.chan_field
-    col = findcol(s, old)
+    col = findcol(s, old.chan_field, chan)
     s.unknowns[chan][findfirst(==(old.chan_field), s.unknowns[chan])] = newV
     delete!(s.block_values[chan], old.chan_field)
     s.block_values[chan][newV] = [new(x) for x in s.positions_cache[chan]]
@@ -589,11 +587,9 @@ function solve!(s::BootstrapSystem)
     # compare the two solutions
     errors = @. Float32(abs((sol1 - sol2) / sol2))
 
-    # back to dictionary format
-    nb_unknowns = vcat([0], [length(s.unknowns[chan]) for chan in CHANNELS])
-    for (i, chan) in enumerate(CHANNELS)
+    for chan in CHANNELS
         for V in s.unknowns[chan]
-            index = findcol(s, s.spectra[chan].blocks[V])
+            index = findcol(s, s.spectra[chan].blocks[V].chan_field, chan)
             s.str_cst[chan][V] = sol1[index]
             s.str_cst.errors[chan][V] = errors[index]
         end
@@ -602,9 +598,14 @@ function solve!(s::BootstrapSystem)
     return s.str_cst
 end
 
-function solve_bootstrap(specs::Channels)
+function solve_bootstrap(specs::Channels; fix=nothing)
     sys = BootstrapSystem(specs)
     evaluate_blocks!(sys)
+    if fix !== nothing
+        for (chan, V, cst) in fix
+            fix!(sys.str_cst, chan, V, cst)
+        end
+    end
     compute_linear_system!(sys)
     solve!(sys)
     return sys
