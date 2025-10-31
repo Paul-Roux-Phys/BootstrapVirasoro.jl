@@ -159,6 +159,35 @@ function Base.show(io::IO, c::CC)
     print(io, "c = $(c.c)")
 end
 
+function tex_complex(x)
+    # If it's not a Complex, return as LaTeXString unchanged
+    !(x isa Complex) && return L"$x$"
+
+    re = real(x)
+    im = imag(x)
+
+    # helper to convert rationals too
+    rational_to_tex(s) = replace(string(s), r"(-?\d+)//(\d+)" => s"\\frac{\1}{\2}")
+
+    re_tex = rational_to_tex(Float32(re))
+    im_tex = rational_to_tex(abs(Float32(im)))  # magnitude only, sign handled below
+
+    # cases
+    if im == 0
+        return L"$%$re_tex$"
+    elseif re == 0
+        sign = im > 0 ? "" : "-"
+        return L"$%$(sign)%$im_tex\mathrm{i}$"
+    else
+        sign = im > 0 ? "+" : "-"
+        return L"$%$re_tex\;%$(sign)\;%$im_tex\mathrm{i}$"
+    end
+end
+
+function Base.show(io::IO, ::MIME"text/latex", c::CC)
+    println(io, L"$c = %$(strip(tex_complex(c.c), '$')), \beta = %$(strip(tex_complex(c.β), '$'))$")
+end
+
 function Base.isequal(c1::CC, c2::CC)
     return c1.β == c2.β
 end
@@ -267,6 +296,14 @@ function Base.show(io::IO, ::MIME"text/plain", d::CD{T}) where {T}
     else
         print(io, "ConformalDimension{$T} with\nΔ = $(d.Δ), P = $(d.P)")
     end
+end
+
+function latexstring(i::Integer)
+    L"%$i"
+end
+
+function latexstring(r::Rational)
+    L"\frac{%$(numerator(r))}{%$(denominator(r))}"
 end
 
 function Base.show(io::IO, d::CD{T}) where {T}
@@ -392,6 +429,16 @@ function Base.show(io::IO, ::MIME"text/plain", V::Field)
         print(io, "\nright: ")
         show(io, V.dims[:right])
     end
+end
+
+function latexstring(V::Field)
+    V.degenerate && return L"$V^d_{\langle %$(V.r), %$(V.s) \rangle}$"
+    V.diagonal && return L"V_{P = %$(strip(tex_complex(V[:left].P), '$'))}"
+    return L"$V_{( %$(strip(latexstring(V.r), '$')), %$(strip(latexstring(V.s), '$')) )}$"
+end
+
+function Base.show(io::IO, ::MIME"text/latex", V::Field)
+    print(io, latexstring(V))
 end
 
 function Base.show(io::IO, V::Field)

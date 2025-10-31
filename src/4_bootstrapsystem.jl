@@ -77,7 +77,24 @@ function Base.delete!(s::SC, V, chan)
     delete!(s.errors[chan], V)
 end
 
-function Base.show(io::IO, c::SC; rmax = nothing, plaintext = false)
+# Convert "(2, 1//2)" or "(1, 0)" into LaTeX math tuples
+function tex_tuple(s::AbstractString)
+    # Match "(a, b)" patterns where a,b may include rationals
+    m = match(r"\(([^,]+),\s*([^)]+)\)", s)
+    isnothing(m) && return L"$%$(s)$"  # fallback: just wrap whole string
+
+    a = m.captures[1]
+    b = m.captures[2]
+
+    # Convert rationals inside strings, e.g. 1//2 → \frac{1}{2}
+    a_tex = replace(a, r"(-?\d+)//(\d+)" => s"\\frac{\1}{\2}")
+    b_tex = replace(b, r"(-?\d+)//(\d+)" => s"\\frac{\1}{\2}")
+
+    # Wrap result in \left(...\right)
+    return L"$\left(%$a_tex,%$b_tex\right)$"
+end
+
+function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
     df = to_dataframe(c, rmax)
     grouped = groupby(df, :Channel)
     for table in grouped
@@ -111,16 +128,23 @@ function Base.show(io::IO, c::SC; rmax = nothing, plaintext = false)
                     2^(-precision(BigFloat, base = 10) / 3) &&
                     j == 2
                 ) ? 0 : v
+        fmt_indices =
+            (v, i, j) -> j == 1 ? tex_tuple(v) : v
+        fmt_vals =
+            (v, i, j) -> j == 2 ? tex_complex(v) : v
         channel_header = " Channel $(table.Channel[1])\n"
-        if plaintext
+        if backend == :latex
             print(io, channel_header)
             pretty_table(
                 io,
                 t,
                 header = ["Field", "Structure constant", "Relative error"],
                 header_alignment = :l,
-                formatters = (fmt_zero,),
+                formatters = (fmt_zero,fmt_indices, fmt_vals),
+                backend = Val(backend),
+                alignment = :l,
             )
+            print(io, "\\\\")
         else
             printstyled(io, channel_header; bold = true)
             pretty_table(
@@ -131,6 +155,7 @@ function Base.show(io::IO, c::SC; rmax = nothing, plaintext = false)
                 header_crayon = crayon"blue",
                 highlighters = (hl_conv, hl_zero, hl_not_conv),
                 formatters = (fmt_zero,),
+                backend = Val(backend)
             )
         end
     end
