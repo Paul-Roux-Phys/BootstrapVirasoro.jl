@@ -550,18 +550,6 @@ function Base.show(io::IO, ::MIME"text/plain", co::NCCo{T}) where {T}
     print(io, ">")
 end
 
-function latexstring(co::NCCo)
-    res = L"$$\langle "
-    for V in co.fields
-        res *= strip(latexstring(V), '$')
-    end
-    res *= L"\rangle$$"
-end
-
-function Base.show(io::IO, ::MIME"text/latex", co::NCCo{T}) where {T}
-    print(io, latexstring(co))
-end
-
 function Base.show(io::IO, co::NCCo)
     print(io, "< ")
     for V in co.fields
