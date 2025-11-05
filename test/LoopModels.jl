@@ -127,8 +127,8 @@ sol = solve(blocks_even, sig)
 
 @testset "Crossing" begin
         for chan in (:s, :t, :u)
-                for (V, err) in sol.str_cst.errors[chan]
-                        @test abs(err * sol.str_cst.constants[chan][V]) < 1e-4
+                for (V, err) in sol.str_cst[chan].errors
+                        @test abs(err * sol.str_cst[chan].constants[V]) < 1e-4
                 end
         end
 end
