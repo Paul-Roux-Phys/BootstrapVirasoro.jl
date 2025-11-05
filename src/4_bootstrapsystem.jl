@@ -1,6 +1,6 @@
 struct StructureConstants{T<:Complex}
-    constants::Channels{Dict{Field{T},T}}
-    errors::Channels{Dict{Field{T},Float32}}
+    constants::Dict{Field{T},T}
+    errors::Dict{Field{T},Float64}
 end
 const StrCst = StructureConstants
 const SC = StructureConstants
@@ -23,58 +23,52 @@ mutable struct BootstrapSystem{T}
     spectra::Channels{ChanSpec{T}}    # channel spectra
     block_values::Channels{Dict{Field{T},Vector{T}}} # all blocks evaluated at all positions
     factors::Channels{Vector{T}} # overall position-dependent factor multiplying blocks in each channel
-    str_cst::StrCst{T}
+    str_cst::Channels{StrCst{T}}
 end
 
 #======================================================================================
 Structure constants
 ======================================================================================#
 function StructureConstants{T}() where {T}
-    constants = @channels Dict{Field{T},T}()
-    errors = @channels Dict{Field{T},Float32}()
+    constants = Dict{Field{T},T}()
+    errors = Dict{Field{T},Float64}()
     return StructureConstants{T}(constants, errors)
 end
 
 function Base.getproperty(c::SC, s::Symbol)
     s === :fields && begin
         consts = getfield(c, :constants)
-        return vcat([[V for V in keys(consts[chan])] for chan in keys(consts)]...)
+        return vcat([[V for V in keys(consts)]]...)
     end
     getfield(c, s)
 end
 
-Base.getindex(c::SC, s::Symbol) = c.constants[s]
+Base.length(c::SC) = length(c.constants)
 
-function fix!(cnst, chan, field, value; error = 0)
-    cnst[chan][field] = value
-    cnst.errors[chan][field] = error
+function fix!(cnst, field, value; error = 0)
+    cnst.constants[field] = value
+    cnst.errors[field] = error
 end
-
-Base.length(c::SC) = sum(length(c.constants[chan]) for chan in keys(c.constants))
 
 function to_dataframe(c::SC, rmax = nothing)
     df = DataFrame(
-        Channel = Symbol[],
         Field = String[],
         StructureConstant = Complex[],
-        RelativeError = Float32[],
+        RelativeError = Float64[],
     )
 
-    for chan in CHANNELS
-        fields =
-            sort(collect(keys(c.constants[chan])), by = V -> real(total_dimension(V)))
-        rmax !== nothing && (fields = filter(V -> V.r <= rmax, fields))
-        for V in fields
-            push!(df, (chan, string(V), c.constants[chan][V], c.errors[chan][V]))
-        end
+    fields =
+        sort(collect(keys(c.constants)), by = V -> real(total_dimension(V)))
+    rmax !== nothing && (fields = filter(V -> V.r <= rmax, fields))
+    for V in fields
+        push!(df, (string(V), c.constants[V], c.errors[V]))
     end
-
     return df
 end
 
-function Base.delete!(s::SC, V, chan)
-    delete!(s.constants[chan], V)
-    delete!(s.errors[chan], V)
+function Base.delete!(s::SC, V)
+    delete!(s.constants, V)
+    delete!(s.errors, V)
 end
 
 # Convert "(2, 1//2)" or "(1, 0)" into LaTeX math tuples
@@ -95,69 +89,77 @@ function tex_tuple(s::AbstractString)
 end
 
 function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
-    df = to_dataframe(c, rmax)
-    grouped = groupby(df, :Channel)
-    for table in grouped
-        t = columntable(select(table, Not(:Channel)))
-        hl_conv = Highlighter(
-            (table, i, j) ->
-                table[:RelativeError][i] < 2^(-precision(BigFloat, base = 10) / 2) && j >= 2,
-            crayon"green",
+    t = columntable(to_dataframe(c, rmax))
+    hl_conv = Highlighter(
+        (table, i, j) ->
+            table[:RelativeError][i] < 2^(-precision(BigFloat, base = 10) / 2) && j >= 2,
+        crayon"green",
+    )
+    hl_zero = Highlighter(
+        (table, i, j) ->
+            table[:RelativeError][i] > 1e-2 &&
+            abs(table[:StructureConstant][i]) <
+            2^(-precision(BigFloat, base = 10) / 3) &&
+            j >= 2,
+        crayon"green",
+    )
+    hl_not_conv = Highlighter(
+        (table, i, j) ->
+            table[:RelativeError][i] > 1e-2 &&
+            abs(table[:StructureConstant][i]) >
+            2^(-precision(BigFloat, base = 10) / 3) &&
+            j >= 2,
+        crayon"red",
+    )
+    fmt_zero =
+        (v, i, j) ->
+        (
+            t.RelativeError[i] > 1e-2 &&
+                abs(t.StructureConstant[i]) <
+                2^(-precision(BigFloat, base = 10) / 3) &&
+                j == 2
+        ) ? 0 : v
+    fmt_relerr = (v, i, j) -> 
+        j == 3 && v isa Real ? @sprintf("%.2g", v) : v
+    fmt_indices =
+        (v, i, j) -> j == 1 ? tex_tuple(v) : v
+    fmt_vals =
+        (v, i, j) -> j == 2 ? tex_complex(v) : v
+    if backend == :latex
+        pretty_table(
+            io,
+            t,
+            header = ["Field", "Structure constant", "Rel. err."],
+            header_alignment = :l,
+            formatters = (fmt_relerr, fmt_zero, fmt_indices, fmt_vals),
+            backend = Val(backend),
+            alignment = :l,
         )
-        hl_zero = Highlighter(
-            (table, i, j) ->
-                table[:RelativeError][i] > 1e-2 &&
-                    abs(table[:StructureConstant][i]) <
-                    2^(-precision(BigFloat, base = 10) / 3) &&
-                    j >= 2,
-            crayon"green",
+        print(io, "\\\\")
+    else
+        pretty_table(
+            io,
+            t,
+            header = ["Field", "Structure constant", "Rel. err."],
+            header_alignment = :l,
+            alignment = :l,
+            header_crayon = crayon"blue",
+            highlighters = (hl_conv, hl_zero, hl_not_conv),
+            formatters = (fmt_zero, fmt_relerr),
+            backend = Val(backend)
         )
-        hl_not_conv = Highlighter(
-            (table, i, j) ->
-                table[:RelativeError][i] > 1e-2 &&
-                    abs(table[:StructureConstant][i]) >
-                    2^(-precision(BigFloat, base = 10) / 3) &&
-                    j >= 2,
-            crayon"red",
-        )
-        fmt_zero =
-            (v, i, j) ->
-                (
-                    t.RelativeError[i] > 1e-2 &&
-                    abs(t.StructureConstant[i]) <
-                    2^(-precision(BigFloat, base = 10) / 3) &&
-                    j == 2
-                ) ? 0 : v
-        fmt_indices =
-            (v, i, j) -> j == 1 ? tex_tuple(v) : v
-        fmt_vals =
-            (v, i, j) -> j == 2 ? tex_complex(v) : v
-        channel_header = " Channel $(table.Channel[1])\n"
-        if backend == :latex
+    end
+end
+
+function Base.show(io::IO, c::Channels{<:SC}; rmax = nothing, backend = :text)
+    for chan in CHANNELS
+        channel_header = " Channel $chan\n"
+        if backend === :latex
             print(io, channel_header)
-            pretty_table(
-                io,
-                t,
-                header = ["Field", "Structure constant", "Relative error"],
-                header_alignment = :l,
-                formatters = (fmt_zero,fmt_indices, fmt_vals),
-                backend = Val(backend),
-                alignment = :l,
-            )
-            print(io, "\\\\")
         else
             printstyled(io, channel_header; bold = true)
-            pretty_table(
-                io,
-                t,
-                header = ["Field", "Structure constant", "Relative error"],
-                header_alignment = :l,
-                header_crayon = crayon"blue",
-                highlighters = (hl_conv, hl_zero, hl_not_conv),
-                formatters = (fmt_zero,),
-                backend = Val(backend)
-            )
         end
+        show(io, c[chan], rmax=rmax, backend=backend)
     end
 end
 
@@ -173,26 +175,22 @@ end
 function Base.:+(c1::SC{T}, c2::SC) where {T}
     consts = deepcopy(c1.constants)
     errs = deepcopy(c1.errors)
-    for chan in BootstrapVirasoro.CHANNELS
-        for (k, v) in c2.constants[chan]
-            if k in keys(c1.constants[chan])
-                consts[chan][k] += v
-                errs[chan][k] += c2.errors[chan][k]
-            else
-                consts[chan][k] = v
-                errs[chan][k] = c2.errors[chan][k]
-            end
+    for (k, v) in c2.constants
+        if k in keys(c1.constants)
+            consts[k] += v
+            errs[k] += c2.errors[k]
+        else
+            consts[k] = v
+            errs[k] = c2.errors[k]
         end
     end
     return StructureConstants{T}(consts, errs)
 end
 
 function find_normalised(c::SC)
-    for chan in BootstrapVirasoro.CHANNELS
-        for (k, v) in c.constants[chan]
-            if v ≈ 1 && c.errors[chan][k] ≈ 0
-                return (k, chan)
-            end
+    for (k, v) in c.constants
+        if v ≈ 1 && c.errors[k] ≈ 0
+            return k
         end
     end
 end
@@ -411,7 +409,7 @@ function BootstrapSystem(
 ) where {T}
     co = S.s.corr
     if knowns === nothing
-        knowns = StrCst{T}()
+        knowns = @channels StrCst{T}()
     end
     nb_unknowns = [length(S[chan]) for chan in CHANNELS]
     nb_unknowns .-= length.([knowns[chan] for chan in CHANNELS])
@@ -485,12 +483,12 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     known_consts = b.str_cst
 
     unknowns = @channels sort(
-        [V for V in fields(b.spectra[chan]) if !(V in keys(known_consts[chan]))],
+        [V for V in fields(b.spectra[chan]) if !(V in keys(known_consts[chan].constants))],
         by = V -> real(total_dimension(V)),
     )
 
     # if no consts are known, fix a normalisation
-    if all([isempty(known_consts[chan]) for chan in CHANNELS])
+    if all([isempty(known_consts[chan].constants) for chan in CHANNELS])
         hasdiag, chan, diag = hasdiagonal(b)
         if hasdiag
             normalised_field = diag
@@ -501,14 +499,14 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
                 unknowns[chan],
             )
         end
-        fix!(known_consts, chan, normalised_field, 1)
+        fix!(known_consts[chan], normalised_field, 1)
         b.str_cst = known_consts
         idx = findfirst(==(normalised_field), unknowns[chan])
         deleteat!(unknowns[chan], idx)
     end
 
     knowns =
-        @channels [V for V in fields(b.spectra[chan]) if V in keys(b.str_cst[chan])]
+        @channels [V for V in fields(b.spectra[chan]) if V in keys(b.str_cst[chan].constants)]
 
     nb_positions = length(b.positions)
     nb_lines = nb_positions * (length(CHANNELS) - 1)
@@ -525,6 +523,7 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     # keep a record of the columns where we put each field.
     LHS = Matrix{T}(undef, nb_lines, sum(nb_unknowns))
     col_idx = 0
+    
     for chan in CHANNELS
         for V in unknowns[chan]
             col_idx += 1
@@ -534,7 +533,7 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
 
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
     sumblocks(knowns, chan, i) = sum(
-        b.str_cst.constants[chan][V] * b.block_values[chan][V][i] for
+        b.str_cst[chan].constants[V] * b.block_values[chan][V][i] for
         V in knowns[chan];
         init = zero(T),
     )
@@ -578,7 +577,7 @@ function replacediagRHS!(sys::BootstrapSystem, new::Block, str_cst=1)
     newV = new.chan_field
     oldV = old.chan_field
     sys.block_values[chan][newV] = [new(x) for x in sys.positions_cache[chan]]
-    to_add = sys.str_cst.constants[chan][oldV] .* sys.block_values[chan][oldV] .-
+    to_add = sys.str_cst[chan].constants[oldV] .* sys.block_values[chan][oldV] .-
             str_cst .* sys.block_values[chan][newV]
     if chan === :s
         sys.RHS[1:length(sys.positions)] .+= to_add
@@ -589,8 +588,8 @@ function replacediagRHS!(sys::BootstrapSystem, new::Block, str_cst=1)
         sys.RHS[length(sys.positions)+1:end] .-= to_add
     end
     delete!(sys.block_values[chan], oldV)
-    delete!(sys.str_cst, oldV, chan)
-    fix!(sys.str_cst, chan, newV, str_cst)
+    delete!(sys.str_cst[chan], oldV)
+    fix!(sys.str_cst[chan], newV, str_cst)
 end
 
 function replacediag!(sys::BootstrapSystem, new::Block, str_cst=1)
@@ -610,13 +609,13 @@ function solve!(s::BootstrapSystem)
     sol2 = s.LHS[1:(end-2), :] \ s.RHS[1:(end-2)]
 
     # compare the two solutions
-    errors = @. Float32(abs((sol1 - sol2) / sol2))
+    errors = @. Float64(abs((sol1 - sol2) / sol2))
 
     for chan in CHANNELS
         for V in s.unknowns[chan]
             index = findcol(s, s.spectra[chan].blocks[V].chan_field, chan)
-            s.str_cst[chan][V] = sol1[index]
-            s.str_cst.errors[chan][V] = errors[index]
+            s.str_cst[chan].constants[V] = sol1[index]
+            s.str_cst[chan].errors[V] = errors[index]
         end
     end
 
@@ -628,7 +627,7 @@ function solve_bootstrap(specs::Channels; fix=nothing)
     evaluate_blocks!(sys)
     if fix !== nothing
         for (chan, V, cst) in fix
-            fix!(sys.str_cst, chan, V, cst)
+            fix!(sys.str_cst[chan], V, cst)
         end
     end
     compute_linear_system!(sys)
@@ -650,7 +649,7 @@ function solve_bootstrap_manyP(specs::Channels, diag_blocks)
 end
 
 function clear!(b::BootstrapSystem{T}) where {T}
-    b.str_cst = StrCst(b.spectra)
+    b.str_cst = @channels StrCst(b.spectra[chan])
     # b.matrix = BootstrapMatrix{T}([chan for chan in keys(b.spectra)])
 end
 
