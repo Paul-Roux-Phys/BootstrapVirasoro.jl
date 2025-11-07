@@ -479,6 +479,58 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
     chan === :u && return vcat(zer, -v)
 end
 
+function computeLHScolumn_withrels(b::BootstrapSystem{T}, V, chan, rels) where {T}
+    if rels == (:s, :t, :u) #= [(Gs-Gt);
+                                (Gs-Gu)] =#
+        vs = @channels b.factors[chan] .* b.block_values[chan][V]
+        return vcat(vs.s .- vs.t, vs.s .- vs.u)
+    elseif rels == (:s, :t)  #= [(Gs-Gt)  0;
+                                 Gs     -Gu] =#
+        zer = zeros(T, length(b.positions))
+        if chan == :s
+            vs_s = b.factors[:s] .* b.block_values[:s][V]
+            vs_t = b.factors[:t] .* b.block_values[:t][V]
+            return vcat(vs_s .- vs_t, vs_s)
+        else
+            vs_u = b.factors[:u] .* b.block_values[:u][V]
+            return vcat(zer, .-vs_u) 
+        end
+    elseif rels == (:s, :u)  #= [Gs     -Gt;
+                                (Gs-Gu)   0] =#
+        if chan == :s
+            vs_s = b.factors[:s] .* b.block_values[:s][V]
+            vs_u = b.factors[:u] .* b.block_values[:u][V]
+            return vcat(vs_s, vs_s .- vs_u)
+        else
+            vs_t = b.factors[:t] .* b.block_values[:t][V]
+            return vcat(.-vs_t, zer)
+        end
+    elseif rels == (:t, :u)   #= [Gs     -Gt;
+                                  0   (Gt-Gu)] =#
+        if chan == :s
+            vs_s = b.factors[:s] .* b.block_values[:s][V]
+            return vcat(vs.s, zer)
+        else
+            vs_t = b.factors[:t] .* b.block_values[:t][V]
+            vs_u = b.factors[:u] .* b.block_values[:u][V]
+        return vcat(.-vs_t, vs_t .- vs_u)
+    end
+end
+
+function computeRHS(b::BootstrapSystem, knowns)
+    # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
+    nb_positions = length(b.positions)
+    sumblocks(knowns, chan, i) = sum(
+        b.str_cst[chan].constants[V] * b.factors[chan] * b.block_values[chan][V][i] for
+        V in knowns[chan];
+        init = zero(T),
+    )
+    return vcat(
+        [sumblocks(knowns, :t, i) - sumblocks(knowns, :s, i) for i in eachindex(b.positions)],
+        [sumblocks(knowns, :u, i) - sumblocks(knowns, :s, i) for i in eachindex(b.positions)],
+    )
+end
+
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     known_consts = b.str_cst
 
@@ -513,17 +565,10 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     nb_unknowns = [length(b.spectra[chan]) for chan in CHANNELS]
     nb_unknowns .-= length.([known_consts[chan] for chan in CHANNELS])
 
-    # matrix of equations Σ_unknowns (chan1 - chan2) = Σ_knowns (chan2 - chan1)
-    # and Σ_unknowns (chan1 - chan3) = Σ_knowns (chan3 - chan1)
-    zer = zeros(T, nb_positions)
-
-    # Form the matrix
-    # [ G^s -G^t  0  ;
-    #   G^s  0   -G^u ]
+    # form the matrix of the linear system
     # keep a record of the columns where we put each field.
     LHS = Matrix{T}(undef, nb_lines, sum(nb_unknowns))
     col_idx = 0
-    
     for chan in CHANNELS
         for V in unknowns[chan]
             col_idx += 1
@@ -531,17 +576,7 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
         end
     end
 
-    # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
-    sumblocks(knowns, chan, i) = sum(
-        b.str_cst[chan].constants[V] * b.block_values[chan][V][i] for
-        V in knowns[chan];
-        init = zero(T),
-    )
-    RHS = vcat(
-        [sumblocks(knowns, :t, i) - sumblocks(knowns, :s, i) for i = 1:nb_positions],
-        [sumblocks(knowns, :u, i) - sumblocks(knowns, :s, i) for i = 1:nb_positions],
-    )
-
+    RHS = computeRHS(b, knowns)
     b.unknowns = unknowns
     b.LHS = LHS
     b.RHS = RHS
