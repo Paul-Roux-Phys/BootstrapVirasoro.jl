@@ -57,8 +57,7 @@ function to_dataframe(c::SC, rmax = nothing)
         RelativeError = Float64[],
     )
 
-    fields =
-        sort(collect(keys(c.constants)), by = V -> real(total_dimension(V)))
+    fields = sort(collect(keys(c.constants)), by = V -> real(total_dimension(V)))
     rmax !== nothing && (fields = filter(V -> V.r <= rmax, fields))
     for V in fields
         push!(df, (string(V), c.constants[V], c.errors[V]))
@@ -92,39 +91,37 @@ function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
     t = columntable(to_dataframe(c, rmax))
     hl_conv = Highlighter(
         (table, i, j) ->
-            table[:RelativeError][i] < 2^(-precision(BigFloat, base = 10) / 2) && j >= 2,
+            table[:RelativeError][i] < 2^(-precision(BigFloat, base = 10) / 2) &&
+                j >= 2,
         crayon"green",
     )
     hl_zero = Highlighter(
         (table, i, j) ->
             table[:RelativeError][i] > 1e-2 &&
-            abs(table[:StructureConstant][i]) <
-            2^(-precision(BigFloat, base = 10) / 3) &&
-            j >= 2,
+                abs(table[:StructureConstant][i]) <
+                2^(-precision(BigFloat, base = 10) / 3) &&
+                j >= 2,
         crayon"green",
     )
     hl_not_conv = Highlighter(
         (table, i, j) ->
             table[:RelativeError][i] > 1e-2 &&
-            abs(table[:StructureConstant][i]) >
-            2^(-precision(BigFloat, base = 10) / 3) &&
-            j >= 2,
+                abs(table[:StructureConstant][i]) >
+                2^(-precision(BigFloat, base = 10) / 3) &&
+                j >= 2,
         crayon"red",
     )
     fmt_zero =
         (v, i, j) ->
-        (
-            t.RelativeError[i] > 1e-2 &&
+            (
+                t.RelativeError[i] > 1e-2 &&
                 abs(t.StructureConstant[i]) <
                 2^(-precision(BigFloat, base = 10) / 3) &&
                 j == 2
-        ) ? 0 : v
-    fmt_relerr = (v, i, j) -> 
-        j == 3 && v isa Real ? @sprintf("%.2g", v) : v
-    fmt_indices =
-        (v, i, j) -> j == 1 ? tex_tuple(v) : v
-    fmt_vals =
-        (v, i, j) -> j == 2 ? tex_complex(v) : v
+            ) ? 0 : v
+    fmt_relerr = (v, i, j) -> j == 3 && v isa Real ? @sprintf("%.2g", v) : v
+    fmt_indices = (v, i, j) -> j == 1 ? tex_tuple(v) : v
+    fmt_vals = (v, i, j) -> j == 2 ? tex_complex(v) : v
     if backend == :latex
         pretty_table(
             io,
@@ -146,7 +143,7 @@ function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
             header_crayon = crayon"blue",
             highlighters = (hl_conv, hl_zero, hl_not_conv),
             formatters = (fmt_zero, fmt_relerr),
-            backend = Val(backend)
+            backend = Val(backend),
         )
     end
 end
@@ -159,7 +156,7 @@ function Base.show(io::IO, c::Channels{<:SC}; rmax = nothing, backend = :text)
         else
             printstyled(io, channel_header; bold = true)
         end
-        show(io, c[chan], rmax=rmax, backend=backend)
+        show(io, c[chan], rmax = rmax, backend = backend)
     end
 end
 
@@ -471,21 +468,15 @@ function hasdiagonal(b::BootstrapSystem)
     return (false, :s, nothing)
 end
 
-function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
-    v = b.factors[chan] .* b.block_values[chan][V]
-    zer = zeros(T, length(b.positions))
-    chan === :s && return vcat(v, v)
-    chan === :t && return vcat(-v, zer)
-    chan === :u && return vcat(zer, -v)
-end
-
-function computeLHScolumn_withrels(b::BootstrapSystem{T}, V, chan, rels) where {T}
-    if rels == (:s, :t, :u) #= [(Gs-Gt);
-                                (Gs-Gu)] =#
-        vs = @channels b.factors[chan] .* b.block_values[chan][V]
-        return vcat(vs.s .- vs.t, vs.s .- vs.u)
+function computeLHScolumn(b::BootstrapSystem{T}, V, chan; rels=nothing) where {T}
+    if rels === nothing
+        v = b.factors[chan] .* b.block_values[chan][V]
+        zer = zeros(T, length(b.positions))
+        chan === :s && return vcat(v, v)
+        chan === :t && return vcat(-v, zer)
+        chan === :u && return vcat(zer, -v)
     elseif rels == (:s, :t)  #= [(Gs-Gt)  0;
-                                 Gs     -Gu] =#
+                                  Gs     -Gu] =#
         zer = zeros(T, length(b.positions))
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
@@ -493,7 +484,7 @@ function computeLHScolumn_withrels(b::BootstrapSystem{T}, V, chan, rels) where {
             return vcat(vs_s .- vs_t, vs_s)
         else
             vs_u = b.factors[:u] .* b.block_values[:u][V]
-            return vcat(zer, .-vs_u) 
+            return vcat(zer, .-vs_u)
         end
     elseif rels == (:s, :u)  #= [Gs     -Gt;
                                 (Gs-Gu)   0] =#
@@ -509,25 +500,35 @@ function computeLHScolumn_withrels(b::BootstrapSystem{T}, V, chan, rels) where {
                                   0   (Gt-Gu)] =#
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
-            return vcat(vs.s, zer)
+            return vcat(vs_s, zer)
         else
             vs_t = b.factors[:t] .* b.block_values[:t][V]
             vs_u = b.factors[:u] .* b.block_values[:u][V]
-        return vcat(.-vs_t, vs_t .- vs_u)
+            return vcat(.-vs_t, vs_t .- vs_u)
+        end
+    elseif rels == (:s, :t, :u) #= [(Gs-Gt);
+                                    (Gs-Gu)] =#
+        vs = @channels b.factors[chan] .* b.block_values[chan][V]
+        return vcat(vs.s .- vs.t, vs.s .- vs.u)
     end
 end
 
-function computeRHS(b::BootstrapSystem, knowns)
+function computeRHS(b::BootstrapSystem{T}, knowns) where {T}
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
     nb_positions = length(b.positions)
-    sumblocks(knowns, chan, i) = sum(
-        b.str_cst[chan].constants[V] * b.factors[chan] * b.block_values[chan][V][i] for
-        V in knowns[chan];
+    sumknowns(knowns, chan, i) = sum(
+        b.str_cst[chan].constants[V] * b.factors[chan] * b.block_values[chan][V][i] for V in knowns[chan];
         init = zero(T),
     )
     return vcat(
-        [sumblocks(knowns, :t, i) - sumblocks(knowns, :s, i) for i in eachindex(b.positions)],
-        [sumblocks(knowns, :u, i) - sumblocks(knowns, :s, i) for i in eachindex(b.positions)],
+        [
+            sumknowns(knowns, :t, i) - sumknowns(knowns, :s, i) for
+            i in eachindex(b.positions)
+        ],
+        [
+            sumknowns(knowns, :u, i) - sumknowns(knowns, :s, i) for
+            i in eachindex(b.positions)
+        ],
     )
 end
 
@@ -535,7 +536,10 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     known_consts = b.str_cst
 
     unknowns = @channels sort(
-        [V for V in fields(b.spectra[chan]) if !(V in keys(known_consts[chan].constants))],
+        [
+            V for V in fields(b.spectra[chan]) if
+            !(V in keys(known_consts[chan].constants))
+        ],
         by = V -> real(total_dimension(V)),
     )
 
@@ -557,17 +561,18 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
         deleteat!(unknowns[chan], idx)
     end
 
-    knowns =
-        @channels [V for V in fields(b.spectra[chan]) if V in keys(b.str_cst[chan].constants)]
+    knowns = @channels [
+        V for V in fields(b.spectra[chan]) if V in keys(b.str_cst[chan].constants)
+    ]
 
     nb_positions = length(b.positions)
     nb_lines = nb_positions * (length(CHANNELS) - 1)
-    nb_unknowns = [length(b.spectra[chan]) for chan in CHANNELS]
-    nb_unknowns .-= length.([known_consts[chan] for chan in CHANNELS])
+    nb_unknowns =
+        sum(length(b.spectra[chan]) - length(known_consts[chan]) for chan in CHANNELS)
 
     # form the matrix of the linear system
     # keep a record of the columns where we put each field.
-    LHS = Matrix{T}(undef, nb_lines, sum(nb_unknowns))
+    LHS = Matrix{T}(undef, nb_lines, nb_unknowns)
     col_idx = 0
     for chan in CHANNELS
         for V in unknowns[chan]
@@ -604,7 +609,7 @@ function replacediagLHS!(s::BootstrapSystem, new::Block)
     s.LHS[:, col] = computeLHScolumn(s, chan, new.chan_field)
 end
 
-function replacediagRHS!(sys::BootstrapSystem, new::Block, str_cst=1)
+function replacediagRHS!(sys::BootstrapSystem, new::Block, str_cst = 1)
     chan = new.chan
     old = removediag!(sys.spectra[chan])
     remove!(sys.spectra[chan], old.chan_field)
@@ -612,8 +617,9 @@ function replacediagRHS!(sys::BootstrapSystem, new::Block, str_cst=1)
     newV = new.chan_field
     oldV = old.chan_field
     sys.block_values[chan][newV] = [new(x) for x in sys.positions_cache[chan]]
-    to_add = sys.str_cst[chan].constants[oldV] .* sys.block_values[chan][oldV] .-
-            str_cst .* sys.block_values[chan][newV]
+    to_add =
+        sys.str_cst[chan].constants[oldV] .* sys.block_values[chan][oldV] .-
+        str_cst .* sys.block_values[chan][newV]
     if chan === :s
         sys.RHS[1:length(sys.positions)] .+= to_add
         sys.RHS[length(sys.positions)+1:end] .+= to_add
@@ -627,7 +633,7 @@ function replacediagRHS!(sys::BootstrapSystem, new::Block, str_cst=1)
     fix!(sys.str_cst[chan], newV, str_cst)
 end
 
-function replacediag!(sys::BootstrapSystem, new::Block, str_cst=1)
+function replacediag!(sys::BootstrapSystem, new::Block, str_cst = 1)
     # if sys has a diagonal field with unknown str_cst in this channel, change LHS
     # else change RHS
     for V in sys.unknowns[new.chan]
@@ -657,7 +663,7 @@ function solve!(s::BootstrapSystem)
     return s.str_cst
 end
 
-function solve_bootstrap(specs::Channels; fix=nothing)
+function solve_bootstrap(specs::Channels; fix = nothing)
     sys = BootstrapSystem(specs)
     evaluate_blocks!(sys)
     if fix !== nothing
