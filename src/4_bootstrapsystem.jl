@@ -468,7 +468,8 @@ function hasdiagonal(b::BootstrapSystem)
     return (false, :s, nothing)
 end
 
-function computeLHScolumn(b::BootstrapSystem{T}, V, chan; rels=nothing) where {T}
+
+function computeLHScolumn(b::BootstrapSystem{T}, chan, V; rels=nothing) where {T}
     if rels === nothing
         v = b.factors[chan] .* b.block_values[chan][V]
         zer = zeros(T, length(b.positions))
