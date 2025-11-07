@@ -518,7 +518,7 @@ function computeRHS(b::BootstrapSystem{T}, knowns) where {T}
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
     nb_positions = length(b.positions)
     sumknowns(knowns, chan, i) = sum(
-        b.str_cst[chan].constants[V] * b.factors[chan] * b.block_values[chan][V][i] for V in knowns[chan];
+        b.str_cst[chan].constants[V] * b.factors[chan][i] * b.block_values[chan][V][i] for V in knowns[chan];
         init = zero(T),
     )
     return vcat(
