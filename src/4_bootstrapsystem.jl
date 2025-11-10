@@ -14,6 +14,7 @@ end
 const ChanSpec = ChannelSpectrum
 
 mutable struct BootstrapSystem{T}
+    channels::Tuple{Vararg{Symbol}}
     unknowns::Channels{Vector{Field{T}}}
     LHS::Matrix{T}
     RHS::Vector{T}
@@ -23,7 +24,8 @@ mutable struct BootstrapSystem{T}
     spectra::Channels{ChanSpec{T}}    # channel spectra
     block_values::Channels{Dict{Field{T},Vector{T}}} # all blocks evaluated at all positions
     factors::Channels{Vector{T}} # overall position-dependent factor multiplying blocks in each channel
-    str_cst::Channels{StrCst{T}}
+    str_cst::Any
+    relations::Any
 end
 
 #======================================================================================
@@ -48,6 +50,7 @@ Base.length(c::SC) = length(c.constants)
 function fix!(cnst, field, value; error = 0)
     cnst.constants[field] = value
     cnst.errors[field] = error
+    return
 end
 
 function to_dataframe(c::SC, rmax = nothing)
@@ -403,21 +406,42 @@ function BootstrapSystem(
     knowns = nothing,
     extrapoints::Int = 6,
     pos = nothing,
+    rels = nothing,
 ) where {T}
     co = S.s.corr
     if knowns === nothing
         knowns = @channels StrCst{T}()
     end
-    nb_unknowns = [length(S[chan]) for chan in CHANNELS]
-    nb_unknowns .-= length.([knowns[chan] for chan in CHANNELS])
+
+    if rels === nothing
+        channels = (:s, :t, :u)
+    elseif rels === :st
+        channels = (:s, :u)
+        knowns.t = knowns.s
+    elseif rels === :su
+        channels = (:s, :t)
+        knowns.u = knowns.s
+    elseif rels === :tu
+        channels = (:s, :t)
+        knowns.u = knowns.t
+    elseif rels === :stu
+        channels = (:s,)
+        knowns.t = knowns.s
+        knowns.u = knowns.s
+    else
+        error("rels has to be one of :stu, :st, :su, :tu, nothing")
+    end
+    nb_channels = length(channels)
+    nb_unknowns = [length(S[chan]) for chan in channels]
+    nb_unknowns .-= length.([knowns[chan] for chan in channels])
     nb_lines = 2 * ((sum(nb_unknowns) + extrapoints) ÷ 2)
     if pos !== nothing
         nb_positions = length(pos)
-        @assert nb_positions > nb_lines ÷ (NB_CHANNELS - 1) "
+        @assert nb_positions > nb_lines ÷ (nb_channels - 1) "
            You must give enough positions for the system to be overdetermined
        "
     else
-        nb_positions = nb_lines ÷ (NB_CHANNELS - 1)
+        nb_positions = nb_channels == 1 ? nb_lines : nb_lines ÷ (nb_channels - 1)
         pos = choose_block_eval_points(nb_positions, co)
     end
 
@@ -438,6 +462,7 @@ function BootstrapSystem(
     factors = @channels [factor(co, chan, p) for p in pos]
 
     return BootstrapSystem{T}(
+        channels,
         unknowns,
         LHS,
         RHS,
@@ -448,6 +473,7 @@ function BootstrapSystem(
         blocks,
         factors,
         knowns,
+        rels,
     )
 end
 
@@ -468,16 +494,16 @@ function hasdiagonal(b::BootstrapSystem)
     return (false, :s, nothing)
 end
 
-
-function computeLHScolumn(b::BootstrapSystem{T}, chan, V; rels=nothing) where {T}
+function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
+    rels = b.relations
     if rels === nothing
         v = b.factors[chan] .* b.block_values[chan][V]
         zer = zeros(T, length(b.positions))
         chan === :s && return vcat(v, v)
         chan === :t && return vcat(-v, zer)
         chan === :u && return vcat(zer, -v)
-    elseif rels == (:s, :t)  #= [(Gs-Gt)  0;
-                                  Gs     -Gu] =#
+    elseif rels == :st  #= [(Gs-Gt)  0;
+                            Gs     -Gu] =#
         zer = zeros(T, length(b.positions))
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
@@ -487,8 +513,8 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V; rels=nothing) where {T
             vs_u = b.factors[:u] .* b.block_values[:u][V]
             return vcat(zer, .-vs_u)
         end
-    elseif rels == (:s, :u)  #= [Gs     -Gt;
-                                (Gs-Gu)   0] =#
+    elseif rels == :su  #= [Gs     -Gt;
+                            (Gs-Gu)   0] =#
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
             vs_u = b.factors[:u] .* b.block_values[:u][V]
@@ -497,8 +523,8 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V; rels=nothing) where {T
             vs_t = b.factors[:t] .* b.block_values[:t][V]
             return vcat(.-vs_t, zer)
         end
-    elseif rels == (:t, :u)   #= [Gs     -Gt;
-                                  0   (Gt-Gu)] =#
+    elseif rels == :tu   #= [Gs     -Gt;
+                             0   (Gt-Gu)] =#
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
             return vcat(vs_s, zer)
@@ -507,8 +533,8 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V; rels=nothing) where {T
             vs_u = b.factors[:u] .* b.block_values[:u][V]
             return vcat(.-vs_t, vs_t .- vs_u)
         end
-    elseif rels == (:s, :t, :u) #= [(Gs-Gt);
-                                    (Gs-Gu)] =#
+    elseif rels == :stu #= [(Gs-Gt);
+                            (Gs-Gu)] =#
         vs = @channels b.factors[chan] .* b.block_values[chan][V]
         return vcat(vs.s .- vs.t, vs.s .- vs.u)
     end
@@ -518,7 +544,9 @@ function computeRHS(b::BootstrapSystem{T}, knowns) where {T}
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
     nb_positions = length(b.positions)
     sumknowns(knowns, chan, i) = sum(
-        b.str_cst[chan].constants[V] * b.factors[chan][i] * b.block_values[chan][V][i] for V in knowns[chan];
+        b.str_cst[chan].constants[V] *
+        b.factors[chan][i] *
+        b.block_values[chan][V][i] for V in knowns[chan];
         init = zero(T),
     )
     return vcat(
@@ -543,9 +571,13 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
         ],
         by = V -> real(total_dimension(V)),
     )
-
+    for chan in CHANNELS
+        if !(chan in b.channels)
+            empty!(unknowns[chan])
+        end
+    end
     # if no consts are known, fix a normalisation
-    if all([isempty(known_consts[chan].constants) for chan in CHANNELS])
+    if all([isempty(known_consts[chan].constants) for chan in b.channels])
         hasdiag, chan, diag = hasdiagonal(b)
         if hasdiag
             normalised_field = diag
@@ -568,14 +600,15 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
 
     nb_positions = length(b.positions)
     nb_lines = nb_positions * (length(CHANNELS) - 1)
-    nb_unknowns =
-        sum(length(b.spectra[chan]) - length(known_consts[chan]) for chan in CHANNELS)
+    nb_unknowns = sum(
+        length(b.spectra[chan]) - length(known_consts[chan]) for chan in b.channels
+    )
 
     # form the matrix of the linear system
     # keep a record of the columns where we put each field.
     LHS = Matrix{T}(undef, nb_lines, nb_unknowns)
     col_idx = 0
-    for chan in CHANNELS
+    for chan in b.channels
         for V in unknowns[chan]
             col_idx += 1
             LHS[:, col_idx] = computeLHScolumn(b, chan, V)
@@ -586,6 +619,7 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     b.unknowns = unknowns
     b.LHS = LHS
     b.RHS = RHS
+    return
 end
 
 function findcol(s::BootstrapSystem, V::Field, chan)
@@ -653,7 +687,7 @@ function solve!(s::BootstrapSystem)
     # compare the two solutions
     errors = @. Float64(abs((sol1 - sol2) / sol2))
 
-    for chan in CHANNELS
+    for chan in s.channels
         for V in s.unknowns[chan]
             index = findcol(s, s.spectra[chan].blocks[V].chan_field, chan)
             s.str_cst[chan].constants[V] = sol1[index]
@@ -664,8 +698,8 @@ function solve!(s::BootstrapSystem)
     return s.str_cst
 end
 
-function solve_bootstrap(specs::Channels; fix = nothing)
-    sys = BootstrapSystem(specs)
+function solve_bootstrap(specs::Channels; fix = nothing, rels=nothing)
+    sys = BootstrapSystem(specs, rels=rels)
     evaluate_blocks!(sys)
     if fix !== nothing
         for (chan, V, cst) in fix
@@ -677,9 +711,14 @@ function solve_bootstrap(specs::Channels; fix = nothing)
     return sys
 end
 
-function solve_bootstrap_manyP(specs::Channels, diag_blocks)
-    sys = BootstrapSystem(specs)
+function solve_bootstrap_manyP(specs::Channels, diag_blocks; fix=nothing, rels=nothing)
+    sys = BootstrapSystem(specs, rels=rels)
     evaluate_blocks!(sys)
+    if fix !== nothing
+        for (chan, V, cst) in fix
+            fix!(sys.str_cst[chan], V, cst)
+        end
+    end
     compute_linear_system!(sys)
     res = []
     for b in diag_blocks
