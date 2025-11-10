@@ -375,6 +375,7 @@ function computeCNmns(Nmax, c::CC{T}, Rs) where {T}
     mns = [Set{Tuple{Int,Int}}() for _ = 1:Nmax]
     δs = [δrs(mp, np, B) for mp = 1:Nmax, np = 1:Nmax]
     Cs = CNmnTable{T}(Array{T}(undef, (Nmax, Nmax, Nmax)), mns, δs)
+    buf = zero(T)
     @inbounds for N = 1:Nmax
         @inbounds for m = 1:Nmax
             maxn = N ÷ m
@@ -389,7 +390,12 @@ function computeCNmns(Nmax, c::CC{T}, Rs) where {T}
                     for mp = 1:Np
                         for np = 1:(Np÷mp)
                             if haskey(Cs, (Np, mp, np))
-                                _sum += Cs[Np, mp, np] / (δ0 - Cs.δs[mp, np])
+                                # we do
+                                # _sum += Cs[Np, mp, np] / (δ0 - Cs.δs[mp, np])
+                                # below is the version with mutable arithmetics. much faster because it does not allocate.
+                                buf = MA.operate_to!!(buf, -, δ0, Cs.δs[mp, np])
+                                buf = MA.operate_to!!(buf, /, Cs[Np, mp, np], buf)
+                                _sum = MA.operate_to!!(_sum, +, _sum, buf)
                             end
                         end
                     end

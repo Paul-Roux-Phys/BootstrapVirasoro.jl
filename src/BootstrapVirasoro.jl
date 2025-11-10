@@ -63,6 +63,9 @@ Channels(s) = Channels(s, s, s)
 Channels(f::Function) = Channels(f(:s), f(:t), f(:u))
 Base.length(c::Channels) = 3
 
+# Include generic interface for in-place arithmetics on bigfloats
+include("MutableArithmetics_ComplexBigFloat.jl")
+
 # Implementations
 include("1_CFTData.jl")
 include("2_Correlation.jl")

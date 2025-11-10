@@ -165,29 +165,43 @@ If the block is a one-point block, `x` is the torus' modulus.
 function (b::Block)(x) end
 #=============================================================================
 Chiral Blocks
-=================================++++========================================#
+=============================================================================#
 function series_H(d::CD{T}, Δmax, CNmn) where {T}
     P = d.P
     P2 = P^2
     isKac = d.isKac
     r, s = d.r, d.s
 
-    coeffs = Matrix{T}(undef, Δmax + 2, Δmax + 2)
+    coeffs = [zero(T) for _ = 1:Δmax+2, _ = 1:Δmax+2]
     all_mns = union([CNmn.keys[N] for N = 1:Δmax]...)
+    buf = zero(T)
+    o = one(T)
+    four = convert(T, 4)
     for (m, n) in all_mns
         if isKac && m == r && n == s
-            coeffs[m, n] = -inv(4CNmn.δs[r, s])
+            # coeffs[m, n] = -inv(4CNmn.δs[r, s])
+            buf = MA.operate_to!!(buf, *, four, CNmn.δs[r, s]) # 4 * δrs
+            buf = MA.operate_to!!(buf, /, o, buf) # 1/ (4*δrs)
+            buf = MA.operate!!(-, buf) # -1/ (4*δrs)
+            MA.operate_to!!(coeffs[m, n], copy, buf) # store the result
         else
-            coeffs[m, n] = inv(P2 - CNmn.δs[m, n])
+            # coeffs[m, n] = 1 / (P2 - CNmn.δs[m, n])
+            buf = MA.operate_to!!(buf, -, P2, CNmn.δs[m, n])
+            buf = MA.operate_to!!(buf, /, o, buf)
+            coeffs[m, n] = MA.operate_to!!(coeffs[m, n], copy, buf)
         end
     end
 
-    H = zeros(T, Δmax + 1)
+    H = [zero(T) for _ = 1:Δmax+1]
     H[1] = one(T)
+    buf = zero(T)
     for N = 1:Δmax
         for (m, n) in CNmn.keys[N]
             (N > Δmax || m > Δmax || n > Δmax) && continue
-            H[N+1] += CNmn[N, m, n] * coeffs[m, n]
+            # H[N+1] += CNmn[N, m, n] * coeffs[m, n]
+            buf = MA.operate_to!!(buf, *, CNmn[N, m, n], coeffs[m, n])
+            buf = MA.operate_to!!(buf, +, H[N+1], buf)
+            H[N+1] = MA.operate_to!!(H[N+1], copy, buf)
         end
     end
 
@@ -197,17 +211,32 @@ end
 function series_H_der(d::CD{T}, Δmax, CNmn) where {T}
     P = d.P
     P2 = P^2
+    mtwoP = -2P
+    buf = zero(T)
 
-    H = zeros(T, Δmax + 1)
-    coeffs = Dict(
-        (m, n) => -2P / (P2 - CNmn.δs[m, n])^2 for
-        (m, n) in union([CNmn.keys[N] for N = 1:Δmax]...)
-    )
+    H = [zero(T) for _ = 1:Δmax+1]
+
+    # coeffs = Dict(
+    #     (m, n) => -2P / (P2 - CNmn.δs[m, n])^2 for
+    #     (m, n) in union([CNmn.keys[N] for N = 1:Δmax]...)
+    # )
+
+    all_mns = union([CNmn.keys[N] for N = 1:Δmax]...)
+    coeffs = Dict((m, n) => zero(T) for (m, n) in all_mns)
+    for (m, n) in all_mns
+        buf = MA.operate_to!!(buf, -, P2, CNmn.δs[m, n])
+        buf = MA.operate_to!!(buf, *, buf, buf)
+        buf = MA.operate_to!!(buf, /, mtwoP, buf)
+        coeffs[(m, n)] = MA.operate_to!!(coeffs[(m, n)], copy, buf)
+    end
 
     for N = 1:Δmax
         for (m, n) in CNmn.keys[N]
             (N > Δmax || m > Δmax || n > Δmax) && continue
-            H[N+1] += CNmn[N, m, n] * coeffs[(m, n)]
+            # H[N+1] += CNmn[N, m, n] * coeffs[(m, n)]
+            buf = MA.operate_to!!(buf, *, CNmn[N, m, n], coeffs[(m, n)])
+            buf = MA.operate_to!!(buf, +, H[N+1], buf)
+            H[N+1] = MA.operate_to!!(H[N+1], copy, buf)
         end
     end
 
@@ -289,8 +318,11 @@ PosCache(x, b::CBlock) = PosCache(x, b.corr, b.chan)
 
 function evalpoly(x::PosCache, coeffs::Vector{T}) where {T}
     res = zero(T)
+    buf = zero(T)
     for i = 1:length(coeffs)
-        res += coeffs[i] * x.q_powers[i]
+        # res += coeffs[i] * x.q_powers[i]
+        buf = MA.operate_to!!(buf, *, coeffs[i], x.q_powers[i])
+        res = MA.operate!!(+, res, buf)
     end
     return res
 end

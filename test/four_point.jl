@@ -10,7 +10,7 @@
     c = CC(c = big"0.1")
     V1 = Field(c, r = 1 // 2, s = 0)
     V2 = Field(c, r = 3 // 2, s = 0)
-    corr = Corr(V1, V2, V2, V1, 10)
+    corr = Corr(V1, V2, V2, V1, 4)
 
     @test isapprox(
         corr.CNmn.left.t[4, 1, 4],
