@@ -187,6 +187,21 @@ function Base.:+(c1::SC{T}, c2::SC) where {T}
     return StructureConstants{T}(consts, errs)
 end
 
+function Base.:-(c1::SC{T}, c2::SC) where {T}
+    consts = deepcopy(c1.constants)
+    errs = deepcopy(c1.errors)
+    for (k, v) in c2.constants
+        if k in keys(c1.constants)
+            consts[k] -= v
+            errs[k] += c2.errors[k]
+        else
+            consts[k] = v
+            errs[k] = c2.errors[k]
+        end
+    end
+    return StructureConstants{T}(consts, errs)
+end
+
 function find_normalised(c::SC)
     for (k, v) in c.constants
         if v ≈ 1 && c.errors[k] ≈ 0
