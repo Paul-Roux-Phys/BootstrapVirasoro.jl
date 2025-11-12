@@ -178,10 +178,10 @@ function Base.:+(c1::SC{T}, c2::SC) where {T}
     for (k, v) in c2.constants
         if k in keys(c1.constants)
             consts[k] += v
-            errs[k] = (errs[k] + c2.errors[k]) / 2
+            errs[k] += c2.errors[k]
         else
             consts[k] = v
-            errs[k] = (errs[k] + c2.errors[k]) / 2
+            errs[k] = c2.errors[k]
         end
     end
     return StructureConstants{T}(consts, errs)
