@@ -23,11 +23,19 @@ const cplx_buffer2 = Ref{Vector{Complex{BigFloat}}}()
 const real_buffer  = Ref{Vector{BigFloat}}()
 const real_buffer2 = Ref{Vector{BigFloat}}()
 
+# before Julia 1.8, there was only one global thread pool, in newer julia versions
+# the threadid can be > nthreads.
+@static if VERSION >= v"1.9"
+    max_thread_id() = Threads.maxthreadid()
+else
+    max_thread_id() = Threads.nthreads()
+end
+
 function __init__()
-    cplx_buffer[]  = [zero(Complex{BigFloat}) for _ in 1:Threads.maxthreadid()]
-    cplx_buffer2[] = [zero(Complex{BigFloat}) for _ in 1:Threads.maxthreadid()]
-    real_buffer[]  = [zero(BigFloat) for _ in 1:Threads.maxthreadid()]
-    real_buffer2[] = [zero(BigFloat) for _ in 1:Threads.maxthreadid()]
+    cplx_buffer[]  = [zero(Complex{BigFloat}) for _ in 1:max_thread_id()]
+    cplx_buffer2[] = [zero(Complex{BigFloat}) for _ in 1:max_thread_id()]
+    real_buffer[]  = [zero(BigFloat) for _ in 1:max_thread_id()]
+    real_buffer2[] = [zero(BigFloat) for _ in 1:max_thread_id()]
 end
 
 MA.mutability(::Type{Complex{BigFloat}}) = IsMutable()
