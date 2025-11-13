@@ -1,3 +1,18 @@
+#=
+# Allocating arbitrary precision numbers is expensive.
+# Since julia number types are all immutable, whenever we do an operation like
+# c = a + b
+# Julia allocates a new number c even if c was previously allocated.
+# For the performance critical parts of the code, i.e. computing blocks coefficients
+# and evaluating block series, we use in-place arithmetics via the MutableArithmetics package API,
+# if the types are arbitrary precision.
+# We use global thread-local buffers to store results of intermediary computations, and implement
+# the MutableArithmetics API for the Complex{BigFloat} numbers.
+# Since the resulting syntax is not very readable, we only use this in performance critical parts
+# of the library.
+=#
+
+
 using MutableArithmetics
 const MA = MutableArithmetics
 import MutableArithmetics: mutability, mutable_copy, buffer_for,
@@ -9,10 +24,10 @@ const real_buffer  = Ref{Vector{BigFloat}}()
 const real_buffer2 = Ref{Vector{BigFloat}}()
 
 function __init__()
-    cplx_buffer[]  = [zero(Complex{BigFloat}) for _ in 1:Threads.nthreads()]
-    cplx_buffer2[] = [zero(Complex{BigFloat}) for _ in 1:Threads.nthreads()]
-    real_buffer[]  = [zero(BigFloat) for _ in 1:Threads.nthreads()]
-    real_buffer2[] = [zero(BigFloat) for _ in 1:Threads.nthreads()]
+    cplx_buffer[]  = [zero(Complex{BigFloat}) for _ in 1:Threads.maxthreadid()]
+    cplx_buffer2[] = [zero(Complex{BigFloat}) for _ in 1:Threads.maxthreadid()]
+    real_buffer[]  = [zero(BigFloat) for _ in 1:Threads.maxthreadid()]
+    real_buffer2[] = [zero(BigFloat) for _ in 1:Threads.maxthreadid()]
 end
 
 MA.mutability(::Type{Complex{BigFloat}}) = IsMutable()

@@ -329,14 +329,13 @@ function evaluate_blocks(S::ChanSpec, xs)
     nbs = length(bs)
 
     # Preallocate thread-local results
-    thread_results = [Dict{Field{T},Vector{T}}() for _ = 1:Threads.nthreads()]
+    thread_results = [Dict{Field{T},Vector{T}}() for _ = 1:Threads.maxthreadid()]
 
     bs_vals = collect(values(bs))
 
     Threads.@threads for i = 1:nbs
         b = bs_vals[i]
-        tid = Threads.threadid()
-        thread_results[tid][b.chan_field] = [b(x) for x in xs]
+        thread_results[Threads.threadid()][b.chan_field] = [b(x) for x in xs]
     end
 
     # Merge all thread-local dictionaries into a single result
