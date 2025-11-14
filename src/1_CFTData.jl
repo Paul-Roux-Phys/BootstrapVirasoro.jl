@@ -441,13 +441,21 @@ function Base.show(io::IO, ::MIME"text/latex", V::Field)
     print(io, latexstring(V))
 end
 
+# turn "1.23e-8" into "1.23 \\cdot 10^{-8}"
+function latexify_sci(str)
+    if occursin('e', str)
+        base, exp = split(str, 'e')
+        # remove leading "+" in exponent
+        exp_int = parse(Int, exp)
+        return "$(base)\\cdot10^{$(exp_int)}"
+    else
+        return str
+    end
+end
+
 function format_complex(z; digits=8, latex=false)
     fmt = Format("%.$(digits)g")
-    if latex
-    i_str = "\\mathrm{i}"
-    else
-        i_str = "im"
-    end
+    i_str = latex ? "\\mathrm{i}" : "im"
     re_str = format(fmt, real(z))
     sign = 1
     if imag(z) < 0
@@ -456,7 +464,10 @@ function format_complex(z; digits=8, latex=false)
     else
         im_str = format(fmt, imag(z))
     end
-
+    if latex
+        re_str = latexify_sci(re_str)
+        im_str = latexify_sci(im_str)
+    end
     im_str = im_str * i_str
     if iszero(imag(z))
         return "$re_str"
