@@ -5,8 +5,10 @@ module LoopModels
 
 export InterchiralBlock, IBlock, shift
 export divide_by_reference, substract_res
+export Polyfit, fit!
 
 using ..BootstrapVirasoro
+using ..BootstrapVirasoro.LaTeXStrings
 import ..BootstrapVirasoro: getfields, total_dimension, reflect
 import ..BootstrapVirasoro: reflect, permute_4, Prs
 import SpecialFunctions: gamma
@@ -289,9 +291,9 @@ end
 compute_reference(b::Block, DG) = compute_reference(b.blocks[1].corr, b.chan_field, b.chan, DG)
 
 # residue of non-diagonal structure constants
-function strcst_residue(β², r, s, r1, s1, r2, s2)
+function ρ_residue(β², r, s, r1, s1, r2, s2)
     res = 1
-    if r < r && s * min(r, abs(r1 - r2)) % 2 == 1
+    if r1 < r2 && s * min(r, abs(r1 - r2)) % 2 == 1
         res *= -1
     end
     res *= prod(
@@ -300,7 +302,7 @@ function strcst_residue(β², r, s, r1, s1, r2, s2)
     )
 end
 
-function strcst_residue(V, V1, V2, V3, V4)
+function ρ_residue(V, V1, V2, V3, V4)
     V.diagonal && return 0
     β² = V.c.β^2
     r, s, = V.r, V.s
@@ -310,8 +312,8 @@ function strcst_residue(V, V1, V2, V3, V4)
     if (r + 1) * s % 2 == 1
         res *= -1
     end
-    res *= strcst_residue(β², r, s, r1, s1, r2, s2)
-    res *= strcst_residue(β², r, s, r4, s4, r3, s3)
+    res *= ρ_residue(β², r, s, r1, s1, r2, s2)
+    res *= ρ_residue(β², r, s, r4, s4, r3, s3)
 end
 
 function divide_by_reference(s::SC, co)
@@ -342,7 +344,7 @@ function substract_res(s::SC, co)
         for k in keys(s.constants[chan])
             if res.errors[chan][k] < 1e-4 && k.r isa Int && k.s isa Int
                 res.constants[chan][k] -=
-                    strcst_residue(k, Vs...) /
+                    ρ_residue(k, Vs...) /
                     (w - 2cos(2 * (π * β * Prs(k.r, k.s, β))))
             else
                 delete!(res.constants[chan], k)
@@ -351,6 +353,58 @@ function substract_res(s::SC, co)
         end
     end
     return res
+end
+
+#===============================================================
+Polynomial fits
+===============================================================#
+mutable struct Polyfit
+    varnames::Tuple{Vararg{Symbol}}
+    degrees::Tuple{Vararg{Int}}
+    nb_monoms::Int
+    monomials
+    coeffs::Vector
+end
+
+function Polyfit(names, degrees)
+    ranges = (0:d for d in degrees)
+    nb_monoms = prod(d + 1 for d in degrees)
+    monoms = [t for t in Iterators.product(ranges...)]
+    return Polyfit(names, degrees, nb_monoms, monoms, [])
+end
+
+function fit!(pf::Polyfit, data)
+    @assert length(data) > pf.nb_monoms "
+You must provide more data points
+"
+    T = float(typeof(data).parameters[1].parameters[2])
+    mat = Matrix{T}(undef, length(data), pf.nb_monoms)
+    for (i, d) in enumerate(data)
+        xvec = d[1]
+        for (j, m) in enumerate(pf.monomials)
+            mat[i, j] = prod(x^m[k] for (k, x) in enumerate(xvec))
+        end
+    end
+    vals = [v for (_, v) in data]
+    pf.coeffs = mat \ vals
+    return pf
+end
+
+function format_monomial(pf, monom)
+    # product is concatenation of strings
+    prod(
+        "$(pf.varnames[i])^$(d)"
+        for (i, d) in enumerate(monom)
+    )
+end
+
+function Base.show(io::IO, ::MIME"text/latex", pf::Polyfit)
+    terms = []
+    for (i, m) in enumerate(pf.monomials)
+         push!(terms, "($(BootstrapVirasoro.format_complex(pf.coeffs[i], digits=5, latex=true)))" *
+            " $(format_monomial(pf, m))")
+    end
+    show(io, MIME"text/latex"(), latexstring(join(terms, " + ")))
 end
 
 end # end BootstrapVirasoro.LoopModels

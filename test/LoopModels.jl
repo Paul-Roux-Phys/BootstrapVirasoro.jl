@@ -242,3 +242,7 @@ ncprefA(τ, co_S2, chan) =
                 end
         end
 end
+
+@testset "Residues" begin
+        
+end

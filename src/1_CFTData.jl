@@ -441,6 +441,36 @@ function Base.show(io::IO, ::MIME"text/latex", V::Field)
     print(io, latexstring(V))
 end
 
+function format_complex(z; digits=8, latex=false)
+    fmt = Format("%.$(digits)g")
+    if latex
+    i_str = "\\mathrm{i}"
+    else
+        i_str = "im"
+    end
+    re_str = format(fmt, real(z))
+    sign = 1
+    if imag(z) < 0
+        sign = -1
+        im_str = format(fmt, -imag(z))
+    else
+        im_str = format(fmt, imag(z))
+    end
+
+    im_str = im_str * i_str
+    if iszero(imag(z))
+        return "$re_str"
+    elseif iszero(real(z))
+        return "$(im_str)"
+    else
+        if sign == 1
+            return "$(re_str)+$(im_str)"
+        else
+            return "$(re_str)-$(im_str)"
+        end
+    end
+end
+
 function Base.show(io::IO, V::Field)
     if V.diagonal
         if V.isKac
@@ -451,15 +481,7 @@ function Base.show(io::IO, V::Field)
             end
         else
             P = V.dims[:left].P
-            re_str = @sprintf("%.2f", real(P))
-            im_str = @sprintf("%.2f", imag(P))
-            if iszero(imag(P))
-                print(io, "(P=$re_str)")
-            elseif iszero(real(P))
-                print(io, "(P=$(im_str)im)")
-            else
-                print(io, "(P=$(re_str)+$(im_str)im)")
-            end
+            print(io, "P = ($(format_complex(P, digits=2)))")
         end
     else
         print(io, "($(V.r), $(V.s))")

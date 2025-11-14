@@ -122,7 +122,7 @@ function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
                 2^(-precision(BigFloat, base = 10) / 3) &&
                 j == 2
             ) ? 0 : v
-    fmt_relerr = (v, i, j) -> j == 3 && v isa Real ? @sprintf("%.2g", v) : v
+    fmt_relerr = (v, i, j) -> j == 3 && v isa Real ? format(Format("%.2g"), v) : v
     fmt_indices = (v, i, j) -> j == 1 ? tex_tuple(v) : v
     fmt_vals = (v, i, j) -> j == 2 ? tex_complex(v) : v
     if backend == :latex
@@ -687,10 +687,12 @@ function replacediag!(sys::BootstrapSystem, new::Block, str_cst = 1)
     # else change RHS
     for V in sys.unknowns[new.chan]
         if V.diagonal
-            return replacediagLHS!(sys, new)
+            replacediagLHS!(sys, new)
+            return
         end
     end
-    return replacediagRHS!(sys, new, str_cst)
+    replacediagRHS!(sys, new, str_cst)
+    return
 end
 
 function solve!(s::BootstrapSystem)
@@ -712,7 +714,7 @@ function solve!(s::BootstrapSystem)
     return s.str_cst
 end
 
-function solve_bootstrap(specs::Channels; fix = nothing, rels=nothing)
+function eval_blocks_compute_system(specs::Channels; fix = nothing, rels=nothing)
     sys = BootstrapSystem(specs, rels=rels)
     evaluate_blocks!(sys)
     if fix !== nothing
@@ -721,22 +723,35 @@ function solve_bootstrap(specs::Channels; fix = nothing, rels=nothing)
         end
     end
     compute_linear_system!(sys)
+    return sys
+end
+
+function solve_bootstrap(specs::Channels; fix = nothing, rels=nothing)
+    sys = eval_blocks_compute_system(specs, fix=fix, rels=rels)
     solve!(sys)
     return sys
 end
 
-function solve_bootstrap_manyP(specs::Channels, diag_blocks; fix=nothing, rels=nothing)
-    sys = BootstrapSystem(specs, rels=rels)
-    evaluate_blocks!(sys)
-    if fix !== nothing
-        for (chan, V, cst) in fix
-            fix!(sys.str_cst[chan], V, cst)
+# expects diag_blocks as a struct Channels(collection of diagonal blocks)
+# if several channels have a non-empty list, the lists must be identical.
+function solve_bootstrap(specs::Channels, diag_blocks; fix=nothing, rels=nothing)
+    sys = eval_blocks_compute_system(specs, fix=fix, rels=rels)
+    res = []
+    chans = []
+    if all([isempty(diag_blocks[chan]) for chan in CHANNELS])
+        error("You need to provide diagonal blocks in at least one of the channels to use this method")
+    end
+    bs = []
+    for chan in CHANNELS
+        if !isempty(diag_blocks[chan])
+            bs = diag_blocks[chan]
+            push!(chans, chan)
         end
     end
-    compute_linear_system!(sys)
-    res = []
-    for b in diag_blocks
-        BootstrapVirasoro.replacediag!(sys, b)
+    for i in eachindex(diag_blocks[chans[1]])
+        for chan in chans
+            replacediag!(sys, diag_blocks[chan][i])
+        end
         solve!(sys)
         push!(res, deepcopy(sys))
     end

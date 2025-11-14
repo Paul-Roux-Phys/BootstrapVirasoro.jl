@@ -34,7 +34,7 @@ import CSV
 using LaTeXStrings
 import PrettyTables: pretty_table, @crayon_str, Highlighter, Tables.columntable
 import Random
-import Printf: @sprintf
+import Printf: Format, format
 
 #========================================================================
 Package-wide definitions
