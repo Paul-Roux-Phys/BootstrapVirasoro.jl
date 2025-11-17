@@ -303,7 +303,7 @@ function ρ_residue(β², r, s, r1, s1, r2, s2)
 end
 
 function ρ_residue(V, V1, V2, V3, V4)
-    V.diagonal && return 0
+    (V.diagonal || !(V.r isa Int) || !(V.s isa Int)) && return 0
     β² = V.c.β^2
     r, s, = V.r, V.s
     r1, s1, r2, s2 = V1.r, V1.s, V2.r, V2.s
@@ -314,6 +314,22 @@ function ρ_residue(V, V1, V2, V3, V4)
     end
     res *= ρ_residue(β², r, s, r1, s1, r2, s2)
     res *= ρ_residue(β², r, s, r4, s4, r3, s3)
+end
+
+function ρ_residue(V, V1)
+    (V.diagonal || !(V.r isa Int) || !(V.s isa Int)) && return 0
+    β² = V.c.β^2
+    r, s = V.r, V.s
+    r1, s1 = V1.r, V1.s
+    res = 1
+    if s % 2 == 1
+        res *= -1
+    end
+    res *= prod((2cospi(j * β²) - 2) for j = 1:r)
+    res *= prod(
+        2cospi(j * β² / 2 + (s - (1 + pm * s1) / 2) / 2)
+        for j = -r+1//2+r1//2:1:r-1//2-r1//2 for pm in (-1, 1)
+    )
 end
 
 function divide_by_reference(s::SC, co)
