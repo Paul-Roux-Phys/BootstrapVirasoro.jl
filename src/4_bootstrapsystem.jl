@@ -455,7 +455,7 @@ function BootstrapSystem(
            You must give enough positions for the system to be overdetermined
        "
     else
-        nb_positions = nb_channels == 1 ? nb_lines : nb_lines ÷ (nb_channels - 1)
+        nb_positions = nb_channels == 1 ? nb_lines ÷ 2 : nb_lines ÷ (nb_channels - 1)
         pos = choose_block_eval_points(nb_positions, co)
     end
 
