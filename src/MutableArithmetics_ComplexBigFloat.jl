@@ -25,11 +25,6 @@ const real_buffer2 = Ref{Vector{BigFloat}}()
 
 # before Julia 1.8, there was only one global thread pool, in newer julia versions
 # the threadid can be > nthreads.
-@static if VERSION >= v"1.9"
-    max_thread_id() = Threads.maxthreadid()
-else
-    max_thread_id() = Threads.nthreads()
-end
 
 function __init__()
     cplx_buffer[]  = [zero(Complex{BigFloat}) for _ in 1:max_thread_id()]

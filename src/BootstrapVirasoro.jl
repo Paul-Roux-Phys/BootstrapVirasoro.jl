@@ -63,6 +63,12 @@ Channels(s) = Channels(s, s, s)
 Channels(f::Function) = Channels(f(:s), f(:t), f(:u))
 Base.length(c::Channels) = 3
 
+@static if VERSION >= v"1.9"
+    max_thread_id() = Threads.maxthreadid()
+else
+    max_thread_id() = Threads.nthreads()
+end
+
 # Include generic interface for in-place arithmetics on bigfloats
 include("MutableArithmetics_ComplexBigFloat.jl")
 

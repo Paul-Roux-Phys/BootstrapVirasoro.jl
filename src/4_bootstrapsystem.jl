@@ -339,7 +339,7 @@ function evaluate_blocks(S::ChanSpec, xs)
     nbs = length(bs)
 
     # Preallocate thread-local results
-    thread_results = [Dict{Field{T},Vector{T}}() for _ = 1:Threads.maxthreadid()]
+    thread_results = [Dict{Field{T},Vector{T}}() for _ = 1:max_thread_id()]
 
     bs_vals = collect(values(bs))
 
