@@ -164,7 +164,7 @@ MA.promote_operation(::typeof(/), ::Type{Complex{BigFloat}}, ::Type{BigFloat}) =
 MA.promote_operation(::typeof(/), ::Type{BigFloat}, ::Type{BigFloat}) = BigFloat
 
 function MA.operate_to!(out::BigFloat, ::typeof(/), a::BigFloat, b::BigFloat)
-    ccall((:mpfr_div, Base.MPFR.libmpfr), Cint,
+    ccall((:mpfr_div, :libmpfr), Cint,
         (Ref{BigFloat}, Ref{BigFloat}, Ref{BigFloat}, Base.MPFR.MPFRRoundingMode),
         out, a, b, Base.MPFR.ROUNDING_MODE[])
     return out
