@@ -1,7 +1,7 @@
 using BootstrapVirasoro.LoopModels
 import BootstrapVirasoro: xfromq, conj_q, PosCache, etaDedekind
 import BootstrapVirasoro.LoopModels: shift_D
-setprecision(BigFloat, 40, base=10)
+setprecision(BigFloat, 133) # 40 digits
 
 @testset "ConformalDimensions" begin
     c = CC(β = 0.8+0.3im)
@@ -118,7 +118,7 @@ end
 
 ind = ((1 // 2, 0), (1 // 2, 0), (1 // 2, 0), (1 // 2, 0))
 Δmax = 20
-setprecision(BigFloat, 15, base=10)
+setprecision(BigFloat, 50)
 co = Correlation([Field(c, r=r, s=s) for (r, s) in ind], Δmax)
 blocks_even = precompute_blocks(co, fields, parity=1)
 
@@ -133,7 +133,7 @@ sol = solve(blocks_even, sig)
         end
 end
 
-setprecision(BigFloat, 40, base=10)
+setprecision(BigFloat, 133)
 c = CentralCharge(β=big"1.2" + big"0.1" * im)
 c_S2 = CentralCharge(β=c.β / sqrt(big(2)))
 Δmax = 30

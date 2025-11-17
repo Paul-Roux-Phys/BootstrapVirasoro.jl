@@ -240,7 +240,7 @@ end
 end
 
 @testset "Full logarithmic blocks" begin
-    setprecision(BigFloat, 50, base = 10)
+    setprecision(BigFloat, 167)
     bl(channel) = NCBlock(co, channel, V, Δmax)
 
     # comparing with Sylvain's code

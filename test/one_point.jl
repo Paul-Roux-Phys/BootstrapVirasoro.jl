@@ -214,7 +214,7 @@ end
           b_S2[:left](x) / total_prefactor(b_S2[:left], x) - missing_term_S2
 end
 
-setprecision(BigFloat, 40, base = 10)
+setprecision(BigFloat, 133)
 c = CentralCharge(β = big"1.2" + big"0.1" * im)
 c_S2 = CentralCharge(β = c.β / sqrt(big(2)))
 
@@ -256,7 +256,7 @@ prefs_S2 = [
     end
 end
 
-setprecision(BigFloat, 40, base = 10)
+setprecision(BigFloat, 133)
 c = CentralCharge(β = big"1.2" + big"0.1" * im)
 c_S2 = CentralCharge(β = c.β / sqrt(big(2)))
 Δmax = 30
