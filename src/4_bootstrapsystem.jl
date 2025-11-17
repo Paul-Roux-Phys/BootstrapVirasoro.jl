@@ -242,11 +242,21 @@ end
 
 function ChannelSpectrum(co::Co{T}, chan, Vs::Vector{<:Field}, f::Function) where {T}
     s = ChannelSpectrum{T}(co, Dict{Field{T},Block{T}}(), co.Δmax, chan)
-    for V in Vs
-        if real(total_dimension(V)) < s.Δmax
-            add!(s, f(V))
-        end
+    to_add = [V for V in Vs if real(total_dimension(V)) < s.Δmax]
+    blocks = Vector(undef, length(to_add))
+    Threads.@threads for i = eachindex(to_add)
+        V = to_add[i]
+        b = f(V)
+        blocks[i] = b
     end
+    for b in blocks
+        _add_one!(s, b)
+    end
+    # for V in Vs
+    #     if real(total_dimension(V)) < s.Δmax
+    #         add!(s, f(V))
+    #     end
+    # end
     return s
 end
 
@@ -517,7 +527,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
         chan === :t && return vcat(-v, zer)
         chan === :u && return vcat(zer, -v)
     elseif rels == :st  #= [(Gs-Gt)  0;
-                            Gs     -Gu] =#
+                                  Gs     -Gu] =#
         zer = zeros(T, length(b.positions))
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
@@ -528,7 +538,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
             return vcat(zer, .-vs_u)
         end
     elseif rels == :su  #= [Gs     -Gt;
-                            (Gs-Gu)   0] =#
+                                  (Gs-Gu)   0] =#
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
             vs_u = b.factors[:u] .* b.block_values[:u][V]
@@ -538,7 +548,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
             return vcat(.-vs_t, zer)
         end
     elseif rels == :tu   #= [Gs     -Gt;
-                             0   (Gt-Gu)] =#
+                                  0   (Gt-Gu)] =#
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
             return vcat(vs_s, zer)
@@ -548,7 +558,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
             return vcat(.-vs_t, vs_t .- vs_u)
         end
     elseif rels == :stu #= [(Gs-Gt);
-                            (Gs-Gu)] =#
+                                   (Gs-Gu)] =#
         vs = @channels b.factors[chan] .* b.block_values[chan][V]
         return vcat(vs.s .- vs.t, vs.s .- vs.u)
     end
@@ -714,8 +724,8 @@ function solve!(s::BootstrapSystem)
     return s.str_cst
 end
 
-function eval_blocks_compute_system(specs::Channels; fix = nothing, rels=nothing)
-    sys = BootstrapSystem(specs, rels=rels)
+function eval_blocks_compute_system(specs::Channels; fix = nothing, rels = nothing)
+    sys = BootstrapSystem(specs, rels = rels)
     evaluate_blocks!(sys)
     if fix !== nothing
         for (chan, V, cst) in fix
@@ -726,20 +736,22 @@ function eval_blocks_compute_system(specs::Channels; fix = nothing, rels=nothing
     return sys
 end
 
-function solve_bootstrap(specs::Channels; fix = nothing, rels=nothing)
-    sys = eval_blocks_compute_system(specs, fix=fix, rels=rels)
+function solve_bootstrap(specs::Channels; fix = nothing, rels = nothing)
+    sys = eval_blocks_compute_system(specs, fix = fix, rels = rels)
     solve!(sys)
     return sys
 end
 
 # expects diag_blocks as a struct Channels(collection of diagonal blocks)
 # if several channels have a non-empty list, the lists must be identical.
-function solve_bootstrap(specs::Channels, diag_blocks; fix=nothing, rels=nothing)
-    sys = eval_blocks_compute_system(specs, fix=fix, rels=rels)
+function solve_bootstrap(specs::Channels, diag_blocks; fix = nothing, rels = nothing)
+    sys = eval_blocks_compute_system(specs, fix = fix, rels = rels)
     res = []
     chans = []
     if all([isempty(diag_blocks[chan]) for chan in CHANNELS])
-        error("You need to provide diagonal blocks in at least one of the channels to use this method")
+        error(
+            "You need to provide diagonal blocks in at least one of the channels to use this method",
+        )
     end
     bs = []
     for chan in CHANNELS
