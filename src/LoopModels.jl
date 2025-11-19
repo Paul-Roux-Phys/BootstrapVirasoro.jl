@@ -325,7 +325,7 @@ function ρ_residue(V, V1)
     if s % 2 == 0
         res *= -1
     end
-    res *= prod((2cospi(j * β²) - 2) for j = 1:r)
+    res *= prod(2cospi(j * β²) - 2 for j = 1:r)
     res *= prod(
         2cospi(j * β² / 2 + (s - (1 + pm * s1) / 2) / 2)
         for j = -r+1//2+r1//2:1:r-1//2-r1//2 for pm in (-1, 1)
