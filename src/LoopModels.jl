@@ -266,7 +266,7 @@ end
 
 function Bref(DG, c, P)
     β = c.β
-    prod(1 / DG(β + pm2 * 2P) / DG(1/β + pm2 * 2P) for pm2 in (-1, 1))
+    prod(1 / DG(β + pm2 * 2P) / DG(1 / β + pm2 * 2P) for pm2 in (-1, 1))
 end
 
 function Bref(V::Field, DG, reg = 1 / big"10"^15)
@@ -288,7 +288,8 @@ function compute_reference(co::Correlation1, V::Field, _, DG)
     return Cref(V₁, V, V, DG) / Bref(V, DG)
 end
 
-compute_reference(b::Block, DG) = compute_reference(b.blocks[1].corr, b.chan_field, b.chan, DG)
+compute_reference(b::Block, DG) =
+    compute_reference(b.blocks[1].corr, b.chan_field, b.chan, DG)
 
 # residue of non-diagonal structure constants
 function ρ_residue(β², r, s, r1, s1, r2, s2)
@@ -327,8 +328,8 @@ function ρ_residue(V, V1)
     end
     res *= prod(2cospi(j * β²) - 2 for j = 1:r)
     res *= prod(
-        2cospi(j * β² / 2 + (s - (1 + pm * s1) / 2) / 2)
-        for j = -r+1//2+r1//2:1:r-1//2-r1//2 for pm in (-1, 1)
+        2cospi(j * β² / 2 + (s - (1 + pm * s1) / 2) / 2) for
+        j = -r+1//2+r1//2:1:r-1//2-r1//2 for pm in (-1, 1)
     )
 end
 
@@ -360,8 +361,7 @@ function substract_res(s::SC, co)
         for k in keys(s.constants[chan])
             if res.errors[chan][k] < 1e-4 && k.r isa Int && k.s isa Int
                 res.constants[chan][k] -=
-                    ρ_residue(k, Vs...) /
-                    (w - 2cos(2 * (π * β * Prs(k.r, k.s, β))))
+                    ρ_residue(k, Vs...) / (w - 2cos(2 * (π * β * Prs(k.r, k.s, β))))
             else
                 delete!(res.constants[chan], k)
                 delete!(res.errors[chan], k)
@@ -378,7 +378,7 @@ mutable struct Polyfit
     varnames::Tuple{Vararg{Symbol}}
     degrees::Tuple{Vararg{Int}}
     nb_monoms::Int
-    monomials
+    monomials::Any
     coeffs::Vector
 end
 
@@ -406,26 +406,42 @@ You must provide more data points
     return pf
 end
 
-function format_monomial(pf, monom)
-    # product is concatenation of strings
-    prod(
+function format_monomial(pf, monom; mathematica = false)
+    joiner = mathematica ? "*" : ""
+    join([
         if d == 0
             ""
         elseif d == 1
             "$(pf.varnames[i])"
         else
             "$(pf.varnames[i])^$(d)"
-        end
-        for (i, d) in enumerate(monom)
-    )
+        end for (i, d) in enumerate(monom)
+    ], joiner)
 end
 
-function Base.show(io::IO, ::MIME"text/latex", pf::Polyfit; cutoff=1e-8)
+function Base.show(io::IO, ::MIME"text/latex", pf::Polyfit; cutoff = 1e-8)
     terms = []
     for (i, m) in enumerate(pf.monomials)
         if abs(pf.coeffs[i]) > cutoff
-            push!(terms, "($(BootstrapVirasoro.format_complex(pf.coeffs[i], digits=5, latex=true, cutoff=cutoff)))" *
-                " $(format_monomial(pf, m))")
+            push!(
+                terms,
+                "($(BootstrapVirasoro.format_complex(pf.coeffs[i], digits=5, latex=true, cutoff=cutoff)))" *
+                " $(format_monomial(pf, m))",
+            )
+        end
+    end
+    show(io, MIME"text/latex"(), latexstring(join(terms, " + ")))
+end
+
+function Base.show(io::IO, ::MIME"text/plain", pf::Polyfit; cutoff = 1e-9)
+    terms = []
+    for (i, m) in enumerate(pf.monomials)
+        if abs(pf.coeffs[i]) > cutoff
+            push!(
+                terms,
+                "($(BootstrapVirasoro.format_complex(pf.coeffs[i], digits=5, mathematica=true, cutoff=cutoff)))" *
+                " * $(format_monomial(pf, m))",
+            )
         end
     end
     show(io, MIME"text/latex"(), latexstring(join(terms, " + ")))
