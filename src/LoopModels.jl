@@ -409,13 +409,11 @@ end
 function format_monomial(pf, monom; mathematica = false)
     joiner = mathematica ? "*" : ""
     join([
-        if d == 0
-            ""
-        elseif d == 1
+        if d == 1
             "$(pf.varnames[i])"
         else
             "$(pf.varnames[i])^$(d)"
-        end for (i, d) in enumerate(monom)
+        end for (i, d) in enumerate(monom) if d != 0
     ], joiner)
 end
 
