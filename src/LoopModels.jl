@@ -412,7 +412,11 @@ function format_monomial(pf, monom; mathematica = false)
         if d == 1
             "$(pf.varnames[i])"
         else
-            "$(pf.varnames[i])^$(d)"
+            if mathematica
+                "$(pf.varnames[i])^($(d))"
+            else
+                "$(pf.varnames[i])^{$(d)}"
+            end
         end for (i, d) in enumerate(monom) if d != 0
     ], joiner)
 end
