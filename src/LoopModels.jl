@@ -440,11 +440,11 @@ function Base.show(io::IO, ::MIME"text/plain", pf::Polyfit; cutoff = 1e-9)
             push!(
                 terms,
                 "($(BootstrapVirasoro.format_complex(pf.coeffs[i], digits=5, mathematica=true, cutoff=cutoff)))" *
-                " * $(format_monomial(pf, m))",
+                " * $(format_monomial(pf, m, mathematica=true))",
             )
         end
     end
-    show(io, MIME"text/latex"(), latexstring(join(terms, " + ")))
+    show(io, MIME"text/plain"(), join(terms, " + "))
 end
 
 end # end BootstrapVirasoro.LoopModels
