@@ -409,7 +409,7 @@ end
 function format_monomial(pf, monom)
     # product is concatenation of strings
     prod(
-        "$(pf.varnames[i])^$(d)"
+        d = 0 ? "" : "$(pf.varnames[i])^$(d)"
         for (i, d) in enumerate(monom)
     )
 end
@@ -417,8 +417,10 @@ end
 function Base.show(io::IO, ::MIME"text/latex", pf::Polyfit)
     terms = []
     for (i, m) in enumerate(pf.monomials)
-         push!(terms, "($(BootstrapVirasoro.format_complex(pf.coeffs[i], digits=5, latex=true)))" *
-            " $(format_monomial(pf, m))")
+        if abs(pf.coeffs[i]) > 10e-8
+            push!(terms, "($(BootstrapVirasoro.format_complex(pf.coeffs[i], digits=5, latex=true)))" *
+                " $(format_monomial(pf, m))")
+        end
     end
     show(io, MIME"text/latex"(), latexstring(join(terms, " + ")))
 end
