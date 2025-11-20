@@ -431,7 +431,7 @@ function Base.show(io::IO, ::MIME"text/latex", pf::Polyfit; cutoff = 1e-8)
     show(io, MIME"text/latex"(), latexstring(join(terms, " + ")))
 end
 
-function Base.show(io::IO, ::MIME"text/plain", pf::Polyfit; cutoff = 1e-9)
+function Base.show(io::IO, pf::Polyfit; cutoff = 1e-9)
     terms = []
     for (i, m) in enumerate(pf.monomials)
         if abs(pf.coeffs[i]) > cutoff
