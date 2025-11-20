@@ -453,7 +453,7 @@ function latexify_sci(str)
     end
 end
 
-function format_complex(z; digits=8, latex=false)
+function format_complex(z; digits=8, latex=false, cutoff=nothing)
     fmt = Format("%.$(digits)g")
     i_str = latex ? "\\mathrm{i}" : "im"
     re_str = format(fmt, real(z))
@@ -469,9 +469,9 @@ function format_complex(z; digits=8, latex=false)
         im_str = latexify_sci(im_str)
     end
     im_str = im_str * i_str
-    if iszero(imag(z))
+    if iszero(imag(z)) || (cutoff !== nothing && abs(imag(z)) < cutoff)
         return "$re_str"
-    elseif iszero(real(z))
+    elseif iszero(real(z))|| (cutoff !== nothing && abs(real(z)) < cutoff)
         return "$(im_str)"
     else
         if sign == 1
