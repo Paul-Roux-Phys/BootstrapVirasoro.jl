@@ -409,7 +409,13 @@ end
 function format_monomial(pf, monom)
     # product is concatenation of strings
     prod(
-        d == 0 ? "" : "$(pf.varnames[i])^$(d)"
+        if d == 0
+            ""
+        elseif d == 1
+            "$(pf.varnames[i])"
+        else
+            "$(pf.varnames[i])^$(d)"
+        end
         for (i, d) in enumerate(monom)
     )
 end
