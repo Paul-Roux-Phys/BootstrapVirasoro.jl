@@ -442,7 +442,7 @@ function Base.show(io::IO, pf::Polyfit; cutoff = 1e-9)
             )
         end
     end
-    show(io, MIME"text/plain"(), join(terms, " + "))
+    println(io, join(terms, " + "))
 end
 
 end # end BootstrapVirasoro.LoopModels
