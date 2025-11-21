@@ -440,21 +440,23 @@ function format_monomial(pf, monom; mathematica = false)
     )
 end
 
-function Base.show(io::IO, ::MIME"text/latex", pf::Polyfit; cutoff = 1e-8)
+function Base.show(io::IO, ::MIME"text/latex", pf::Polyfit; cutoff = 1e-8, digits = 5)
     terms = []
     for (i, m) in enumerate(pf.monomials)
         if abs(pf.coeffs[i]) > cutoff
-            push!(
-                terms,
-                "($(BootstrapVirasoro.format_complex(pf.coeffs[i], digits=5, latex=true, cutoff=cutoff)))" *
-                " $(format_monomial(pf, m))",
+            formatted_coeff = BootstrapVirasoro.format_complex(
+                pf.coeffs[i],
+                digits = digits,
+                latex = true,
+                cutoff = cutoff,
             )
+            push!(terms, "($(formatted_coeff))" * " $(format_monomial(pf, m))")
         end
     end
     show(io, MIME"text/latex"(), latexstring(join(terms, " + ")))
 end
 
-function Base.show(io::IO, pf::Polyfit; cutoff = 1e-9, digits=5)
+function Base.show(io::IO, pf::Polyfit; cutoff = 1e-9, digits = 5)
     terms = []
     for (i, m) in enumerate(pf.monomials)
         if abs(pf.coeffs[i]) > cutoff
@@ -464,7 +466,7 @@ function Base.show(io::IO, pf::Polyfit; cutoff = 1e-9, digits=5)
                 mathematica = true,
                 cutoff = cutoff,
             )
-            formatted_monomial = format_monomial(pf, m, mathematica=true)
+            formatted_monomial = format_monomial(pf, m, mathematica = true)
             if formatted_monomial != ""
                 formatted_term = join([formatted_coeff, formatted_monomial], " * ")
             else
