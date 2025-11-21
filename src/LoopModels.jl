@@ -319,6 +319,9 @@ end
 
 function κrs(r, s, β²)
     res = 1
+    if s % 1 == 0
+        res *= -1
+    end
     if !(r isa Int)
         res /= sinpi(r % 1 + s)
     end
