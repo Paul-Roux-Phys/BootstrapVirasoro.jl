@@ -335,8 +335,8 @@ end
 
 function δ1rs(r, s, r1, s1, β²)
     res = 1
-    for j in (r1+1)/2-r:1:r-(r1+1)/2
-        res *= 2cospi(j * β² + s - s1/2)
+    for j = (r1+1)/2-r:1:r-(r1+1)/2
+        res *= 2cospi(j * β² + s - s1 / 2)
     end
     return res
 end
@@ -424,17 +424,20 @@ end
 
 function format_monomial(pf, monom; mathematica = false)
     joiner = mathematica ? "*" : ""
-    join([
-        if d == 1
-            "$(pf.varnames[i])"
-        else
-            if mathematica
-                "$(pf.varnames[i])^$(d)"
+    join(
+        [
+            if d == 1
+                "$(pf.varnames[i])"
             else
-                "$(pf.varnames[i])^{$(d)}"
-            end
-        end for (i, d) in enumerate(monom) if d != 0
-    ], joiner)
+                if mathematica
+                    "$(pf.varnames[i])^$(d)"
+                else
+                    "$(pf.varnames[i])^{$(d)}"
+                end
+            end for (i, d) in enumerate(monom) if d != 0
+        ],
+        joiner,
+    )
 end
 
 function Base.show(io::IO, ::MIME"text/latex", pf::Polyfit; cutoff = 1e-8)
@@ -455,11 +458,19 @@ function Base.show(io::IO, pf::Polyfit; cutoff = 1e-9)
     terms = []
     for (i, m) in enumerate(pf.monomials)
         if abs(pf.coeffs[i]) > cutoff
-            push!(
-                terms,
-                "($(BootstrapVirasoro.format_complex(pf.coeffs[i], digits=5, mathematica=true, cutoff=cutoff)))" *
-                " * $(format_monomial(pf, m, mathematica=true))",
+            formatted_coeff = BootstrapVirasoro.format_complex(
+                pf.coeffs[i],
+                digits = 5,
+                mathematica = true,
+                cutoff = cutoff,
             )
+            formatted_monomial = format_monomial(pf, m, mathematica=true)
+            if formatted_monomial != ""
+                formatted_term = join([formatted_coeff, formatted_monomial], " * ")
+            else
+                formatted_term = formatted_coeff
+            end
+            push!(terms, formatted_term)
         end
     end
     println(io, join(terms, " + "))
