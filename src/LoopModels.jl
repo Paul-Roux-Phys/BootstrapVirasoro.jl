@@ -319,9 +319,13 @@ end
 
 function κrs(r, s, β²)
     res = 2^(2r-1)
-    res /= sinpi(r % 1 + s)
+    if !(r isa Int)
+        res /= sinpi(r % 1 + s)
+    end
     for j = 1-r:r-1
-        res *= sinpi(β² * j + s)
+        if j != 0
+            res *= sinpi(β² * j + s)
+        end
     end
     return res
 end
