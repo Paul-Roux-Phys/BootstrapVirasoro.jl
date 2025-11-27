@@ -8,14 +8,18 @@ This is a Julia package for performing numerical bootstrap computation in 2-dime
 
 For more information, please refer to [the documentation](https://paul-roux-phys.github.io/BootstrapVirasoro.jl/stable/).
 
+If you use this program in any of your scientific work, you should cite it as
+
+```text
 BibTex: 
-@misc{roux251,  
-	author = "Roux, Paul",  
-	title = {BootstrapVirasoro.jl},  
-	type = {code},  
-	url = {https://juliapackages.com/p/bootstrapvirasoro},  
-	year = {2025},  
-}  
+@misc{BVJL,
+	author = "Roux, Paul",
+	title = {BootstrapVirasoro.jl},
+	type = {code},
+	url = {https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl},
+	year = {2025},
+}
+```
 
 ## Installation
 

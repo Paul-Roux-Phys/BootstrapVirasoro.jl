@@ -1,0 +1,46 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: BootstrapVirasoro.jl
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Paul
+    family-names: Roux
+    email: paul.roux@phys.ens.fr
+    affiliation: 'LPENS, Paris and IPhT, Saclay'
+    orcid: 'https://orcid.org/0009-0008-8469-1676'
+repository-code: 'https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl'
+url: >-
+  https://paul-roux-phys.github.io/BootstrapVirasoro.jl/stable/
+abstract: >-
+  BootstrapVirasoro.jl is a general purpose Julia package
+  for computing Virasoro conformal blocks, and performing
+  bootstrap computations in conformal field theories with
+  Virasoro symmetry.
+
+  It provides a convenient interface to compute different
+  sorts of blocks, with support for complex and
+  arbitrary-precision arithmetics:
+
+  - chiral blocks
+
+  - degenerate blocks
+
+  - non-chiral blocks, including logarithmic blocks.
+
+
+  Its submodule `BootstrapVirasoro.LoopModels' provides
+  specialised functionality to perform bootstrap
+  calculations in 2D loop models.
+keywords:
+  - Conformal Field Theory
+  - Conformal Bootstrap
+  - Virasoro conformal blocks
+  - Julia
+  - Arbitrary precision arithmetics
+  - Loop models
+license: GPL-3.0
