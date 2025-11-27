@@ -8,7 +8,7 @@ This is a Julia package for performing numerical bootstrap computation in 2-dime
 
 For more information, please refer to [the documentation](https://paul-roux-phys.github.io/BootstrapVirasoro.jl/stable/).
 
-If you use this program in any of your scientific work, you should cite it as
+If you use this program in your scientific work, you should cite it as
 
 ```text
 BibTex: 
@@ -20,6 +20,8 @@ BibTex:
 	year = {2025},
 }
 ```
+
+or using the `Cite this repository` button in the right pane of the [github homepage](https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl)
 
 ## Installation
 
