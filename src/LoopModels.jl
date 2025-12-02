@@ -480,7 +480,11 @@ function Base.show(io::IO, pf::Polyfit; cutoff = 1e-9, digits = 5)
             push!(terms, formatted_term)
         end
     end
-    print(io, join(terms, " + "))
+    if terms == ""
+        print(io, "0")
+    else
+        print(io, join(terms, " + "))
+    end
 end
 
 end # end BootstrapVirasoro.LoopModels
