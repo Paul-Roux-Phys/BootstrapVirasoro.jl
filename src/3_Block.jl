@@ -163,6 +163,7 @@ If the block is a four-point block, `x` is the cross-ratio.
 If the block is a one-point block, `x` is the torus' modulus.
 """
 function (b::Block)(x) end
+
 #=============================================================================
 Chiral Blocks
 =============================================================================#
