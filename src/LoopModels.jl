@@ -346,8 +346,8 @@ function ρ_residue(V, V1)
     β² = V.c.β^2
     r, s = V.r, V.s
     r1, s1 = V1.r, V1.s
-    res = 1
-    if r * (s+1) % 1 == 1
+    res = -1
+    if (s+1) % 1 == 1
         res *= -1
     end
     res *= δ1rs(r, s, r1, s1, β²)
