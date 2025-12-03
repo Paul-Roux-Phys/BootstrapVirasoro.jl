@@ -399,7 +399,9 @@ function computeCNmns(Nmax, c::CC{T}, Rs) where {T}
                             end
                         end
                     end
-                    Cs[N, m, n] *= _sum
+                    # Cs[N, m, n] *= _sum
+                    Cs.values[N, m, n] = MA.operate_to!!(Cs.values[N, m, n], *, Cs.values[N, m, n], _sum)
+                    push!(Cs.keys[N], (m, n))
                 end
             end
         end
