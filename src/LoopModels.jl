@@ -288,6 +288,10 @@ function compute_reference(co::Correlation1, V::Field, _, DG)
     return Cref(V₁, V, V, DG) / Bref(V, DG)
 end
 
+function compute_reference(V₁::Field, V::Field, _, DG)
+    return Cref(V₁, V, V, DG) / Bref(V, DG)
+end
+
 compute_reference(b::Block, DG) =
     compute_reference(b.blocks[1].corr, b.chan_field, b.chan, DG)
 
