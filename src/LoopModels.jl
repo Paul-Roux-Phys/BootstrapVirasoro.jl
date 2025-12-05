@@ -418,7 +418,7 @@ function fit!(pf::Polyfit, data)
     @assert length(data) > pf.nb_monoms "
 You must provide more data points
 "
-    T = float(typeof(data).parameters[1].parameters[2])
+    T = typeof(data[1][2])
     mat = Matrix{T}(undef, length(data), pf.nb_monoms)
     for (i, d) in enumerate(data)
         xvec = d[1]
