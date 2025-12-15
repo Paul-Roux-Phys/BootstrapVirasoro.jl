@@ -252,37 +252,47 @@ end
 
 Cref(V₁, V₂, V₃) = Cref(V₁, V₂, V₃, DoubleGamma(V₁.c.β))
 
-function Bref(DG, c, r, s)
-    β = c.β
-    if r isa Int && s isa Int
-        prec = precision(real(c.β)) 
-        setprecision(BigFloat, 2 * prec)
-        reg = ldexp(one(real(typeof(β))), -prec)
-        s += reg
+# function Bref(DG, c, r, s, reg = 1 / big(10^15))
+#     β = c.β
+#     if r isa Int && s isa Int
+#         s += reg
+#     end
+#     π = oftype(c.β, Base.π) # π in the correct precision
+#     return (-1)^(round(r * s)) / 2 / sin(π * (r % 1 + s)) / sin(π * (r + s / β^2)) /
+#            prod(
+#         DG(β + pm1 * β * r + pm2 * s / β) for pm1 in (-1, 1) for pm2 in (-1, 1)
+#     )
+# end
+
+function κrs(r, s, β²)
+    r == 1//2 && return 1
+    res = ldexp(1, Int(2r)-1) # 2^(2r-1)
+    if !(r isa Int)
+        res /= cospi(s)
     end
-    π = oftype(c.β, Base.π) # π in the correct precision
-    res =  (-1)^(round(r * s)) / 2 / sin(π * (r % 1 + s))
-    res /= sin(π * (r + s / β^2))
-    res /= prod(
-        DG(β + pm1 * β * r + pm2 * s / β) for pm1 in (-1, 1) for pm2 in (-1, 1)
-            )
-    if r isa Int && s isa Int
-        setprecision(BigFloat, prec)
+    for j = 1-r:r-1
+        if j != 0
+            res *= sinpi(β² * j + s)
+        end
     end
     return res
 end
 
-function Bref(DG, c, P)
-    β = c.β
-    prod(1 / DG(β + pm2 * 2P) / DG(1 / β + pm2 * 2P) for pm2 in (-1, 1))
+function Bref(DG, c, r, s)
+    id = Field(c, r=1, s=1, diagonal=true)
+    V = Field(c, r=r, s=s)
+    return Cref(id, V, V, DG) * κrs(r, s, c.β^2)
 end
 
-function Bref(V::Field, DG)
-    c = V.c
-    if V.diagonal
-        return Bref(DG, c, V.dims[:left].P)
-    else
-        return Bref(DG, c, V.r, V.s)
+function Bref(V, DG)
+    β = V.c.β
+    r, s = indices(V)
+    res = inv(prod(
+        DG(β + β * r + pm2 * s / β) * DG(1 / β + β * r + pm2 * s / β)
+        for pm2 in (-1, 1)
+    ))
+    if !(V.diagonal)
+        res *= κrs(r, s, β^2)
     end
 end
 
@@ -328,22 +338,6 @@ function ρ_residue(V, V1, V2, V3, V4)
     res *= ρ_residue(β², r, s, r1, s1, r2, s2)
     res *= ρ_residue(β², r, s, r4, s4, r3, s3)
 end
-
-# function κrs(r, s, β²)
-#     res = 1
-#     if s % 1 == 0
-#         res *= -1
-#     end
-#     if !(r isa Int)
-#         res /= sinpi(r % 1 + s)
-#     end
-#     for j = 1-r:r-1
-#         if j != 0
-#             res *= 2sinpi(β² * j + s)
-#         end
-#     end
-#     return res
-# end
 
 function δ1rs(r, s, r1, s1, β²)
     res = 1
