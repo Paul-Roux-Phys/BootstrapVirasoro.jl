@@ -296,7 +296,7 @@ function compute_reference(V₁::Field, V::Field, _, DG)
 end
 
 compute_reference(V1::NTuple{1, Field{T}}, V::Field, _, DG) where {T} =
-    compute_reference(V1[1], V, _, DG)
+    compute_reference(V1[1], V, :s, DG)
 
 compute_reference(b::Block, DG) =
     compute_reference(b.blocks[1].corr, b.chan_field, b.chan, DG)
