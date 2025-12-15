@@ -252,16 +252,24 @@ end
 
 Cref(V₁, V₂, V₃) = Cref(V₁, V₂, V₃, DoubleGamma(V₁.c.β))
 
-function Bref(DG, c, r, s, reg = 1 / big(10^15))
+function Bref(DG, c, r, s)
     β = c.β
     if r isa Int && s isa Int
+        prec = precision(real(c.β)) 
+        setprecision(BigFloat, 2 * prec)
+        reg = ldexp(one(real(typeof(β))), -prec)
         s += reg
     end
     π = oftype(c.β, Base.π) # π in the correct precision
-    return (-1)^(round(r * s)) / 2 / sin(π * (r % 1 + s)) / sin(π * (r + s / β^2)) /
-           prod(
+    res =  (-1)^(round(r * s)) / 2 / sin(π * (r % 1 + s))
+    res /= sin(π * (r + s / β^2))
+    res /= prod(
         DG(β + pm1 * β * r + pm2 * s / β) for pm1 in (-1, 1) for pm2 in (-1, 1)
-    )
+            )
+    if r isa Int && s isa Int
+        setprecision(BigFloat, prec)
+    end
+    return res
 end
 
 function Bref(DG, c, P)
@@ -269,31 +277,31 @@ function Bref(DG, c, P)
     prod(1 / DG(β + pm2 * 2P) / DG(1 / β + pm2 * 2P) for pm2 in (-1, 1))
 end
 
-function Bref(V::Field, DG, reg = 1 / big"10"^15)
+function Bref(V::Field, DG)
     c = V.c
     if V.diagonal
         return Bref(DG, c, V.dims[:left].P)
     else
-        return Bref(DG, c, V.r, V.s, reg)
+        return Bref(DG, c, V.r, V.s)
     end
 end
 
-function compute_reference(co::Correlation4, V::Field, chan, DG)
-    V₁, V₂, V₃, V₄ = permute_4(co.fields, chan)
+function compute_reference(Vext::NTuple{4, Field{T}}, V::Field, chan, DG) where {T}
+    V₁, V₂, V₃, V₄ = permute_4(Vext, chan)
     return Cref(V₁, V₂, V, DG) * Cref(V₃, V₄, V, DG) / Bref(V, DG)
-end
-
-function compute_reference(co::Correlation1, V::Field, _, DG)
-    V₁ = co.fields[1]
-    return Cref(V₁, V, V, DG) / Bref(V, DG)
 end
 
 function compute_reference(V₁::Field, V::Field, _, DG)
     return Cref(V₁, V, V, DG) / Bref(V, DG)
 end
 
+compute_reference(V1::NTuple{1, Field{T}}, V::Field, _, DG) where {T} =
+    compute_reference(V1[1], V, _, DG)
+
 compute_reference(b::Block, DG) =
     compute_reference(b.blocks[1].corr, b.chan_field, b.chan, DG)
+
+compute_reference(co::Correlation, V::Field, chan, DG) = compute_reference(co.fields, V, chan, DG)
 
 # residue of non-diagonal structure constants
 function ρ_residue(β², r, s, r1, s1, r2, s2)
@@ -351,7 +359,7 @@ function ρ_residue(V, V1)
     r, s = V.r, V.s
     r1, s1 = V1.r, V1.s
     res = -1
-    if r * (s+1) % 1 == 1
+    if (r+1)*(s+1) % 1 == 1
         res *= -1
     end
     res *= δ1rs(r, s, r1, s1, β²)
