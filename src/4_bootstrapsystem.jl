@@ -208,6 +208,17 @@ function find_normalised(c::SC)
             return k
         end
     end
+    return nothing
+end
+
+function find_normalised(c::Channels)
+    for chan in CHANNELS
+        find = find_normalised(c[chan])
+        if find  !== nothing
+            return find
+        end
+    end
+    return nothing
 end
 
 #======================================================================================
