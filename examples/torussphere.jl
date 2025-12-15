@@ -1,8 +1,6 @@
 Pkg.activate("examples"); # activate the parent environment
 println("Number of threads: $(Threads.nthreads())")
 using BootstrapVirasoro, BootstrapVirasoro.LoopModels, BenchmarkTools, Test
-import BootstrapVirasoro: PosCache, xfromq, qfromx, τfromx
-import EllipticFunctions: etaDedekind
 
 const Sig = Channels{Rational}
 
@@ -132,6 +130,9 @@ evaluate_blocks!(sys)
 evaluate_blocks!(sys_S2)
 compute_linear_system!(sys)
 compute_linear_system!(sys_S2)
+
+solve!(sys)
+solve!(sys_S2)
 
 sort(
     [
