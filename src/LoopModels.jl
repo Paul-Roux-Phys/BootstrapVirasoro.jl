@@ -252,21 +252,9 @@ end
 
 Cref(V₁, V₂, V₃) = Cref(V₁, V₂, V₃, DoubleGamma(V₁.c.β))
 
-# function Bref(DG, c, r, s, reg = 1 / big(10^15))
-#     β = c.β
-#     if r isa Int && s isa Int
-#         s += reg
-#     end
-#     π = oftype(c.β, Base.π) # π in the correct precision
-#     return (-1)^(round(r * s)) / 2 / sin(π * (r % 1 + s)) / sin(π * (r + s / β^2)) /
-#            prod(
-#         DG(β + pm1 * β * r + pm2 * s / β) for pm1 in (-1, 1) for pm2 in (-1, 1)
-#     )
-# end
-
 function κrs(r, s, β²)
     r == 1//2 && return 1
-    res = ldexp(1, Int(2r)-1) # 2^(2r-1)
+    res = ldexp(one(typeof(real(β²))), Int(2r)-1) # 2^(2r-1)
     if !(r isa Int)
         res /= cospi(s)
     end
@@ -278,12 +266,6 @@ function κrs(r, s, β²)
     return res
 end
 
-function Bref(DG, c, r, s)
-    id = Field(c, r=1, s=1, diagonal=true)
-    V = Field(c, r=r, s=s)
-    return Cref(id, V, V, DG) * κrs(r, s, c.β^2)
-end
-
 function Bref(V, DG)
     β = V.c.β
     r, s = indices(V)
@@ -291,18 +273,21 @@ function Bref(V, DG)
         DG(β + β * r + pm2 * s / β) * DG(1 / β + β * r + pm2 * s / β)
         for pm2 in (-1, 1)
     ))
-    if !(V.diagonal)
-        res *= κrs(r, s, β^2)
-    end
+    return res
 end
 
 function compute_reference(Vext::NTuple{4, Field{T}}, V::Field, chan, DG) where {T}
     V₁, V₂, V₃, V₄ = permute_4(Vext, chan)
-    return Cref(V₁, V₂, V, DG) * Cref(V₃, V₄, V, DG) / Bref(V, DG)
+    res = Cref(V₁, V₂, V, DG) * Cref(V₃, V₄, V, DG) / Bref(V, DG)
+    return res
 end
 
 function compute_reference(V₁::Field, V::Field, _, DG)
-    return Cref(V₁, V, V, DG) / Bref(V, DG)
+    res = Cref(V₁, V, V, DG) / Bref(V, DG)
+    if !(V.diagonal)
+        res /= κrs(V.r, V.s, V.c.β^2)
+    end
+    return res
 end
 
 compute_reference(V1::NTuple{1, Field{T}}, V::Field, _, DG) where {T} =
@@ -321,7 +306,8 @@ function ρ_residue(β², r, s, r1, s1, r2, s2)
     end
     res *= prod(
         2cospi(j * β² + (s - s1 - pm * s2) / 2) for pm in (-1, 1) for
-        j = -(r - 1 - abs(r1 + pm * r2))/2:1:(r-1-abs(r1 + pm * r2))/2
+            j = -(r - 1 - abs(r1 + pm * r2))/2:1:(r-1-abs(r1 + pm * r2))/2;
+            init = one(typeof(real(β²)))
     )
 end
 
@@ -353,7 +339,8 @@ function ρ_residue(V, V1)
     r, s = V.r, V.s
     r1, s1 = V1.r, V1.s
     res = -1
-    if ((r + 1) * s) % 2 == 1
+    # if ((r + 1) * s) % 2 == 0
+    if s % 2 == 1
         res *= -1
     end
     res *= δ1rs(r, s, r1, s1, β²)
