@@ -225,6 +225,7 @@ function series_H_der(d::CD{T}, Δmax, CNmn) where {T}
     all_mns = union([CNmn.keys[N] for N = 1:Δmax]...)
     coeffs = Dict((m, n) => zero(T) for (m, n) in all_mns)
     for (m, n) in all_mns
+        # -2P / (P2 - CNmn.deltas[m, n])^2
         buf = MA.operate_to!!(buf, -, P2, CNmn.δs[m, n])
         buf = MA.operate_to!!(buf, *, buf, buf)
         buf = MA.operate_to!!(buf, /, mtwoP, buf)

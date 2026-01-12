@@ -204,7 +204,7 @@ function Rmn_term(r, s, i, j, d::NTuple{4,CD})
 end
 
 function Rmn_term(r, s, d::NTuple{4,CD{T}})::T where {T}
-    prod(Rmn_term(r, s, i, j, d) for (i, j) in ((1, 2), (3, 4)))
+    Rmn_term(r, s, 1, 2, d) * Rmn_term(r, s, 3, 4, d)
 end
 
 # write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
