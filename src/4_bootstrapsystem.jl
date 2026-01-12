@@ -215,7 +215,7 @@ function find_normalised(c::Channels)
     for chan in CHANNELS
         find = find_normalised(c[chan])
         if find  !== nothing
-            return find
+            return find, chan
         end
     end
     return nothing
@@ -531,15 +531,14 @@ end
 
 function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
     rels = b.relations
+    zer = zeros(T, length(b.positions))
     if rels === nothing
         v = b.factors[chan] .* b.block_values[chan][V]
-        zer = zeros(T, length(b.positions))
         chan === :s && return vcat(v, v)
         chan === :t && return vcat(-v, zer)
         chan === :u && return vcat(zer, -v)
     elseif rels == :st  #= [(Gs-Gt)  0;
                                   Gs     -Gu] =#
-        zer = zeros(T, length(b.positions))
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
             vs_t = b.factors[:t] .* b.block_values[:t][V]
