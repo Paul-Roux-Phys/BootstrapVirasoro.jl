@@ -22,7 +22,7 @@ OUTFILE=\$(mktemp)
 
 (
   srun --partition=C-Short --account=thanos \
-       -N 1 -n 1 --cpus-per-task=${CPUS} --mem=32G --time=12:00:00 \
+       -N 1 -n 1 --cpus-per-task=${CPUS} --mem=64G --time=12:00:00 \
        bash -lc '
          echo "NODE=\$(hostname)"
          /home/roux/.julia/conda/3/x86_64/bin/jupyter notebook --no-browser --ip=0.0.0.0 --port=8888
