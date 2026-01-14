@@ -54,7 +54,6 @@ end
 const Chans = Channels
 
 Base.getindex(x::LeftRight, s::Symbol) = getfield(x, s)
-
 Base.getindex(s::Channels, ch::Symbol) = getfield(s, ch)
 Base.setindex!(s::Channels, value, ch::Symbol) = setfield!(s, ch, value)
 Channels(s::T, t, u) where {T} = Channels{T}(s, t, u)

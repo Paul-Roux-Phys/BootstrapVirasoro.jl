@@ -4,6 +4,7 @@ Functionality relevant for bootstraping loop models.
 module LoopModels
 
 export InterchiralBlock, IBlock, shift
+export delete_diags!, add_block!
 export divide_by_reference, substract_res
 export Polyfit, fit!
 
@@ -235,6 +236,50 @@ function Base.show(io::IO, b::IBlock)
     end
 end
 
+#=========
+solve for many values of channel momentum without recomputing all blocks.
+==========#
+function find_diagonals(S::ChannelSpectrum)
+    res = []
+    for V in keys(S.blocks)
+        V.diagonal && push!(res, V)
+    end
+    return res
+end
+
+function find_diagonals(s::BootstrapSystem)
+    res = []
+    for chan in s.channels
+        push!(res, (chan, find_diagonals(s.spectra[chan])))
+    end
+    return res
+end
+
+function delete_diags!(s::BootstrapSystem{T}) where {T}
+    for (chan, Vs) in find_diagonals(s)
+        for V in Vs
+            delete!(s.spectra[chan].blocks, V)
+            delete!(s.block_values[chan], V)
+        end
+    end
+    for chan in BootstrapVirasoro.CHANNELS
+        Base.empty!(s.str_cst[chan])
+    end
+    return
+end
+
+function add_block!(s::BootstrapSystem, b, chans)
+    for chan in chans
+        s.spectra[chan].blocks[b.chan_field] = b
+        s.block_values[chan][b.chan_field] = [b(x) for x in s.positions_cache[chan]]
+    end
+    compute_linear_system!(s)
+    return
+end
+
+#=======
+Reference structure constants
+=======#
 function Cref(V₁, V₂, V₃, DG)
     β = V₁.c.β
     r₁, s₁ = indices(V₁)

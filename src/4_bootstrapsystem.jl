@@ -53,6 +53,12 @@ function fix!(cnst, field, value; error = 0)
     return
 end
 
+function Base.empty!(c::SC)
+    Base.empty!(c.constants)
+    Base.empty!(c.errors)
+    return
+end
+
 function to_dataframe(c::SC, rmax = nothing)
     df = DataFrame(
         Field = String[],
@@ -448,15 +454,18 @@ function BootstrapSystem(
         knowns = @channels StrCst{T}()
     end
 
+    # st_op means that the s and t channel verify
+    # (-1)^(r * s) d_(r, s)^(s) = d_(r, s)^(t)
+    # need to come up with a better name.
     if rels === nothing
         channels = (:s, :t, :u)
-    elseif rels === :st
+    elseif rels === :st || rels === :st_op 
         channels = (:s, :u)
         knowns.t = knowns.s
-    elseif rels === :su
+    elseif rels === :su || rels === :su_op
         channels = (:s, :t)
         knowns.u = knowns.s
-    elseif rels === :tu
+    elseif rels === :tu || rels === :tu_op
         channels = (:s, :t)
         knowns.u = knowns.t
     elseif rels === :stu
@@ -464,7 +473,7 @@ function BootstrapSystem(
         knowns.t = knowns.s
         knowns.u = knowns.s
     else
-        error("rels has to be one of :stu, :st, :su, :tu, nothing")
+        error("rels has to be one of :stu, :st, :st_op, :su, :su_op, :tu, :tu_op, nothing")
     end
     nb_channels = length(channels)
     nb_unknowns = [length(S[chan]) for chan in channels]
@@ -532,43 +541,47 @@ end
 function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
     rels = b.relations
     zer = zeros(T, length(b.positions))
+    sign = 1
+    if rels in (:st_op, :su_op, :tu_op) && abs(spin(V)) % 2 == 1
+        sign *= -1
+    end
     if rels === nothing
         v = b.factors[chan] .* b.block_values[chan][V]
         chan === :s && return vcat(v, v)
         chan === :t && return vcat(-v, zer)
         chan === :u && return vcat(zer, -v)
-    elseif rels == :st  #= [(Gs-Gt)  0;
-                                  Gs     -Gu] =#
+    elseif rels == :st || rels == :st_op #= [(Gs-(-1)^rs*Gt)  0 ;
+                                             Gs             -Gu] =#
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
             vs_t = b.factors[:t] .* b.block_values[:t][V]
-            return vcat(vs_s .- vs_t, vs_s)
+            return vcat(vs_s .- sign * vs_t, vs_s)
         else
             vs_u = b.factors[:u] .* b.block_values[:u][V]
             return vcat(zer, .-vs_u)
         end
-    elseif rels == :su  #= [Gs     -Gt;
-                                  (Gs-Gu)   0] =#
+    elseif rels == :su || rels == :su_op #= [Gs                -Gt;
+                                             (Gs-(-1)^rs*Gu)     0] =#
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
             vs_u = b.factors[:u] .* b.block_values[:u][V]
-            return vcat(vs_s, vs_s .- vs_u)
+            return vcat(vs_s, vs_s .- sign * vs_u)
         else
             vs_t = b.factors[:t] .* b.block_values[:t][V]
             return vcat(.-vs_t, zer)
         end
-    elseif rels == :tu   #= [Gs     -Gt;
-                                  0   (Gt-Gu)] =#
+    elseif rels == :tu || rels == :tu_op #= [Gs              -Gt;
+                                             Gs     -(-1)^rs*Gu)] =#
         if chan == :s
             vs_s = b.factors[:s] .* b.block_values[:s][V]
-            return vcat(vs_s, zer)
+            return vcat(vs_s, vs_s)
         else
             vs_t = b.factors[:t] .* b.block_values[:t][V]
             vs_u = b.factors[:u] .* b.block_values[:u][V]
-            return vcat(.-vs_t, vs_t .- vs_u)
+            return vcat(.- vs_t, .- sign * vs_u)
         end
     elseif rels == :stu #= [(Gs-Gt);
-                                   (Gs-Gu)] =#
+                            (Gs-Gu)] =#
         vs = @channels b.factors[chan] .* b.block_values[chan][V]
         return vcat(vs.s .- vs.t, vs.s .- vs.u)
     end
@@ -607,7 +620,7 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     )
     for chan in CHANNELS
         if !(chan in b.channels)
-            empty!(unknowns[chan])
+            Base.empty!(unknowns[chan])
         end
     end
     # if no consts are known, fix a normalisation
