@@ -154,6 +154,7 @@ qfromx(x) = exp(-(π * ellipticK(1 - x) / ellipticK(x)))
 xfromq(q) = jtheta2(0, q)^4 / jtheta3(0, q)^4
 qfromτ(τ) = exp(2 * im * (π * τ))
 τfromx(x) = (log(qfromx(x)) / π) / im
+xfromτ(τ) = xfromq(exp(im * (π * τ)))
 
 """
         (b::Block)(x)
@@ -475,11 +476,11 @@ function ell(V::NTuple{4,Field}, r, s)
     res -= sum(
         digamma_reg(
             1 // 2 +
-            (lr == :left ? -1 : 1) *
-            (Prs(r, j, β) + pm1 * V[a].dims[lr].P + pm2 * V[b].dims[lr].P) / β,
+                (lr == :left ? -1 : 1) *
+                (Prs(r, j, β) + pm1 * V[a].dims[lr].P + pm2 * V[b].dims[lr].P) / β,
         ) for pm1 in (-1, 1) for pm2 in (-1, 1) for j = (1-s):2:(s-1) for
-        (a, b) in ((1, 2), (3, 4)) for lr in (:left, :right)
-    )
+            (a, b) in ((1, 2), (3, 4)) for lr in (:left, :right)
+                )
     res / β
 end
 

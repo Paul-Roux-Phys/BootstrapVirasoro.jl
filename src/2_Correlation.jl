@@ -640,11 +640,11 @@ Correlation(cl::CCo, cr::CCo) = NCCo(cl, cr)
 
 const Correlation4{T} = Union{ChiralCorrelation4{T},NonChiralCorrelation4{T}}
 const Correlation1{T} = Union{ChiralCorrelation1{T},NonChiralCorrelation1{T}}
-getRmn(co::Correlation4, chan::Symbol) = getfield(co.Rmn, chan)
+getRmn(co::Correlation4, chan::Symbol) = co.Rmn[chan]
 getRmn(co::Correlation1, _::Symbol) = co.Rmn
-getRmnreg(co::Correlation4, chan::Symbol) = getfield(co.Rmnreg, chan)
+getRmnreg(co::Correlation4, chan::Symbol) = co.Rmnreg[chan]
 getRmnreg(co::Correlation1, _::Symbol) = co.Rmnreg
-getCNmn(co::Correlation4, chan::Symbol) = getfield(co.CNmn, chan)
+getCNmn(co::Correlation4, chan::Symbol) = co.CNmn[chan]
 getCNmn(co::Correlation1, _::Symbol) = co.CNmn
 getfields(co::Correlation4, chan::Symbol) = permute_4(co.fields, chan)
 getfields(co::Correlation1, _::Symbol) = co.fields

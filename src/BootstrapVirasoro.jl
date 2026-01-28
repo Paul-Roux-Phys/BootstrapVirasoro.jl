@@ -12,7 +12,7 @@ API
 =========================================================================#
 export CentralCharge, CC
 export ConformalDimension, CD
-export LeftRight, Field, swap_lr, reflect, total_dimension, spin
+export LeftRight, Field, swap_lr, total_dimension, spin
 export Channels, @channels, Chans
 export Correlation, Corr, Co, Correlation4, Correlation1
 export ChiralCorrelation, ChiralCorrelation4, ChiralCorrelation1
@@ -46,21 +46,31 @@ end
 const LR = LeftRight
 const NB_CHANNELS = 3
 const CHANNELS = (:s, :t, :u)
-mutable struct Channels{T}
-    s::T
-    t::T
-    u::T
+struct Channels{T}
+    dict::Dict{Symbol, T}
 end
 const Chans = Channels
 
 Base.getindex(x::LeftRight, s::Symbol) = getfield(x, s)
-Base.getindex(s::Channels, ch::Symbol) = getfield(s, ch)
-Base.setindex!(s::Channels, value, ch::Symbol) = setfield!(s, ch, value)
-Channels(s::T, t, u) where {T} = Channels{T}(s, t, u)
-Channels(t::NTuple{3,T}) where {T} = Channels{T}(t[1], t[2], t[3])
+Base.getindex(s::Channels, ch::Symbol) = s.dict[ch]
+function Base.setindex!(s::Channels, value, ch::Symbol)
+    s.dict[ch] = value
+end
+function Base.setfield!(s::Channels, value, ch::Symbol)
+    s.dict[ch] = value
+end
+Channels(s::T, t, u) where {T} = Channels{T}(Dict(:s => s, :t => t, :u => u))
+Channels(t::NTuple{3,T}) where {T} = Channels(t[1], t[2], t[3])
 Channels(s) = Channels(s, s, s)
 Channels(f::Function) = Channels(f(:s), f(:t), f(:u))
-Base.length(c::Channels) = 3
+Channels(v::Dict) = Channels{v.parameters[2]}(v)
+Base.length(c::Channels) = length(c.dict)
+function Base.getproperty(c::Channels, s::Symbol)
+    s in (:s, :t, :u) && return getfield(c, :dict)[s]
+    return getfield(c, s)
+end
+Channels(::Type{T}) where {T} = Channels{T}(Dict{Symbol, T}())
+Base.keys(c::Channels) = Base.keys(c.dict)
 
 @static if VERSION >= v"1.9"
     max_thread_id() = Threads.maxthreadid()
