@@ -37,19 +37,19 @@ end
     P3, P4 = d3.P, d4(ϵ).P
     P(r, s) = (r * c.β - s / c.β) / 2
 
-    Δmax = 12
-    T = Complex{BigFloat}
-    DRs = Matrix{T}(undef, (Δmax, Δmax))
-    Pns = Matrix{T}(undef, (Δmax, Δmax))
-    factors = Matrix{T}(undef, (Δmax, 2Δmax))
+    Δmax      = 12
+    T         = Complex{BigFloat}
+    DRs       = Matrix{T}(undef, (Δmax, Δmax))
+    Pns       = Matrix{T}(undef, (Δmax, Δmax))
+    factors   = Matrix{T}(undef, (Δmax, 2Δmax))
 
-    Rl_reg = computeRmns(Δmax, dls(0))[2]
-    Rlϵ = computeRmns(Δmax, dls(ϵ))[1]
-    Rr_reg = computeRmns(Δmax, drs(0))[2]
-    Rrϵ = computeRmns(Δmax, drs(ϵ))[1]
+    Rl_reg    = computeRmns(Δmax, dls(0))[2]
+    Rlϵ       = computeRmns(Δmax, dls(ϵ))[1]
+    Rr_reg    = computeRmns(Δmax, drs(0))[2]
+    Rrϵ       = computeRmns(Δmax, drs(ϵ))[1]
 
     Rlreg_1_2 = Rl_reg[1, 2]
-    Rlϵ_1_2 = Rlϵ[1, 2] / (P3 - P4 + P(0, 1))
+    Rlϵ_1_2   = Rlϵ[1, 2] / (P3 - P4 + P(0, 1))
 
     @test isapprox(Rlreg_1_2, Rlϵ_1_2, rtol = 1e-18)
 

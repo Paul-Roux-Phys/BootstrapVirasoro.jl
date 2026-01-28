@@ -1,5 +1,5 @@
 using BootstrapVirasoro.LoopModels
-import BootstrapVirasoro: xfromq, conj_q, PosCache, etaDedekind
+import BootstrapVirasoro: xfromq, xfromτ, conj_q, PosCache, etaDedekind
 import BootstrapVirasoro.LoopModels: shift_D
 setprecision(BigFloat, 133) # 40 digits
 
@@ -145,7 +145,7 @@ ind_S2 = [(0, 1 // 2), (ind[1], ind[2] / 2), (0, 1 // 2), (0, 1 // 2)]
 co_S2 = Correlation([Field(c_S2, r=r, s=s) for (r, s) in ind_S2], 2 * Δmax)
 
 τ = big"0.36" + big"1.14" * im
-x = xfromq(exp(im * (π * τ)))
+x = xfromτ(τ)
 
 @testset "Interchiral 1pt" begin
         P = big"0.53" + big"0.11" * im
@@ -241,8 +241,4 @@ ncprefA(τ, co_S2, chan) =
                         )
                 end
         end
-end
-
-@testset "Residues" begin
-        
 end
