@@ -56,8 +56,12 @@ Base.getindex(s::Channels, ch::Symbol) = s.dict[ch]
 function Base.setindex!(s::Channels, value, ch::Symbol)
     s.dict[ch] = value
 end
-function Base.setfield!(s::Channels, value, ch::Symbol)
-    s.dict[ch] = value
+function Base.setproperty!(s::Channels, ch::Symbol, value)
+    if ch in (:s, :t, :u)
+        s.dict[ch] = value
+    else
+        Base.setfield!(s, value, ch)
+    end
 end
 Channels(s::T, t, u) where {T} = Channels{T}(Dict(:s => s, :t => t, :u => u))
 Channels(t::NTuple{3,T}) where {T} = Channels(t[1], t[2], t[3])

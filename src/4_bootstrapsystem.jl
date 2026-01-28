@@ -551,7 +551,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
     if rels in (:st_op, :su_op, :tu_op) && abs(spin(V)) % 2 == 1
         sign *= -1
     end
-    if chans == [:s, :t, :u]
+    if Set(chans) == Set([:s, :t, :u])
         if rels === nothing #= [(Gs     -Gt        0
                                  Gs       0      -Gu] =#
             v = b.factors[chan] .* b.block_values[chan][V]
@@ -592,8 +592,10 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
                                 (Gs-Gu)] =#
             vs = @channels b.factors[chan] .* b.block_values[chan][V]
             return vcat(vs.s .- vs.t, vs.s .- vs.u)
+        else
+            error("with channels = $chans rels should be in (:stu, :st, :su, :tu, :st_op, :su_op, :tu_op)")
         end
-    elseif chans == [:s, :t]
+    elseif Set(chans) == Set([:s, :t])
         if rels === nothing #= [Gs  -Gt] =#
             v = b.factors[chan] .* b.block_values[chan][V]
             chan === :s && return v
@@ -602,8 +604,10 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
             v_s = b.factors[:s] .* b.block_values[:s][V]
             v_t = b.factors[:t] .* b.block_values[:t][V]
             return v_s .- sign * v_t
+        else
+             error("with channels = $chans rels should be in (:st, :st_op)")
         end
-    elseif chans == [:s, :u]
+    elseif Set(chans) == Set([:s, :u])
         if rels === nothing #= [Gs  -Gu] =#
             v = b.factors[chan] .* b.block_values[chan][V]
             chan === :s && return v
@@ -612,8 +616,10 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
             v_s = b.factors[:s] .* b.block_values[:s][V]
             v_u = b.factors[:u] .* b.block_values[:u][V]
             return v_s .- sign * v_u
+        else
+             error("with channels = $chans rels should be in (:su, :su_op)")
         end
-    elseif chans == [:t, :u]
+    elseif Set(chans) == Set([:t, :u])
         if rels === nothing #= [Gt  -Gu] =#
             v = b.factors[chan] .* b.block_values[chan][V]
             chan === :t && return v
@@ -622,6 +628,8 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
             v_t = b.factors[:t] .* b.block_values[:t][V]
             v_u = b.factors[:u] .* b.block_values[:u][V]
             return v_t .- sign * v_u
+        else
+            error("with channels = $chans rels should be in (:tu, :tu_op)")
         end
     end
 end
@@ -635,20 +643,20 @@ function computeRHS(b::BootstrapSystem{T}, knowns) where {T}
             b.block_values[chan][V][i] for V in knowns[chan];
                 init = zero(T),
                 )
-    if b.channels == [:s, :t, :u]
+    if Set(b.channels) == Set([:s, :t, :u])
         return vcat(
             [sumknowns(knowns, :t, i) - sumknowns(knowns, :s, i)
              for i in eachindex(b.positions)],
             [sumknowns(knowns, :u, i) - sumknowns(knowns, :s, i)
              for i in eachindex(b.positions)]
         )
-    elseif b.channels == [:s, :t]
+    elseif Set(b.channels) == Set([:s, :t])
         return [sumknowns(knowns, :t, i) - sumknowns(knowns, :s, i)
              for i in eachindex(b.positions)]
-    elseif b.channels == [:s, :u]
+    elseif Set(b.channels) == Set([:s, :u])
         return [sumknowns(knowns, :u, i) - sumknowns(knowns, :s, i)
              for i in eachindex(b.positions)]
-    elseif b.channels == [:t, :u]
+    elseif Set(b.channels) == Set([:t, :u])
         return [sumknowns(knowns, :u, i) - sumknowns(knowns, :t, i)
              for i in eachindex(b.positions)]
     end
