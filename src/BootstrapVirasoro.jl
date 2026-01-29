@@ -64,6 +64,7 @@ function Base.setproperty!(s::Channels, ch::Symbol, value)
     end
 end
 Channels(s::T, t, u) where {T} = Channels{T}(Dict(:s => s, :t => t, :u => u))
+Channels{T}(s, t, u) where {T} = Channels{T}(Dict{Symbol,T}(:s => s, :t => t, :u => u))
 Channels(t::NTuple{3,T}) where {T} = Channels(t[1], t[2], t[3])
 Channels(s) = Channels(s, s, s)
 Channels(f::Function) = Channels(f(:s), f(:t), f(:u))
