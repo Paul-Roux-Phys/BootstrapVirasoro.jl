@@ -383,7 +383,7 @@ Bootstrap System
 function evaluate_blocks!(sys::BootstrapSystem)
     sys.block_values =
         Channels(Dict(chan => evaluate_blocks(sys.spectra[chan], sys.positions_cache[chan])
-             for chan in sys.channels))
+             for chan in keys(sys.spectra)))
     return sys.block_values
 end
 
@@ -494,21 +494,22 @@ function BootstrapSystem(
 
     # compute position cache
     pos_chan = Channels(Dict(chan => [channel_position(x, co, chan) for x in pos]
-                             for chan in channels))
+                             for chan in keys(S)))
     pos_cache = Channels(Dict(chan => Vector{LRPosCache}(undef, length(pos_chan[chan]))
-                              for chan in channels)) # result container
-    Threads.@threads for i = 1:nb_channels
-        chan = channels[i]
+                              for chan in keys(S))) # result container
+    chans = collect(keys(S))
+    Threads.@threads for i = 1:length(chans)
+        chan = chans[i]
         pos_cache[chan] =
-            [LRPosCache(x, S[channels[i]].corr, chan) for x in pos_chan[chan]]
+            [LRPosCache(x, S[chans[i]].corr, chan) for x in pos_chan[chan]]
     end
 
     # blocks = evaluate_blocks(S, pos_cache)
-    blocks = Channels(Dict(chan => Dict{CDorField,Vector{T}}() for chan in channels))
-    unknowns = Channels(Dict(chan => Vector{CDorField}() for chan in channels))
+    blocks = Channels(Dict(chan => Dict{CDorField,Vector{T}}() for chan in keys(S)))
+    unknowns = Channels(Dict(chan => Vector{CDorField}() for chan in keys(S)))
     LHS = Matrix{T}(undef, 0, 0)
     RHS = Vector{T}()
-    factors = Channels(Dict(chan => [factor(co, chan, p) for p in pos] for chan in channels))
+    factors = Channels(Dict(chan => [factor(co, chan, p) for p in pos] for chan in keys(S)))
 
     return BootstrapSystem{T}(
         channels,
@@ -551,7 +552,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
     if rels in (:st_op, :su_op, :tu_op) && abs(spin(V)) % 2 == 1
         sign *= -1
     end
-    if Set(chans) == Set([:s, :t, :u])
+    if Set(keys(b.spectra)) == Set([:s, :t, :u])
         if rels === nothing #= [(Gs     -Gt        0
                                  Gs       0      -Gu] =#
             v = b.factors[chan] .* b.block_values[chan][V]
@@ -595,7 +596,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
         else
             error("with channels = $chans rels should be in (:stu, :st, :su, :tu, :st_op, :su_op, :tu_op)")
         end
-    elseif Set(chans) == Set([:s, :t])
+    elseif Set(keys(b.spectra)) == Set([:s, :t])
         if rels === nothing #= [Gs  -Gt] =#
             v = b.factors[chan] .* b.block_values[chan][V]
             chan === :s && return v
@@ -607,7 +608,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
         else
              error("with channels = $chans rels should be in (:st, :st_op)")
         end
-    elseif Set(chans) == Set([:s, :u])
+    elseif Set(keys(b.spectra)) == Set([:s, :u])
         if rels === nothing #= [Gs  -Gu] =#
             v = b.factors[chan] .* b.block_values[chan][V]
             chan === :s && return v
@@ -619,7 +620,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
         else
              error("with channels = $chans rels should be in (:su, :su_op)")
         end
-    elseif Set(chans) == Set([:t, :u])
+    elseif Set(keys(b.spectra)) == Set([:t, :u])
         if rels === nothing #= [Gt  -Gu] =#
             v = b.factors[chan] .* b.block_values[chan][V]
             chan === :t && return v
@@ -634,30 +635,32 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
     end
 end
 
-function computeRHS(b::BootstrapSystem{T}, knowns) where {T}
+function sumknowns(b::BootstrapSystem{T}, knowns, chan, i) where {T}
+    sum(b.str_cst[chan].constants[V] *
+        b.factors[chan][i] *
+        b.block_values[chan][V][i]
+        for V in knowns[chan];
+            init = zero(T))
+end
+
+function computeRHS(b, knowns)
     # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
     nb_positions = length(b.positions)
-    sumknowns(knowns, chan, i) = sum(
-        b.str_cst[chan].constants[V] *
-            b.factors[chan][i] *
-            b.block_values[chan][V][i] for V in knowns[chan];
-                init = zero(T),
-                )
-    if Set(b.channels) == Set([:s, :t, :u])
+    if Set(keys(b.spectra)) == Set([:s, :t, :u])
         return vcat(
-            [sumknowns(knowns, :t, i) - sumknowns(knowns, :s, i)
+            [sumknowns(b, knowns, :t, i) - sumknowns(b, knowns, :s, i)
              for i in eachindex(b.positions)],
-            [sumknowns(knowns, :u, i) - sumknowns(knowns, :s, i)
+            [sumknowns(b, knowns, :u, i) - sumknowns(b, knowns, :s, i)
              for i in eachindex(b.positions)]
         )
     elseif Set(b.channels) == Set([:s, :t])
-        return [sumknowns(knowns, :t, i) - sumknowns(knowns, :s, i)
+        return [sumknowns(b, knowns, :t, i) - sumknowns(b, knowns, :s, i)
              for i in eachindex(b.positions)]
     elseif Set(b.channels) == Set([:s, :u])
-        return [sumknowns(knowns, :u, i) - sumknowns(knowns, :s, i)
+        return [sumknowns(b, knowns, :u, i) - sumknowns(b, knowns, :s, i)
              for i in eachindex(b.positions)]
     elseif Set(b.channels) == Set([:t, :u])
-        return [sumknowns(knowns, :u, i) - sumknowns(knowns, :t, i)
+        return [sumknowns(b, knowns, :u, i) - sumknowns(b, knowns, :t, i)
              for i in eachindex(b.positions)]
     end
 end
@@ -665,11 +668,12 @@ end
 function compute_linear_system!(b::BootstrapSystem{T}) where {T}
     known_consts = b.str_cst
 
-    unknowns = Channels(Dict(chan => sort(CDorField[V for V in fields(b.spectra[chan]) if
-                                          !(V in keys(known_consts[chan].constants))
-                                          ],
-                                 by = V -> real(total_dimension(V)))
-                    for chan in b.channels))
+    unknowns = Channels(Dict(
+        chan => sort(CDorField[V for V in fields(b.spectra[chan]) if
+                                   !(V in keys(known_consts[chan].constants))
+                                   ],
+                     by = V -> real(total_dimension(V)))
+        for chan in b.channels))
 
     # if no consts are known, fix a normalisation
     if all([isempty(known_consts[chan].constants) for chan in b.channels])
@@ -691,10 +695,10 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
 
     knowns = Channels(Dict(chan => [V for V in fields(b.spectra[chan])
                                         if V in keys(b.str_cst[chan].constants)]
-                           for chan in b.channels))
+                           for chan in keys(b.spectra)))
 
     nb_positions = length(b.positions)
-    nb_lines = nb_positions * (length(b.channels) - 1)
+    nb_lines = nb_positions * (length(keys(b.spectra)) - 1)
     nb_unknowns = sum(
         length(b.spectra[chan]) - length(known_consts[chan]) for chan in b.channels
     )
@@ -720,8 +724,18 @@ end
 function findcol(s::BootstrapSystem, V::CDorField, chan)
     col = 1
     uk = s.unknowns
-    chan === :t && (col += length(uk.s)) # t blocks start at this col
-    chan === :u && (col += length(uk.s) + length(uk.t))
+    if chan === :t
+        if haskey(uk, :s)
+            col += length(uk.s) # t blocks start at this col
+        end
+    elseif chan === :u
+        if haskey(uk, :s)
+            col += length(uk.s)
+        end
+        if haskey(uk, :t)
+            col += length(uk.t)
+        end
+    end
     return col - 1 + findfirst(isequal(V), uk[chan])
 end
 

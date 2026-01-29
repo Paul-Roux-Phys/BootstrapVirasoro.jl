@@ -3,22 +3,22 @@ using BootstrapVirasoro
 # set the precision of high-precision floats
 setprecision(BigFloat, 40, base=10)
 
-β = big"0.3" + big"0.6"*im
+β    = big"0.3" + big"0.6"*im
 # define a central charge
-c = CC(β = β)
+c    = CC(β = β)
 
-V12 = Field(c, r=1, s=2, diagonal=true) # the external, degenerate field
-P = big"0.67"
-VP = Field(c, P=P) # the external diagonal field
+V12  = Field(c, r=1, s=2, diagonal=true) # the external, degenerate field
+P    = big"0.67"
+VP   = Field(c, P=P) # the external diagonal field
 VPpm = [Field(c, P = P + pm*1/(2β)) for pm in (-1, 1)] # shifted fields
-Vd = [Field(c, r=1, s=1, diagonal=true),
+Vd   = [Field(c, r=1, s=1, diagonal=true),
       Field(c, r=1, s=3, diagonal=true),
       Field(c, r=1, s=5, diagonal=true)] # degenerate fields
 # list of all fields that can go in channels
 # vcat concatenates arrays.
-V = vcat(VPpm, Vd) 
+V    = vcat(VPpm, Vd) 
 
-Cor   = Correlation(V12, VP, V12, VP, 70) # define the correlation
+Cor  = Correlation(V12, VP, V12, VP, 70) # define the correlation
 
 # We need to define ChannelSpectrum objects for each channel.
 # They are created as ChannelSpectrum(correlation, channel, listoffields, function)

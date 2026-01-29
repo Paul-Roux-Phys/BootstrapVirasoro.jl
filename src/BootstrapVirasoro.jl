@@ -75,6 +75,7 @@ function Base.getproperty(c::Channels, s::Symbol)
 end
 Channels(::Type{T}) where {T} = Channels{T}(Dict{Symbol, T}())
 Base.keys(c::Channels) = Base.keys(c.dict)
+Base.haskey(c::Channels, k::Symbol) = Base.haskey(c.dict, k)
 
 @static if VERSION >= v"1.9"
     max_thread_id() = Threads.maxthreadid()
