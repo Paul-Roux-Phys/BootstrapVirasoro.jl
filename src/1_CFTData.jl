@@ -272,6 +272,8 @@ end
 
 ConformalDimension() = ConformalDimension(CC())
 
+total_dimension(d::CD) = d.Δ
+
 function Base.:+(d1::CD, d2::CD)
     ConformalDimension(d1.c, Δ = d1.Δ + d2.Δ)
 end
