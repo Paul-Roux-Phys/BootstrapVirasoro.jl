@@ -316,7 +316,7 @@ function ChiralPosCache(τ, _::NTuple{1,CD{T}}, _::Symbol, Δmax) where {T}
     return ChiralPosCache{T}(τ, prefactor, q, log(q), q_powers)
 end
 
-ChiralPosCache(x, co::Cco, chan) = ChiralPosCache(x, co.fields, chan, Δmax)
+ChiralPosCache(x, co::CCo, chan) = ChiralPosCache(x, co.fields, chan, Δmax)
 PosCache(x, co::CCo, chan) = ChiralPosCache(x, co.fields, chan, co.Δmax)
 PosCache(x, b::CBlock) = PosCache(x, b.corr, b.chan)
 
