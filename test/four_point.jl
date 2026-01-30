@@ -102,19 +102,19 @@ x = big"0.05" + big"0" * im
 @testset "prefactors" begin
     cache = BootstrapVirasoro.PosCache(x, b_s)
     @test isapprox(
-        cache.prefactor * (16cache.q)^b_s.chan_dim.δ,
+        cache.prefactor * (16cache.q)^b_s.chan_field.δ,
         big"1813.32806084410414587456604",
         rtol = 1e-20,
     )
     cache = BootstrapVirasoro.PosCache(1 - x, b_t)
     @test isapprox(
-        cache.prefactor * (16cache.q)^b_t.chan_dim.δ,
+        cache.prefactor * (16cache.q)^b_t.chan_field.δ,
         big"0.07933043122650460823164",
         rtol = 1e-20,
     )
     cache = BootstrapVirasoro.PosCache(1 / big"1.5" + 0im, b_u)
     @test isapprox(
-        cache.prefactor * (16cache.q)^b_u.chan_dim.δ,
+        cache.prefactor * (16cache.q)^b_u.chan_field.δ,
         big"3.425385476422140172584631280130419",
         rtol = 1e-20,
     )

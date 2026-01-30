@@ -1,5 +1,4 @@
 import BootstrapVirasoro:
-    LRPosCache,
     PosCache,
     eval_series,
     etaDedekind,
@@ -24,7 +23,7 @@ V2 = Field(c, P = big"0.43" + big"0.31" * im, diagonal = true)
 co = Correlation(V1, Δmax)
 
 τ = big"0.3" + big"2" * im # τ in H/PSL_2(ZZ)
-τ_cache = LRPosCache(τ, co, :s)
+τ_cache = PosCache(τ, co, :s)
 q = qfromτ(τ)
 q_S2 = exp(im * (π * τ))
 x = xfromq(exp(im * (π * τ)))
@@ -142,8 +141,8 @@ end
     b_S2 = NCBlock(co_S2, :s, V0_S2, Δmax)
     b_S2ϵ = NCBlock(co_S2, :s, V0ϵ, Δmax)
 
-    lr_cache = BootstrapVirasoro.LRPosCache(τ, b)
-    xlr_cache = BootstrapVirasoro.LRPosCache(x, b_S2)
+    lr_cache = BootstrapVirasoro.PosCache(τ, b)
+    xlr_cache = BootstrapVirasoro.PosCache(x, b_S2)
     @test isapprox(
         bϵ.cblocks.left(τ),
         co.Rmn.left[V0.r, V0.s] / ϵ * BootstrapVirasoro.eval_lr_op(b, lr_cache)[1] +

@@ -22,7 +22,7 @@ mutable struct BootstrapSystem{T}
     RHS::Vector{T}
     correlation::Correlation
     positions::Vector{T}
-    positions_cache::Channels{Vector{LRPosCache}} # positions at which eqs are evaluated
+    positions_cache # positions at which eqs are evaluated
     spectra::Channels{ChanSpec{T}}    # channel spectra
     block_values::Channels{Dict{CDorField,Vector{T}}} # all blocks evaluated at all positions
     factors::Channels{Vector{T}} # overall position-dependent factor multiplying blocks in each channel
@@ -316,9 +316,9 @@ nb_blocks(s::ChanSpec) = sum(length(b) for b in s.blocks)
 function Base.show(io::IO, s::ChanSpec)
     println(io, "channel $(s.chan), Δmax = $(s.Δmax)")
     nondiags =
-        sort([(V.r, V.s) for V in fields(s) if !V.diagonal], by = x -> (x[1], x[2]))
+        sort([(V.r, V.s) for V in fields(s) if !isdiagonal(V)], by = x -> (x[1], x[2]))
     diags = sort(
-        [V for V in fields(s) if V.diagonal && !V.degenerate],
+        [V for V in fields(s) if isdiagonal(V) && !V.degenerate],
         by = V -> real(total_dimension(V)),
     )
     degs = sort(
@@ -387,10 +387,14 @@ function evaluate_blocks!(sys::BootstrapSystem)
     return sys.block_values
 end
 
-function new_random_point!(random_points, N; square = true, cond = p -> true)
+function new_random_point(; square=true)
     xmin, xmax, sep = square ? (0.1, 0.5, 0.2) : (-0.4, 1.4, 0.4)
+    return z = xmin + (xmax - xmin) * rand() + (1 + 4 * rand()) * im / 10
+end
+
+function new_random_point!(random_points, N; square = true, cond = p -> true)
     while true
-        z = xmin + (xmax - xmin) * rand() + (1 + 4 * rand()) * im / 10
+        z = new_random_point(square=square)
         if minimum(append!(abs.(z .- random_points), 1)) > sep / sqrt(N) &&
            cond(z) == true
             push!(random_points, z)
@@ -495,13 +499,12 @@ function BootstrapSystem(
     # compute position cache
     pos_chan = Channels(Dict(chan => [channel_position(x, co, chan) for x in pos]
                              for chan in keys(S)))
-    pos_cache = Channels(Dict(chan => Vector{LRPosCache}(undef, length(pos_chan[chan]))
+    pos_cache = Channels(Dict(chan => Vector(undef, length(pos_chan[chan]))
                               for chan in keys(S))) # result container
     chans = collect(keys(S))
     Threads.@threads for i = 1:length(chans)
         chan = chans[i]
-        pos_cache[chan] =
-            [LRPosCache(x, S[chans[i]].corr, chan) for x in pos_chan[chan]]
+        pos_cache[chan] = [PosCache(x, S[chan].corr, chan) for x in pos_chan[chan]]
     end
 
     # blocks = evaluate_blocks(S, pos_cache)
@@ -535,10 +538,22 @@ function factor(co::Correlation1{T}, chan, τ) where {T}
     chan === :u && return (τ - 1)^-Δ₁ * conj(τ - 1)^-bΔ₁
 end
 
+function hasdiagonal(spec::ChannelSpectrum, ::CCo)
+    return (false, nothing)
+end
+
+function hasdiagonal(spec::ChannelSpectrum, ::NCCo)
+    for V in keys(specs.blocks)
+        V.diagonal && return true, V
+    end
+    return (false, nothing)
+end
+
 function hasdiagonal(b::BootstrapSystem)
     for chan in b.channels
-        for V in keys(b.spectra[chan].blocks)
-            V.diagonal && return true, chan, V
+        has, V = hasdiagonal(b.spectra[chan], b.correlation)
+        if has
+            return true, chan, V
         end
     end
     return (false, :s, nothing)
@@ -860,14 +875,14 @@ function clear!(b::BootstrapSystem{T}) where {T}
     # b.matrix = BootstrapMatrix{T}([chan for chan in keys(b.spectra)])
 end
 
-function evaluate_correlation(sys, chan)
-    z = random_points(1)[1]
+function evaluate_correlation(sys, chan, z)
     co = sys.correlation
     consts = sys.str_cst
-    cache = LRPosCache(channel_position(z, co, chan), co, chan)
+    cache = PosCache(channel_position(z, co, chan), co, chan)
     block_values =
-        Dict(V => b(cache) for (V, b) in consts[chan] if consts.errors[chan] < 1e-4)
-    return sum(consts[chan][V] * block_values[V] for V in keys(block_values))
+        Dict(V => sys.spectra[chan].blocks[V](cache)
+             for (V, b) in consts[chan].constants)
+    return sum(consts[chan].constants[V] * block_values[V] for V in keys(block_values))
 end
 
 function Base.show(io::IO, b::BootstrapSystem)

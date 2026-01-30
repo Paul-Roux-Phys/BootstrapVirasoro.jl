@@ -273,6 +273,7 @@ end
 ConformalDimension() = ConformalDimension(CC())
 
 total_dimension(d::CD) = d.Δ
+isdiagonal(d::CD) = true
 
 function Base.:+(d1::CD, d2::CD)
     ConformalDimension(d1.c, Δ = d1.Δ + d2.Δ)
@@ -380,6 +381,8 @@ Field(d::CD{T}) where {T} = Field(LeftRight{CD{T}}(d, d))
 Field() = Field(CC())
 
 Base.getindex(V::Field, s::Symbol) = getfield(V.dims, s)
+
+isdiagonal(V::Field) = V.diagonal
 
 """spin(V::Field) = Δleft - Δright."""
 function spin(V::Field{T})::Union{Int,Rational,T} where {T}
