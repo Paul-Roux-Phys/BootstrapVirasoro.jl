@@ -309,14 +309,6 @@ function latexstring(r::Rational)
     L"\frac{%$(numerator(r))}{%$(denominator(r))}"
 end
 
-function Base.show(io::IO, ::MIME"text/plain", d::CD{T}) where {T}
-    if d.isKac
-        print(io, "Δ_{$(d.r), $(d.s)}")
-    else
-        print(io, "Δ_{P=$(d.P)}")
-    end
-end
-
 function Base.show(io::IO, d::CD{T}) where {T}
     if d.isKac
         print(io, "Δ_{$(d.r), $(d.s)}")
