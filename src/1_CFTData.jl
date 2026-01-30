@@ -309,11 +309,19 @@ function latexstring(r::Rational)
     L"\frac{%$(numerator(r))}{%$(denominator(r))}"
 end
 
-function Base.show(io::IO, d::CD{T}) where {T}
+function Base.show(io::IO, ::MIME"text/plain", d::CD{T}) where {T}
     if d.isKac
         print(io, "Δ_{$(d.r), $(d.s)}")
     else
         print(io, "Δ_{P=$(d.P)}")
+    end
+end
+
+function Base.show(io::IO, d::CD{T}) where {T}
+    if d.isKac
+        print(io, "Δ_{$(d.r), $(d.s)}")
+    else
+        print(io, "Δ_{P=$(format_complex(d.P, digits=3))}")
     end
 end
 
@@ -503,7 +511,7 @@ function Base.show(io::IO, V::Field)
             end
         else
             P = V.dims[:left].P
-            print(io, "P = ($(format_complex(P, digits=2)))")
+            print(io, "P = ($(format_complex(P, digits=3)))")
         end
     else
         print(io, "($(V.r), $(V.s))")

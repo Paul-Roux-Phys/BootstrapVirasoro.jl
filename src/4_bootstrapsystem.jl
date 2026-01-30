@@ -388,13 +388,14 @@ function evaluate_blocks!(sys::BootstrapSystem)
 end
 
 function new_random_point(; square=true)
-    xmin, xmax, sep = square ? (0.1, 0.5, 0.2) : (-0.4, 1.4, 0.4)
+    xmin, xmax = square ? (0.1, 0.5) : (-0.4, 1.4)
     return z = xmin + (xmax - xmin) * rand() + (1 + 4 * rand()) * im / 10
 end
 
 function new_random_point!(random_points, N; square = true, cond = p -> true)
     while true
         z = new_random_point(square=square)
+        sep = square ? 0.2 : 0.4
         if minimum(append!(abs.(z .- random_points), 1)) > sep / sqrt(N) &&
            cond(z) == true
             push!(random_points, z)
