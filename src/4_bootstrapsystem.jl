@@ -61,19 +61,14 @@ function Base.empty!(c::SC)
     return
 end
 
-function to_dataframe(c::SC, rmax = nothing)
-    df = DataFrame(
-        Field = String[],
-        StructureConstant = Complex[],
-        RelativeError = Float64[],
-    )
-
+function to_columntable(c::SC, rmax=nothing)
     fields = sort(collect(keys(c.constants)), by = V -> real(total_dimension(V)))
     rmax !== nothing && (fields = filter(V -> V.r <= rmax, fields))
-    for V in fields
-        push!(df, (string(V), c.constants[V], c.errors[V]))
-    end
-    return df
+    return (
+        Field = string.(fields),
+        StructureConstant = [c.constants[V] for V in fields],
+        RelativeError = [c.errors[V] for V in fields],
+    )
 end
 
 function Base.delete!(s::SC, V)
@@ -99,7 +94,7 @@ function tex_tuple(s::AbstractString)
 end
 
 function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
-    t = columntable(to_dataframe(c, rmax))
+    t = columntable(to_columntable(c, rmax))
     hl_conv = Highlighter(
         (table, i, j) ->
             table[:RelativeError][i] < 2^(-precision(BigFloat, base = 10) / 2) &&
@@ -169,15 +164,6 @@ function Base.show(io::IO, c::Channels{<:SC}; rmax = nothing, backend = :text)
             printstyled(io, channel_header; bold = true)
         end
         show(io, c[chan], rmax = rmax, backend = backend)
-    end
-end
-
-function save(io::IO, c::SC; format::Symbol = :csv)
-    df = to_dataframe(c)
-    if format == :csv
-        CSV.write(io, df)
-    else
-        show(io, c, plaintext = true)  # fallback to default text show
     end
 end
 

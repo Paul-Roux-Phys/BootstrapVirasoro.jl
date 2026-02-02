@@ -30,8 +30,6 @@ Third-party functions
 =========================================================================#
 import EllipticFunctions: jtheta2, jtheta3, ellipticK, etaDedekind
 import BarnesDoubleGamma: DoubleGamma, gamma, digamma_reg
-import DataFrames: DataFrame, groupby, select, Not
-import CSV
 using LaTeXStrings
 import PrettyTables: pretty_table, @crayon_str, Highlighter, Tables.columntable
 import Random

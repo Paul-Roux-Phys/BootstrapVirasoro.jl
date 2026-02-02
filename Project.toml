@@ -1,12 +1,10 @@
 name = "BootstrapVirasoro"
 uuid = "ca6c609c-7c6b-4ea6-be06-ee6e3ced7d6c"
-authors = ["Paul_Roux"]
 version = "0.1.0"
+authors = ["Paul_Roux"]
 
 [deps]
 BarnesDoubleGamma = "8c4ec0a7-3a81-41b6-9d5f-01f75984e8d3"
-CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
-DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 EllipticFunctions = "6a4e32cb-b31a-4929-85af-fb29d9a80738"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -18,8 +16,6 @@ SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
 
 [compat]
 BarnesDoubleGamma = "1"
-CSV = "0"
-DataFrames = "1"
 EllipticFunctions = "2"
 LaTeXStrings = "1"
 LinearAlgebra = "1"
