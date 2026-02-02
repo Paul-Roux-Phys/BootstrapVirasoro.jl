@@ -544,7 +544,7 @@ function hasdiagonal(spec::ChannelSpectrum, ::CCo)
 end
 
 function hasdiagonal(spec::ChannelSpectrum, ::NCCo)
-    for V in keys(specs.blocks)
+    for V in keys(spec.blocks)
         V.diagonal && return true, V
     end
     return (false, nothing)

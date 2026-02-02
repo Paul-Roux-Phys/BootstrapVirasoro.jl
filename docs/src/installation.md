@@ -3,18 +3,16 @@
 To install this package, run
 
 ```julia
-using Pkg; Pkg.add("https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl.git")
+using Pkg; Pkg.add(url="add https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl.git")
 ```
 
-in a Julia script, or download the code from the repo, put it somewhere where Julia can see the `BootstrapVirasoro` module and do
+in a Julia REPL or script, or from a julia REPL type `]` to enter Julia's package manager and run
 
 ```julia-repl
-julia> ]add https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl.git
+(your_environment)> add https://github.com/Paul-Roux-Phys/BootstrapVirasoro.jl.git
 ```
 
-in a Julia REPL.
-
-The module is then accessible via
+To bring the functions exported by the package into your current scope, you then need to do
 
 ```julia
 using BootstrapVirasoro

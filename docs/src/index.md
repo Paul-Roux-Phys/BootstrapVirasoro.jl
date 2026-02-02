@@ -13,7 +13,13 @@ This is the documentation page for the `BootstrapVirasoro` package. `BootstrapVi
 ## Contents
 
 * [Installation](installation.md)
-* [Computing conformal blocks](conformalblocks.md)
-* [Solving bootstrap equations](bootstrapeqs.md)
-* [`LoopModels` submodule](loopmodels.md)
-* [Internals](internals.md)
+
+For any new user, we advise taking a look at the two following files, which contain simple self-contained code examples:
+
+* [compute blocks](conformalblocks.md): learn how to compute various types of virasoro conformal blocks,
+* [solve bootstrap equations](bootstrapeqs.md): learn how to use the package's utilities to solve bootstrap equations and pretty-print their solutions.
+
+For more detailed documentation of the public API of the package, refer to 
+
+* [public API](public_api.md)
+

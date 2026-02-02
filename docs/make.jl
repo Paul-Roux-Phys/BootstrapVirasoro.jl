@@ -19,8 +19,6 @@ makedocs(
                 "Installation" => "installation.md",
                 "Conformal blocks" => "conformalblocks.md",
                 "Bootstrap equations" => "bootstrapeqs.md",
-                "Loop models" => "loopmodels.md",
-                "Internals" => "internals.md",
         ],
         checkdocs=:export,
 )

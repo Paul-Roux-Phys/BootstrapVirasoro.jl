@@ -511,7 +511,7 @@ function LeftRight{ChiralPosCache}(x, co::NCCo{T}, chan) where {T}
 end
 LeftRight{ChiralPosCache}(x, b::NCBlock) = NonChiralPosCache(x, b.corr, b.chan)
 
-PosCache(x, c::NCCo, chan) = NonChiralPosCache(x, co, chan)
+PosCache(x, co::NCCo, chan) = NonChiralPosCache(x, co, chan)
 PosCache(x, b::NCBlock) = NonChiralPosCache(x, b)
 
 conj_q(x, _::Correlation4) = conj(x)
