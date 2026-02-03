@@ -12,7 +12,7 @@ Block  (Abstract Type)
 └─ LinearCombinationBlock
 ```
 """
-abstract type Block{T} end # general conformal block. Can be interchiral, non-chiral or chiral
+abstract type Block end # general conformal block. Can be interchiral, non-chiral or chiral
 
 """
 # Type
@@ -40,12 +40,12 @@ Aliased to CBlock.
 - `Δmax`: integer up to which the series is evaluated.
 - `der`: whether to compute the coefficients of the block's derivative as well.
 """
-struct ChiralBlock{T} <: Block{T}
-    corr::CCo{T}
-    chan_field::CD{T}
-    coeffs::Vector{T}
-    coeffs_der::Vector{T}
-    missing_terms::Vector{T}
+struct ChiralBlock <: Block
+    corr::CCo
+    chan_field::CD
+    coeffs::Vector{Acb}
+    coeffs_der::Vector{Acb}
+    missing_terms::Vector{Acb}
     chan::Symbol
     Δmax::Int
 end
@@ -58,12 +58,12 @@ powers and log of the nome ``q`` or of ``16q``, value of the part of
 the prefactor of the block that is independent
 of the channel dimension.
 """
-struct ChiralPosCache{T}
-    x::T
-    prefactor::T
-    q::T
-    logq::T
-    q_powers::Vector{T}
+struct ChiralPosCache
+    x::Acb
+    prefactor::Acb
+    q::Acb
+    logq::Acb
+    q_powers::Vector{Acb}
 end
 
 """
@@ -92,26 +92,26 @@ the block is logarithmic, except if the residue ``R_{r,s}`` vanishes.
 - A channel `Field` 
 - `Δmax`: integer up to which the series is evaluated. Defaults to the correlation's `Δmax`.
 """
-abstract type NonChiralBlock{T} <: Block{T} end
+abstract type NonChiralBlock <: Block end
 const NCBlock = NonChiralBlock
 
-struct FactorizedBlock{T} <: NonChiralBlock{T}
-    chan_field::Field{T}
+struct FactorizedBlock <: NonChiralBlock
+    chan_field::Field
     corr::Corr
-    cblocks::LR{CBlock{T}}
+    cblocks::LR{CBlock}
     Δmax::Int
     chan::Symbol
 end
 
-struct LogBlock{T} <: NonChiralBlock{T}
-    cblocks::LR{CBlock{T}} # blocks for V_(r, s) x V_(r, -s)
-    cblocks_op::LR{CBlock{T}} # blocks for V_(r, -s) x V_(r, s)
-    cblocks_der::Union{LR{CBlock{T}},Nothing}
+struct LogBlock <: NonChiralBlock
+    cblocks::LR{CBlock} # blocks for V_(r, s) x V_(r, -s)
+    cblocks_op::LR{CBlock} # blocks for V_(r, -s) x V_(r, s)
+    cblocks_der::Union{LR{CBlock},Nothing}
     corr::Corr
-    chan_field::Field{T}
-    R::T
-    Rbar::T
-    ell::T
+    chan_field::Field
+    R::Acb
+    Rbar::Acb
+    ell::Acb
     Δmax::Int
     nbzeros::Int
     chan::Symbol
@@ -140,13 +140,13 @@ b2 = CBlock(co, :s, V2)
 b = b1 - 2b2 # LinearCombinationBlock
 ```
 """
-abstract type LinearCombinationBlock{T} <: Block{T} end
+abstract type LinearCombinationBlock <: Block end
 const LCBlock = LinearCombinationBlock
 
-struct GenericLCBlock{T} <: LCBlock{T}
-    chan_field::Field{T}
-    blocks::Vector{Block{T}}
-    coeffs::Vector{T}
+struct GenericLCBlock <: LCBlock
+    chan_field::Field
+    blocks::Vector{Block}
+    coeffs::Vector{Acb}
     chan::Symbol
 end
 
@@ -168,17 +168,17 @@ function (b::Block)(x) end
 #=============================================================================
 Chiral Blocks
 =============================================================================#
-function series_H(d::CD{T}, Δmax, CNmn) where {T}
+function series_H(d::CD, Δmax, CNmn) 
     P = d.P
     P2 = P^2
     isKac = d.isKac
     r, s = d.r, d.s
 
-    coeffs = [zero(T) for _ = 1:Δmax+2, _ = 1:Δmax+2]
+    coeffs = [zero(Acb) for _ = 1:Δmax+2, _ = 1:Δmax+2]
     all_mns = union([CNmn.keys[N] for N = 1:Δmax]...)
-    buf = zero(T)
-    o = one(T)
-    four = convert(T, 4)
+    buf = zero(Acb)
+    o = one(Acb)
+    four = convert(Acb, 4)
     for (m, n) in all_mns
         if isKac && m == r && n == s
             # coeffs[m, n] = -inv(4CNmn.δs[r, s])
@@ -194,9 +194,9 @@ function series_H(d::CD{T}, Δmax, CNmn) where {T}
         end
     end
 
-    H = [zero(T) for _ = 1:Δmax+1]
-    H[1] = one(T)
-    buf = zero(T)
+    H = [zero(Acb) for _ = 1:Δmax+1]
+    H[1] = one(Acb)
+    buf = zero(Acb)
     for N = 1:Δmax
         for (m, n) in CNmn.keys[N]
             (N > Δmax || m > Δmax || n > Δmax) && continue
@@ -210,13 +210,13 @@ function series_H(d::CD{T}, Δmax, CNmn) where {T}
     return H
 end
 
-function series_H_der(d::CD{T}, Δmax, CNmn) where {T}
+function series_H_der(d::CD, Δmax, CNmn) 
     P = d.P
     P2 = P^2
     mtwoP = -2P
-    buf = zero(T)
+    buf = zero(Acb)
 
-    H = [zero(T) for _ = 1:Δmax+1]
+    H = [zero(Acb) for _ = 1:Δmax+1]
 
     # coeffs = Dict(
     #     (m, n) => -2P / (P2 - CNmn.δs[m, n])^2 for
@@ -224,7 +224,7 @@ function series_H_der(d::CD{T}, Δmax, CNmn) where {T}
     # )
 
     all_mns = union([CNmn.keys[N] for N = 1:Δmax]...)
-    coeffs = Dict((m, n) => zero(T) for (m, n) in all_mns)
+    coeffs = Dict((m, n) => zero(Acb) for (m, n) in all_mns)
     for (m, n) in all_mns
         # -2P / (P2 - CNmn.deltas[m, n])^2
         buf = MA.operate_to!!(buf, -, P2, CNmn.δs[m, n])
@@ -247,27 +247,27 @@ function series_H_der(d::CD{T}, Δmax, CNmn) where {T}
 end
 
 function ChiralBlock(
-    co::CCo{T},
+    co::CCo,
     chan::Symbol,
     d::CD,
     Δmax = missing,
     der = false,
-) where {T}
+) 
     Δmax === missing && (Δmax = co.Δmax)
     CNmn = getCNmn(co, chan)
     coeffs = series_H(d, Δmax, CNmn)
-    coeffs_der = Vector{T}()
+    coeffs_der = Vector{Acb}()
     der && (coeffs_der = series_H_der(d, Δmax, CNmn))
     if !d.degenerate
-        missing_terms = Vector{T}()
+        missing_terms = Vector{Acb}()
     else
         r, s = d.r, d.s
         missing_terms = [
-            (N > 0 && (r, s) in CNmn.keys[N]) ? CNmn[N, r, s] : zero(T) for N = 0:Δmax
+            (N > 0 && (r, s) in CNmn.keys[N]) ? CNmn[N, r, s] : zero(Acb) for N = 0:Δmax
         ]
     end
 
-    CBlock{T}(co, d, coeffs, coeffs_der, missing_terms, chan, Δmax)
+    CBlock(co, d, coeffs, coeffs_der, missing_terms, chan, Δmax)
 end
 
 function ChiralBlock(
@@ -284,7 +284,7 @@ getRmnreg(b::CBlock) = getRmnreg(b.corr, b.chan)
 getCNmn(b::CBlock) = getCNmn(b.corr, b.chan)
 getc(b::CBlock) = b.corr.c
 
-function ChiralPosCache(x, ds::NTuple{4,CD{T}}, chan::Symbol, Δmax) where {T}
+function ChiralPosCache(x, ds::NTuple{4,CD}, chan::Symbol, Δmax) 
     ds = permute_4(ds, chan)
 
     q = qfromx(x)
@@ -297,32 +297,32 @@ function ChiralPosCache(x, ds::NTuple{4,CD{T}}, chan::Symbol, Δmax) where {T}
     prefactor = x^e0 * (1 - x)^e1 * jtheta3(0, q)^(-4 * e2)
 
     sq = 16q
-    q_powers = ones(T, Δmax + 1)
+    q_powers = ones(Acb, Δmax + 1)
     for i = 2:(Δmax+1)
         q_powers[i] = q_powers[i-1] * sq
     end
 
-    return ChiralPosCache{T}(x, prefactor, q, log(sq), q_powers)
+    return ChiralPosCache(x, prefactor, q, log(sq), q_powers)
 end
 
-function ChiralPosCache(τ, _::NTuple{1,CD{T}}, _::Symbol, Δmax) where {T}
+function ChiralPosCache(τ, _::NTuple{1,CD}, _::Symbol, Δmax) 
     q = qfromτ(τ)
     prefactor = 1 / etaDedekind(complex(τ))
-    q_powers = ones(T, Δmax + 1)
+    q_powers = ones(Acb, Δmax + 1)
     for i = 2:(Δmax+1)
         q_powers[i] = q_powers[i-1] * q
     end
 
-    return ChiralPosCache{T}(τ, prefactor, q, log(q), q_powers)
+    return ChiralPosCache(τ, prefactor, q, log(q), q_powers)
 end
 
 ChiralPosCache(x, co::CCo, chan) = ChiralPosCache(x, co.fields, chan, co.Δmax)
 PosCache(x, co::CCo, chan) = ChiralPosCache(x, co.fields, chan, co.Δmax)
 PosCache(x, b::CBlock) = PosCache(x, b.corr, b.chan)
 
-function evalpoly(x::ChiralPosCache, coeffs::Vector{T}) where {T}
-    res = zero(T)
-    buf = zero(T)
+function evalpoly(x::ChiralPosCache, coeffs::Vector{Acb}) 
+    res = zero(Acb)
+    buf = zero(Acb)
     for i = 1:length(coeffs)
         # res += coeffs[i] * x.q_powers[i]
         buf = MA.operate_to!!(buf, *, coeffs[i], x.q_powers[i])
@@ -345,7 +345,7 @@ total_prefactor(b::CBlock, x::ChiralPosCache, _::Correlation1) =
 total_prefactor(b::CBlock, x::ChiralPosCache) = total_prefactor(b, x, b.corr)
 total_prefactor(b::CBlock, x::Number) = total_prefactor(b, PosCache(x, b))
 
-function (b::CBlock{T})(x::ChiralPosCache)::T where {T}
+function (b::CBlock)(x::ChiralPosCache)::Acb 
     d = b.chan_field
     p = total_prefactor(b, x)
     h = eval_series(b, x)
@@ -358,7 +358,7 @@ function (b::CBlock{T})(x::ChiralPosCache)::T where {T}
     return p * h
 end
 
-function (b::CBlock{T})(x::ChiralPosCache, _::Bool)::T where {T}
+function (b::CBlock)(x::ChiralPosCache, _::Bool)::Acb 
     d = b.chan_field
     qor16q = x.q_powers[2]
     p = x.prefactor * (qor16q)^b.chan_field.δ
@@ -384,10 +384,10 @@ end
 #================================================================================
 Non Chiral blocks
 ================================================================================#
-function FactorizedBlock(co::NCCo{T}, chan, V, Δmax) where {T}
+function FactorizedBlock(co::NCCo, chan, V, Δmax) 
     bl = CBlock(co[:left], chan, V[:left], Δmax)
     br = CBlock(co[:right], chan, V[:right], Δmax)
-    FactorizedBlock{T}(V, co, LR(bl, br), Δmax, chan)
+    FactorizedBlock(V, co, LR(bl, br), Δmax, chan)
 end
 
 # function islogarithmic(V::Field)
@@ -406,7 +406,7 @@ end
 isaccidentallynonlogarithmic(b::NCBlock) =
     isaccidentallynonlogarithmic(b.corr, b.chan, b.chan_field)
 
-function LogBlock(co::NCCo{T}, chan, V, Δmax) where {T}
+function LogBlock(co::NCCo, chan, V, Δmax) 
     V_op = swap_lr(V)
     VV = V.s > 0 ? (V, V_op) : (V_op, V) # (V_(r, s > 0), V_(r, -s))
     r, s = VV[1].r, VV[1].s
@@ -414,7 +414,7 @@ function LogBlock(co::NCCo{T}, chan, V, Δmax) where {T}
         CBlock(co[lr], chan, v.dims[lr], Δmax, false) for lr in (:left, :right)
         for v in VV
     )
-    R, Rbar, l = zero(T), zero(T), zero(T)
+    R, Rbar, l = zero(Acb), zero(Acb), zero(Acb)
     cl, cr = co[:left], co[:right]
     if isaccidentallynonlogarithmic(co, chan, V)
         chiral_blocks_der = nothing
@@ -423,7 +423,7 @@ function LogBlock(co::NCCo{T}, chan, V, Δmax) where {T}
             Rbar = getRmnreg(cr, chan)[r, s]
         end
         nbzeros = Rmn_zero_order(r, s, left.corr.fields)
-        l = zero(T)
+        l = zero(Acb)
     else
         leftder = CBlock(cl, chan, VV[2][:left], Δmax, true)
         rightder = CBlock(cr, chan, VV[1].dims.right, Δmax, true)
@@ -435,7 +435,7 @@ function LogBlock(co::NCCo{T}, chan, V, Δmax) where {T}
         end
         nbzeros = 0
     end
-    LogBlock{T}(
+    LogBlock(
         LR(left, right),
         LR(left_op, right_op),
         chiral_blocks_der,
@@ -505,7 +505,7 @@ function ell(V::NTuple{1,Field}, r, s)
     res / β
 end
 
-function LeftRight{ChiralPosCache}(x, co::NCCo{T}, chan) where {T}
+function LeftRight{ChiralPosCache}(x, co::NCCo, chan) 
     xbar = conj_q(x, co)
     return NonChiralPosCache(PosCache(x, co[:left], chan), PosCache(xbar, co[:right], chan))
 end
@@ -521,23 +521,23 @@ prefactor(b::NonChiralBlock, x::NonChiralPosCache) =
     prefactor(b.cblocks.left, x.left) * prefactor(b.cblocks.right, x.right)
 prefactor(b::NonChiralBlock, x::Number) = prefactor(b, NonChiralPosCache(x, b))
 
-eval_lr(bs::LR{CBlock{T}}, x) where {T} = bs.left(x.left), bs.right(x.right)
-eval_lr_der(bs::LeftRight{CBlock{T}}, x) where {T} =
+eval_lr(bs::LR{CBlock}, x)  = bs.left(x.left), bs.right(x.right)
+eval_lr_der(bs::LeftRight{CBlock}, x)  =
     bs.left(x.left, true), bs.right(x.right, true)
-eval_lr(b::FactorizedBlock{T}, x) where {T} = eval_lr(b.cblocks, x)
+eval_lr(b::FactorizedBlock, x)  = eval_lr(b.cblocks, x)
 eval_lr(b::LogBlock, x) = eval_lr(b.cblocks, x)
 eval_lr_op(b::LogBlock, x) = eval_lr(b.cblocks_op, x)
 eval_lr_der(b::LogBlock, x) = eval_lr_der(b.cblocks_der, x)
 
-function (b::FactorizedBlock{T})(x::NonChiralPosCache)::T where {T}
+function (b::FactorizedBlock)(x::NonChiralPosCache)::Acb 
     lr = eval_lr(b, x)
     return lr[1] * lr[2]
 end
 
-function (b::LogBlock{T})(x::NonChiralPosCache)::T where {T}
+function (b::LogBlock)(x::NonChiralPosCache)::Acb 
     V = b.chan_field
     s = V.s
-    s < 0 && return zero(T) # by convention G_(r, s<0) = 0
+    s < 0 && return zero(Acb) # by convention G_(r, s<0) = 0
     Prs = V[:left].P
 
     Freg, Fbar = eval_lr(b, x)
@@ -580,8 +580,8 @@ end
 #====================================================================================
 Linear Combinations of blocks
 ====================================================================================#
-function LinearCombinationBlock(bs::Vector{<:Block{T}}, coeffs) where {T}
-    GenericLCBlock{T}(bs[1].chan_field, bs, coeffs, bs[1].chan)
+function LinearCombinationBlock(bs::Vector{<:Block}, coeffs) 
+    GenericLCBlock(bs[1].chan_field, bs, coeffs, bs[1].chan)
 end
 
 function Base.:+(b1::LCBlock, b2::LCBlock)
@@ -608,8 +608,8 @@ function Base.:*(a::Number, b::Block)
     LCBlock([b], [a])
 end
 
-function (b::LCBlock{T})(x)::T where {T}
-    res = zero(T)
+function (b::LCBlock)(x)::Acb 
+    res = zero(Acb)
     for i in eachindex(b.blocks)
         res += (b.blocks)[i](x) .* b.coeffs[i]
     end

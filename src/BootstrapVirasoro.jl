@@ -28,6 +28,7 @@ export evaluate_correlation
 #=========================================================================
 Third-party functions
 =========================================================================#
+using Arblib
 import EllipticFunctions: jtheta2, jtheta3, ellipticK, etaDedekind
 import BarnesDoubleGamma: DoubleGamma, gamma, digamma_reg
 using LaTeXStrings

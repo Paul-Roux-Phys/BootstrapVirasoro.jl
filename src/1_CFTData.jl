@@ -1,4 +1,3 @@
-
 """
         CentralCharge(; β, c, B, b)
 
@@ -19,12 +18,11 @@ c2.c ≈ big"0.4" # access any of the parameters
 true
 ```
 """
-struct CentralCharge{T}
-    β::T
-    B::T
-    b::T
-    c::T
-    n::T
+struct CentralCharge
+    β::Acb
+    B::Acb
+    b::Acb
+    c::Acb
 end
 # convenience alias
 const CC = CentralCharge
@@ -52,16 +50,16 @@ d2.r == 2 # true
 true
 ```
 """
-struct ConformalDimension{T}
-    c::CentralCharge{T}
-    P::T
-    p::T
-    δ::T
-    Δ::T
-    r::Union{Rational,Int}   # r must be rational
-    s::Union{T,Rational,Int} # s can be an arbitrary number to represent a
-    isKac::Bool              # diagonal field. Still needs to be exact in
-    degenerate::Bool         # case of a non-diagonal field
+struct ConformalDimension
+    c::CentralCharge
+    P::Acb
+    p::Acb
+    δ::Acb
+    Δ::Acb
+    r::Union{Rational,Int}     # r must be rational
+    s::Union{Acb,Rational,Int} # s can be an arbitrary number to represent a
+    isKac::Bool                # diagonal field. Still needs to be exact in
+    degenerate::Bool           # case of a non-diagonal field
 end
 # convenience alias
 const CD = ConformalDimension
@@ -90,11 +88,11 @@ spin(V1) == 1 # true
 true
 ```
 """
-struct Field{T}
-    c::CC{T}
-    dims::LeftRight{ConformalDimension{T}}
+struct Field
+    c::CC
+    dims::LeftRight{ConformalDimension}
     r::Union{Rational,Int}
-    s::Union{T,Rational,Int}
+    s::Union{Acb,Rational,Int}
     diagonal::Bool
     degenerate::Bool
     isKac::Bool
@@ -106,13 +104,8 @@ Central charges
 function Bfrom(s::Symbol, x)
     a = (x - 1) * (x - 25)
     s === :β && return -x^2
-    s === :c && return (
-        if a isa Real && a > 0
-            (x - 13 + sqrt((x - 1) * (x - 25))) / 12
-        else # a is complex
+    s === :c && return
             (x - 13 + sqrt(complex((x - 1) * (x - 25)))) / 12
-        end
-    )
     s === :b && return x^2
     s === :B && return x
     error("unsupported parameter: $s")
@@ -127,14 +120,16 @@ function Bto(s::Symbol, x)
     s === :n && return -2cos(π * x)
 end
 
-function _CentralCharge(s::Symbol, x)
-    B = complex(Bfrom(s, x))
+function _CentralCharge(s::Symbol, x::Acb)
+    B = Bfrom(s, x)
     β = Bto(:β, B)
     b = Bto(:b, B)
     c = Bto(:c, B)
     n = Bto(:n, B)
     CentralCharge(β, B, b, c, n)
 end
+
+_CentralCharge(s::Symbol, x) = CentralCharge(s, Acb(x))
 
 function CentralCharge(;
     β = missing,
@@ -143,12 +138,12 @@ function CentralCharge(;
     b = missing,
     n = missing,
 )
-    β !== missing && return _CentralCharge(:β, float(β))
-    c !== missing && return _CentralCharge(:c, float(c))
-    B !== missing && return _CentralCharge(:B, float(B))
-    b !== missing && return _CentralCharge(:b, float(b))
-    n !== missing && return _CentralCharge(:n, float(n))
-    return _CentralCharge(:c, 1)
+    β !== missing && return _CentralCharge(:β, β)
+    c !== missing && return _CentralCharge(:c, c)
+    B !== missing && return _CentralCharge(:B, B)
+    b !== missing && return _CentralCharge(:b, b)
+    n !== missing && return _CentralCharge(:n, n)
+    return _CentralCharge(:c, Acb(1))
 end
 
 function Base.show(io::IO, ::MIME"text/plain", c::CC)
@@ -200,8 +195,8 @@ end
 Conformal Dimensions
 ======================================================================================#
 function Pfrom(s::Symbol, x, c::CC)
-    s === :Δ && return sqrt(complex(x - (c.c - 1) / 24))
-    s === :δ && return sqrt(complex(x))
+    s === :Δ && return sqrt(x - (c.c - 1) / 24)
+    s === :δ && return sqrt(x)
     s === :P && return x
     s === :p && return im * x
 end
@@ -222,7 +217,7 @@ Prs(r, s, c::CC) = Prs(r, s, c.β)
 δrs(r, s, B::Number) = -1 / 4 * (B * r^2 + 2 * r * s + s^2 / B)
 δrs(r, s, c::CC) = -1 / 4 * (c.B * r^2 + 2 * r * s + s^2 / c.B)
 
-function _ConformalDimension(c::CC{T}, sym::Symbol, P, r, s) where {T<:Number}
+function _ConformalDimension(c::CC, sym::Symbol, P::Acb, r, s)
     β = c.β
     degenerate = false
     isKac = false
@@ -237,7 +232,7 @@ function _ConformalDimension(c::CC{T}, sym::Symbol, P, r, s) where {T<:Number}
             end
         end
         if r == 0 && !(s isa Int || s isa Rational)
-            s = convert(T, s)
+            s = convert(Acb, s)
         end
     else
         @assert (r === missing && s === missing) "
@@ -250,8 +245,10 @@ function _ConformalDimension(c::CC{T}, sym::Symbol, P, r, s) where {T<:Number}
     p = Pto(:p, P, c)
     δ = Pto(:δ, P, c)
     Δ = Pto(:Δ, P, c)
-    ConformalDimension{T}(c, P, p, δ, Δ, r, s, isKac, degenerate)
+    ConformalDimension(c, P, p, δ, Δ, r, s, isKac, degenerate)
 end
+
+_ConformalDimension(c::CC, sym::Symbol, P, r, s) = _ConformalDimension(c, sym, P, r, s)
 
 function ConformalDimension(
     c::CC;
@@ -293,11 +290,11 @@ function Base.hash(d::CD, h::UInt)
     return hash(str, h)
 end
 
-function Base.show(io::IO, ::MIME"text/plain", d::CD{T}) where {T}
+function Base.show(io::IO, ::MIME"text/plain", d::CD)
     if d.isKac
-        print(io, "ConformalDimension{$T} with Kac indices r = $(d.r), s = $(d.s)")
+        print(io, "ConformalDimension with Kac indices r = $(d.r), s = $(d.s)")
     else
-        print(io, "ConformalDimension{$T} with\nΔ = $(d.Δ), P = $(d.P)")
+        print(io, "ConformalDimension with\nΔ = $(d.Δ), P = $(d.P)")
     end
 end
 
@@ -309,7 +306,7 @@ function latexstring(r::Rational)
     L"\frac{%$(numerator(r))}{%$(denominator(r))}"
 end
 
-function Base.show(io::IO, d::CD{T}) where {T}
+function Base.show(io::IO, d::CD)
     if d.isKac
         print(io, "Δ_{$(d.r), $(d.s)}")
     else
@@ -320,7 +317,7 @@ end
 #======================================================================================
 Fields
 ======================================================================================#
-function _Field(c::CC{T}, sym::Symbol, dim, r, s, diagonal) where {T}
+function _Field(c::CC, sym::Symbol, dim::Acb, r, s, diagonal)
     @assert !(ismissing(r) ⊻ ismissing(s)) "
     You cannot give only r or only s, you must give neither or both
 "
@@ -346,8 +343,11 @@ function _Field(c::CC{T}, sym::Symbol, dim, r, s, diagonal) where {T}
     isKac = dl.isKac && dr.isKac
     deg = dl.degenerate && dr.degenerate
 
-    Field{T}(c, LR{CD{T}}(dl, dr), r, s, diagonal, deg, isKac)
+    Field(c, LR{CD}(dl, dr), r, s, diagonal, deg, isKac)
 end
+
+_Field(c::CC, sym::Symbol, dim, r, s, diagonal) =
+    _Field(c, sym, Acb(dim), r, s, diagonal)
 
 function Field(
     c::CC;
@@ -367,17 +367,17 @@ function Field(
     return _Field(c, :Δ, 0, 1, 1, true)
 end
 
-function Field(ds::LeftRight{CD{T}}) where {T}
+function Field(ds::LeftRight{CD})
     c = ds.left.c
     degenerate = ds.left.degenerate && ds.right.degenerate
     isKac = ds.left.isKac && ds.right.isKac
     ds.left == ds.right ? diagonal = true : diagonal = false
     r, s = ds.left.r, ds.left.s
-    Field{T}(c, ds, r, s, diagonal, degenerate, isKac)
+    Field(c, ds, r, s, diagonal, degenerate, isKac)
 end
-Field(ds::Tuple{CD{T},CD{T}}) where {T} = Field(LeftRight{CD{T}}(ds[1], ds[2]))
-Field(d1::CD{T}, d2::CD) where {T} = Field(LeftRight{CD{T}}(d1, d2))
-Field(d::CD{T}) where {T} = Field(LeftRight{CD{T}}(d, d))
+Field(ds::Tuple{CD,CD}) = Field(LeftRight{CD}(ds[1], ds[2]))
+Field(d1::CD, d2::CD) = Field(LeftRight{CD}(d1, d2))
+Field(d::CD) = Field(LeftRight{CD}(d, d))
 Field() = Field(CC())
 
 Base.getindex(V::Field, s::Symbol) = getfield(V.dims, s)
@@ -385,13 +385,13 @@ Base.getindex(V::Field, s::Symbol) = getfield(V.dims, s)
 isdiagonal(V::Field) = V.diagonal
 
 """spin(V::Field) = Δleft - Δright."""
-function spin(V::Field{T})::Union{Int,Rational,T} where {T}
+function spin(V::Field)::Union{Int,Rational,Acb}
     V.diagonal && return 0
     spin = V.isKac ? V.r * V.s : V[:left].Δ - V.dims.right.Δ
     return spin % 1 == 0 ? Int(spin) : spin
 end
 
-function swap_lr(V::Field{T}) where {T}
+function swap_lr(V::Field)
     return Field((V.dims[:right], V.dims[:left]))
 end
 

@@ -37,60 +37,60 @@ co3.fields[1] == V[:left]
 true
 ```
 """
-abstract type Correlation{T} end
+abstract type Correlation end
 const Corr = Correlation # alias
 const Co = Correlation # alias
 
-struct RmnTable{T}
-    values::Array{T,2}
-    keys::Set{Tuple{Int,Int}}
+struct RmnTable
+    values::Array{Acb, 2}
+    keys::Set{Tuple{Int, Int}}
 end
 
-struct CNmnTable{T}
-    values::Array{T,3}
-    keys::Vector{Set{Tuple{Int,Int}}}
-    δs::Matrix{T}
+struct CNmnTable
+    values::Array{Acb, 3}
+    keys::Vector{Set{Tuple{Int, Int}}}
+    δs::Matrix
 end
 
-abstract type ChiralCorrelation{T} <: Correlation{T} end
-const CCo{T} = ChiralCorrelation{T}
+abstract type ChiralCorrelation <: Correlation end
+const CCo = ChiralCorrelation
 
-struct ChiralCorrelation4{T} <: ChiralCorrelation{T}
-    fields::NTuple{4,CD{T}}
-    c::CentralCharge{T}
-    Rmn::Channels{RmnTable{T}}
-    Rmnreg::Channels{RmnTable{T}}
-    CNmn::Channels{CNmnTable{T}}
+struct ChiralCorrelation4 <: ChiralCorrelation
+    fields::NTuple{4, CD}
+    c::CentralCharge
+    Rmn::Channels{RmnTable}
+    Rmnreg::Channels{RmnTable}
+    CNmn::Channels{CNmnTable}
     Δmax::Int
 end
 
-struct ChiralCorrelation1{T} <: ChiralCorrelation{T} # N = number of fields
-    fields::NTuple{1,CD{T}}
-    c::CentralCharge{T}
-    Rmn::RmnTable{T}
-    Rmnreg::RmnTable{T}
-    CNmn::CNmnTable{T}
+struct ChiralCorrelation1 <: ChiralCorrelation # N = number of fields
+    fields::NTuple{1, CD}
+    c::CentralCharge
+    Rmn::RmnTable
+    Rmnreg::RmnTable
+    CNmn::CNmnTable
     Δmax::Int
 end
 
-abstract type NonChiralCorrelation{T} <: Correlation{T} end
-const NCCo{T} = NonChiralCorrelation{T}
+abstract type NonChiralCorrelation <: Correlation end
+const NCCo = NonChiralCorrelation
 
-struct NonChiralCorrelation4{T} <: NonChiralCorrelation{T}
-    fields::NTuple{4,Field{T}}
-    c::CentralCharge{T}
-    Rmn::LR{Channels{RmnTable{T}}}
-    Rmnreg::LR{Channels{RmnTable{T}}}
-    CNmn::LR{Channels{CNmnTable{T}}}
+struct NonChiralCorrelation4 <: NonChiralCorrelation
+    fields::NTuple{4, Field}
+    c::CentralCharge
+    Rmn::LR{Channels{RmnTable}}
+    Rmnreg::LR{Channels{RmnTable}}
+    CNmn::LR{Channels{CNmnTable}}
     Δmax::Int
 end
 
-struct NonChiralCorrelation1{T} <: NonChiralCorrelation{T}
-    fields::NTuple{1,Field{T}}
-    c::CentralCharge{T}
-    Rmn::LR{RmnTable{T}}
-    Rmnreg::LR{RmnTable{T}}
-    CNmn::LR{CNmnTable{T}}
+struct NonChiralCorrelation1 <: NonChiralCorrelation
+    fields::NTuple{1, Field}
+    c::CentralCharge
+    Rmn::LR{RmnTable}
+    Rmnreg::LR{RmnTable}
+    CNmn::LR{CNmnTable}
     Δmax::Int
 end
 
@@ -101,7 +101,7 @@ function double_prod_in_Dmn(m, n, B)
     prod((r * r * B - s * s / B)^2 for s = 1:(n-1) for r = 1:(m-1))
 end
 
-function Dmn(m::Int, n::Int, B::T)::T where {T}
+function Dmn(m::Int, n::Int, B)
     # treat cases m = 1, n=1 separately
     m == 1 && n == 1 && return 1
     m == 1 && return n * prod(s^2 / B * (s^2 / B - m^2 * B) for s = 1:(n-1))
@@ -203,15 +203,15 @@ function Rmn_term(r, s, i, j, d::NTuple{4,CD})
     return Rmn_term_nonzero(r, s, i, j, d)
 end
 
-function Rmn_term(r, s, d::NTuple{4,CD{T}})::T where {T}
+function Rmn_term(r, s, d::NTuple{4,CD})
     Rmn_term(r, s, 1, 2, d) * Rmn_term(r, s, 3, 4, d)
 end
 
 # write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
-function computePns(factors::Matrix{T}, Nmax, _::NTuple{4,CD}) where {T}
+function computePns(factors::Matrix{Acb}, Nmax, _::NTuple{4,CD})
     # Pns[n, r+1] = P_n(r), r>=0, n>0
     # factors[(r, s)] = Rmn_term(r, s)
-    Pns = Matrix{T}(undef, Nmax, Nmax)
+    Pns = Matrix{Acb}(undef, Nmax, Nmax)
     @inbounds for r = 1:Nmax
         Pns[1, r] = factors[r, 0+Nmax]
         if r - 1 == 0
@@ -230,8 +230,8 @@ function computePns(factors::Matrix{T}, Nmax, _::NTuple{4,CD}) where {T}
     return Pns
 end
 
-function computeDRmns(factors::Matrix{T}, Nmax, ds::NTuple{4,CD}) where {T}
-    DRs = Matrix{T}(undef, Nmax, Nmax)
+function computeDRmns(factors::Matrix{Acb}, Nmax, ds::NTuple{4,CD})
+    DRs = Matrix{Acb}(undef, Nmax, Nmax)
     Pns = computePns(factors, Nmax, ds)
     @inbounds for n = 1:Nmax
         DRs[1, n] = Pns[n, 1]
@@ -249,8 +249,8 @@ end
 
 Compute the ``Δ``-residues ``R_{m, n}`` for all `m`, `n` such that m*n ≤ Nmax
 """
-function computeRmns(Nmax, ds::NTuple{4,CD{T}}) where {T}
-    factors = Matrix{T}(undef, Nmax, 2Nmax)
+function computeRmns(Nmax, ds::NTuple{4,CD})
+    factors = Matrix{Acb}(undef, Nmax, 2Nmax)
     for r = 1:Nmax
         for s = 1:(2Nmax-1)
             (r - 1) * (s - Nmax) > Nmax && break
@@ -258,8 +258,8 @@ function computeRmns(Nmax, ds::NTuple{4,CD{T}}) where {T}
         end
     end
     DRs = computeDRmns(factors, Nmax, ds)
-    Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
-    Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
+    Rs = RmnTable(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
+    Rregs = RmnTable(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
     for m = 1:Nmax
         for n = 1:Nmax
             m * n > Nmax && break
@@ -314,9 +314,9 @@ end
 #=
 write Rmn = \prod_r Pn(r), Pn(r) = \prod_{s=-n+1}^{n-1} Rmn_term(r, s)
 =#
-function computePns(factors::Matrix{T}, Nmax, _::NTuple{1,CD}) where {T}
+function computePns(factors::Matrix{Acb}, Nmax, _::NTuple{1,CD})
     # Pns[n, r+1] = P_n(r), r>=0, n>0
-    Pns = Matrix{T}(undef, Nmax, Nmax)
+    Pns = Matrix{Acb}(undef, Nmax, Nmax)
     for a = 1:Nmax
         r = 2a - 1
         Pns[1, a] = factors[a, Nmax] * factors[a, Nmax+1]
@@ -329,9 +329,9 @@ function computePns(factors::Matrix{T}, Nmax, _::NTuple{1,CD}) where {T}
     return Pns
 end
 
-function computeDRmns(factors::Matrix{T}, Nmax, d::NTuple{1,CD}) where {T}
+function computeDRmns(factors::Matrix, Nmax, d::NTuple{1,CD})
     Pns = computePns(factors, Nmax, d)
-    DRs = Matrix{T}(undef, Nmax, Nmax)
+    DRs = Matrix{Acb}(undef, Nmax, Nmax)
     @inbounds for n = 1:Nmax
         DRs[1, n] = Pns[n, 1]
         @inbounds for m = 2:Nmax
@@ -342,8 +342,8 @@ function computeDRmns(factors::Matrix{T}, Nmax, d::NTuple{1,CD}) where {T}
     return DRs
 end
 
-function computeRmns(Nmax, ds::NTuple{1,CD{T}}) where {T}
-    factors = Matrix{T}(undef, Nmax, 2Nmax)
+function computeRmns(Nmax, ds::NTuple{1,CD})
+    factors = Matrix{Acb}(undef, Nmax, 2Nmax)
     for a = 1:Nmax
         for b = 1:2Nmax
             r, s = 2a - 1, 2b - 2Nmax - 1
@@ -352,8 +352,8 @@ function computeRmns(Nmax, ds::NTuple{1,CD{T}}) where {T}
         end
     end
     DRs = computeDRmns(factors, Nmax, ds)
-    Rs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
-    Rregs = RmnTable{T}(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
+    Rs = RmnTable(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
+    Rregs = RmnTable(Matrix(undef, Nmax, Nmax), Set{Tuple{Int,Int}}())
     for m = 1:Nmax
         for n = 1:Nmax
             m * n > Nmax && break
@@ -370,12 +370,12 @@ end
 #===========================================================================================
 Coefficients CNmn for Zamolodchikov's recursion.
 ===========================================================================================#
-function computeCNmns(Nmax, c::CC{T}, Rs) where {T}
+function computeCNmns(Nmax, c::CC, Rs)
     B = c.B
     mns = [Set{Tuple{Int,Int}}() for _ = 1:Nmax]
     δs = [δrs(mp, np, B) for mp = 1:Nmax, np = 1:Nmax]
-    Cs = CNmnTable{T}(Array{T}(undef, (Nmax, Nmax, Nmax)), mns, δs)
-    buf = zero(T)
+    Cs = CNmnTable(Array{Acb}(undef, (Nmax, Nmax, Nmax)), mns, δs)
+    buf = zero(Acb)
     @inbounds for N = 1:Nmax
         @inbounds for m = 1:Nmax
             maxn = N ÷ m
@@ -386,7 +386,7 @@ function computeCNmns(Nmax, c::CC{T}, Rs) where {T}
                     Np = N - m * n
                     Np == 0 && continue
                     δ0 = δrs(m, -n, B)
-                    _sum = zero(T)
+                    _sum = zero(Acb)
                     for mp = 1:Np
                         for np = 1:(Np÷mp)
                             if haskey(Cs, (Np, mp, np))
@@ -458,7 +458,7 @@ function Base.setindex!(C::CNmnTable, value, N, m::Int, n::Int)
     return value
 end
 
-function permute_4(ds::NTuple{4,T}, chan::Symbol) where {T}
+function permute_4(ds::NTuple{4, Acb}, chan::Symbol)
     chan === :s && return ds
     chan === :t && return (ds[1], ds[4], ds[3], ds[2])
     chan === :u && return (ds[1], ds[3], ds[2], ds[4])
@@ -467,7 +467,7 @@ end
 #======================================================================================
 Chiral correlations
 ======================================================================================#
-function ChiralCorrelation(d::NTuple{4,CD{T}}, Δmax::Int) where {T}
+function ChiralCorrelation(d::NTuple{4,CD}, Δmax::Int)
     @assert all((dim.c === d[1].c for dim in d)) "
         External fields in the argument of the Correlation constructor do not all have the same
         CentralCharge
@@ -491,42 +491,42 @@ function ChiralCorrelation(d::NTuple{4,CD{T}}, Δmax::Int) where {T}
     Rmnreg = Channels(Tuple(Tuple(vals[i][2] for i = 1:3)))
     CNmn = Channels(Tuple(Tuple(vals[i][3] for i = 1:3)))
 
-    ChiralCorrelation4{T}(d, d[1].c, Rmn, Rmnreg, CNmn, Δmax)
+    ChiralCorrelation4(d, d[1].c, Rmn, Rmnreg, CNmn, Δmax)
 end
 
-function ChiralCorrelation(d::NTuple{1,CD{T}}, Δmax::Int) where {T}
+function ChiralCorrelation(d::NTuple{1,CD}, Δmax::Int)
     # Launch a task for each channel
     Rmn, Rmnreg = computeRmns(Δmax, d)
     CNmn = computeCNmns(Δmax, d[1].c, Rmn)
-    ChiralCorrelation1{T}(d, d[1].c, Rmn, Rmnreg, CNmn, Δmax)
+    ChiralCorrelation1(d, d[1].c, Rmn, Rmnreg, CNmn, Δmax)
 end
 
 ChiralCorrelation(d1::CD, d2::CD, d3::CD, d4::CD, Δmax) =
     ChiralCorrelation((d1, d2, d3, d4), Δmax)
 ChiralCorrelation(d::CD, Δmax) = ChiralCorrelation(d, Δmax)
-ChiralCorrelation(ds::NTuple{4,CD{T}}, c::CC, Rmn, Rmnreg, CNmn, Δmax) where {T} =
-    ChiralCorrelation4{T}(ds, c, Rmn, Rmnreg, CNmn, Δmax)
-ChiralCorrelation(d::NTuple{1,CD{T}}, c::CC, Rmn, Rmnreg, CNmn, Δmax) where {T} =
-    ChiralCorrelation1{T}(d, c, Rmn, Rmnreg, CNmn, Δmax)
+ChiralCorrelation(ds::NTuple{4,CD}, c::CC, Rmn, Rmnreg, CNmn, Δmax) =
+    ChiralCorrelation4(ds, c, Rmn, Rmnreg, CNmn, Δmax)
+ChiralCorrelation(d::NTuple{1,CD}, c::CC, Rmn, Rmnreg, CNmn, Δmax) =
+    ChiralCorrelation1(d, c, Rmn, Rmnreg, CNmn, Δmax)
 
-function Base.show(io::IO, ::MIME"text/plain", R::RmnTable{T}) where {T}
-    print(io, "RmnTable{$T}(")
+function Base.show(io::IO, ::MIME"text/plain", R::RmnTable)
+    print(io, "RmnTable(")
     for k in sort([k for k in R.keys])
         print(io, "$k => $(R[k...]), ")
     end
     println(io, ")")
 end
 
-function Base.show(io::IO, R::RmnTable{T}) where {T}
-    println(io, "RmnTable{$T}(")
+function Base.show(io::IO, R::RmnTable)
+    println(io, "RmnTable(")
     for k in sort([k for k in R.keys])
         println(io, "\t$k => $(R[k...]),")
     end
     println(io, ")")
 end
 
-function Base.show(io::IO, C::CNmnTable{T}) where {T}
-    println(io, "CNmnTable{$T}(")
+function Base.show(io::IO, C::CNmnTable)
+    println(io, "CNmnTable(")
     for (N, Cs) in enumerate(C.keys)
         print("$N => [")
         for k in sort([k for k in Cs])
@@ -537,8 +537,8 @@ function Base.show(io::IO, C::CNmnTable{T}) where {T}
     println(io, ")")
 end
 
-function Base.show(io::IO, ::MIME"text/plain", co::CCo{T}) where {T}
-    print(io, "ChiralCorrelation{$T} with external dimensions\n$(co.fields)")
+function Base.show(io::IO, ::MIME"text/plain", co::CCo)
+    print(io, "ChiralCorrelation with external dimensions\n$(co.fields)")
 end
 
 function Base.show(io::IO, co::CCo)
@@ -549,8 +549,8 @@ function Base.show(io::IO, co::CCo)
     print(io, ">")
 end
 
-function Base.show(io::IO, ::MIME"text/plain", co::NCCo{T}) where {T}
-    println(io, "NonChiralCorrelation{$T} with external fields")
+function Base.show(io::IO, ::MIME"text/plain", co::NCCo)
+    println(io, "NonChiralCorrelation with external fields")
     print(io, "< ")
     for V in co.fields
         print(io, V, " ")
@@ -566,7 +566,7 @@ function latexstring(co::NCCo)
     res *= L"\rangle$$"
 end
 
-function Base.show(io::IO, ::MIME"text/latex", co::NCCo{T}) where {T}
+function Base.show(io::IO, ::MIME"text/latex", co::NCCo)
     print(io, latexstring(co))
 end
 
@@ -581,12 +581,12 @@ end
 #======================================================================================
 Non Chiral correlations
 ======================================================================================#
-NonChiralCorrelation{T}(Vs::NTuple{4,Field}, c, Rmn, Rmnreg, CNmn, Δmax) where {T} =
-    NonChiralCorrelation4{T}(Vs, c, Rmn, Rmnreg, CNmn, Δmax)
-NonChiralCorrelation{T}(Vs::NTuple{1,Field}, c, Rmn, Rmnreg, CNmn, Δmax) where {T} =
-    NonChiralCorrelation1{T}(Vs, c, Rmn, Rmnreg, CNmn, Δmax)
+NonChiralCorrelation(Vs::NTuple{4,Field}, c, Rmn, Rmnreg, CNmn, Δmax) =
+    NonChiralCorrelation4(Vs, c, Rmn, Rmnreg, CNmn, Δmax)
+NonChiralCorrelation(Vs::NTuple{1,Field}, c, Rmn, Rmnreg, CNmn, Δmax) =
+    NonChiralCorrelation1(Vs, c, Rmn, Rmnreg, CNmn, Δmax)
 
-function NonChiralCorrelation(Vs::Tuple{Vararg{Field{T}}}, Δmax) where {T}
+function NonChiralCorrelation(Vs::Tuple{Vararg{Field}}, Δmax)
     @assert all((V.c === Vs[1].c for V in Vs)) """
     External fields in the argument of the Correlation constructor do not all have the same
     CentralCharge
@@ -598,7 +598,7 @@ function NonChiralCorrelation(Vs::Tuple{Vararg{Field{T}}}, Δmax) where {T}
     Rmn = LR(corr_chiral.left.Rmn, corr_chiral.right.Rmn)
     Rmnreg = LR(corr_chiral.left.Rmnreg, corr_chiral.right.Rmnreg)
     CNmn = LR(corr_chiral.left.CNmn, corr_chiral.right.CNmn)
-    NonChiralCorrelation{T}(Vs, Vs[1].c, Rmn, Rmnreg, CNmn, Δmax)
+    NonChiralCorrelation(Vs, Vs[1].c, Rmn, Rmnreg, CNmn, Δmax)
 end
 
 function Base.getindex(c::NCCo, s::Symbol)
@@ -613,7 +613,7 @@ function Base.getindex(c::NCCo, s::Symbol)
     error("Only co[:left] and co[:right] are defined")
 end
 
-function NonChiralCorrelation(cl::CCo{T}, cr::CCo{T}) where {T}
+function NonChiralCorrelation(cl::CCo, cr::CCo)
     dims_left = cl.fields
     dims_right = cr.fields
     fields = Tuple(Field(d1, d2) for (d1, d2) in zip(dims_left, dims_right))
@@ -621,7 +621,7 @@ function NonChiralCorrelation(cl::CCo{T}, cr::CCo{T}) where {T}
     Rmn = LR(cl.Rmn, cr.Rmn)
     Rmnreg = LR(cl.Rmnreg, cr.Rmnreg)
     CNmn = LR(cl.CNmn, cr.CNmn)
-    NonChiralCorrelation{T}(fields, cl.c, Rmn, Rmnreg, CNmn, Δmax)
+    NonChiralCorrelation(fields, cl.c, Rmn, Rmnreg, CNmn, Δmax)
 end
 
 function Correlation()
@@ -629,17 +629,17 @@ function Correlation()
 end
 
 Correlation(ds::Tuple{Vararg{CD}}, Δmax::Int) = CCo(ds, Δmax)
-Correlation(ds::Vector{CD{T}}, Δmax::Int) where {T} = CCo(Tuple(ds), Δmax)
+Correlation(ds::Vector{CD}, Δmax::Int)  = CCo(Tuple(ds), Δmax)
 Correlation(Vs::Tuple{Vararg{Field}}, Δmax::Int) = NCCo(Vs, Δmax)
-Correlation(Vs::Vector{Field{T}}, Δmax::Int) where {T} = NCCo(Tuple(Vs), Δmax)
+Correlation(Vs::Vector{Field}, Δmax::Int)  = NCCo(Tuple(Vs), Δmax)
 Correlation(d1::CD, d2, d3, d4, Δmax::Int) = CCo((d1, d2, d3, d4), Δmax)
 Correlation(V1::Field, V2, V3, V4, Δmax::Int) = NCCo((V1, V2, V3, V4), Δmax)
 Correlation(d::ConformalDimension, Δmax::Int) = CCo((d,), Δmax)
 Correlation(V::Field, Δmax::Int) = NCCo((V,), Δmax)
 Correlation(cl::CCo, cr::CCo) = NCCo(cl, cr)
 
-const Correlation4{T} = Union{ChiralCorrelation4{T},NonChiralCorrelation4{T}}
-const Correlation1{T} = Union{ChiralCorrelation1{T},NonChiralCorrelation1{T}}
+const Correlation4 = Union{ChiralCorrelation4,NonChiralCorrelation4}
+const Correlation1 = Union{ChiralCorrelation1,NonChiralCorrelation1}
 getRmn(co::Correlation4, chan::Symbol) = co.Rmn[chan]
 getRmn(co::Correlation1, _::Symbol) = co.Rmn
 getRmnreg(co::Correlation4, chan::Symbol) = co.Rmnreg[chan]
