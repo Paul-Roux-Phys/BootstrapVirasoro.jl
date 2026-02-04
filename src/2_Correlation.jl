@@ -458,7 +458,7 @@ function Base.setindex!(C::CNmnTable, value, N, m::Int, n::Int)
     return value
 end
 
-function permute_4(ds::NTuple{4, Acb}, chan::Symbol)
+function permute_4(ds::NTuple{4}, chan::Symbol)
     chan === :s && return ds
     chan === :t && return (ds[1], ds[4], ds[3], ds[2])
     chan === :u && return (ds[1], ds[3], ds[2], ds[4])

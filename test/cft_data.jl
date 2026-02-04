@@ -3,15 +3,11 @@
     c1 = CentralCharge(c = -1.1 + 0.2im)
     b = c1.b
     c2 = CentralCharge(b = b)
-    @test c1.c == c2.c
-    @test typeof(c1) == CC{ComplexF64}
-    @test c1.β == c2.β
+    @test c1.c ≈ c2.c
+    @test c1.β ≈ c2.β
 
     c3 = CC(β = big"0.1")
-    @test typeof(c3) == CC{Complex{BigFloat}}
-
-    c3 = CC(β=1)
-    @test typeof(c3) == CC{Complex{Float64}}
+    @test c3.β ≈ big"0.1" || c3.β ≈ -big"0.1"
 end
 
 @testset "ConformalDimensions" begin

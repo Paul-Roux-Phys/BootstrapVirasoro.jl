@@ -1,31 +1,31 @@
 const CDorField = Union{CD, Field}
 
-struct StructureConstants{T<:Complex}
-    constants::Dict{CDorField,T}
+struct StructureConstants
+    constants::Dict{CDorField,Acb}
     errors::Dict{CDorField,Float64}
 end
 const StrCst = StructureConstants
 const SC = StructureConstants
 
-struct ChannelSpectrum{T}
+struct ChannelSpectrum
     corr::Corr
-    blocks::Dict{CDorField,Block{T}}
+    blocks::Dict{CDorField,Block}
     Δmax::Int
     chan::Symbol
 end
 const ChanSpec = ChannelSpectrum
 
-mutable struct BootstrapSystem{T}
+mutable struct BootstrapSystem
     channels::Vector{Symbol}
     unknowns::Channels{Vector{CDorField}}
-    LHS::Matrix{T}
-    RHS::Vector{T}
+    LHS::Matrix{Acb}
+    RHS::Vector{Acb}
     correlation::Correlation
-    positions::Vector{T}
+    positions::Vector{Acb}
     positions_cache # positions at which eqs are evaluated
-    spectra::Channels{ChanSpec{T}}    # channel spectra
-    block_values::Channels{Dict{CDorField,Vector{T}}} # all blocks evaluated at all positions
-    factors::Channels{Vector{T}} # overall position-dependent factor multiplying blocks in each channel
+    spectra::Channels{ChanSpec}    # channel spectra
+    block_values::Channels{Dict{CDorField,Vector{Acb}}} # all blocks evaluated at all positions
+    factors::Channels{Vector{Acb}} # overall position-dependent factor multiplying blocks in each channel
     str_cst::Any
     relations::Any
 end
@@ -33,10 +33,10 @@ end
 #======================================================================================
 Structure constants
 ======================================================================================#
-function StructureConstants{T}() where {T}
+function StructureConstants()
     constants = Dict{CDorField,T}()
     errors = Dict{CDorField,Float64}()
-    return StructureConstants{T}(constants, errors)
+    return StructureConstants(constants, errors)
 end
 
 function Base.getproperty(c::SC, s::Symbol)
@@ -167,7 +167,7 @@ function Base.show(io::IO, c::Channels{<:SC}; rmax = nothing, backend = :text)
     end
 end
 
-function Base.:+(c1::SC{T}, c2::SC) where {T}
+function Base.:+(c1::SC, c2::SC)
     consts = deepcopy(c1.constants)
     errs = deepcopy(c1.errors)
     for (k, v) in c2.constants
@@ -179,10 +179,10 @@ function Base.:+(c1::SC{T}, c2::SC) where {T}
             errs[k] = c2.errors[k]
         end
     end
-    return StructureConstants{T}(consts, errs)
+    return StructureConstants(consts, errs)
 end
 
-function Base.:-(c1::SC{T}, c2::SC) where {T}
+function Base.:-(c1::SC, c2::SC)
     consts = deepcopy(c1.constants)
     errs = deepcopy(c1.errors)
     for (k, v) in c2.constants
@@ -194,7 +194,7 @@ function Base.:-(c1::SC{T}, c2::SC) where {T}
             errs[k] = c2.errors[k]
         end
     end
-    return StructureConstants{T}(consts, errs)
+    return StructureConstants(consts, errs)
 end
 
 function find_normalised(c::SC)
@@ -246,8 +246,8 @@ function hasdiagonals(s::ChanSpec)
     return false
 end
 
-function ChannelSpectrum(co::Co{T}, chan, Vs::Vector{<:CDorField}, f::Function) where {T}
-    s = ChannelSpectrum{T}(co, Dict{CDorField,Block{T}}(), co.Δmax, chan)
+function ChannelSpectrum(co::Co, chan, Vs::Vector{<:CDorField}, f::Function)
+    s = ChannelSpectrum(co, Dict{CDorField,Block}(), co.Δmax, chan)
     to_add = [V for V in Vs if real(total_dimension(V)) < s.Δmax]
     blocks = Vector(undef, length(to_add))
     Threads.@threads for i = eachindex(to_add)
@@ -291,8 +291,8 @@ function removediag!(s)
     return V
 end
 
-function Base.filter(f, s::ChanSpec{T}) where {T}
-    return ChanSpec{T}(s.corr, filter(kv -> f(kv[1]), s.blocks), s.Δmax, s.chan)
+function Base.filter(f, s::ChanSpec)
+    return ChanSpec(s.corr, filter(kv -> f(kv[1]), s.blocks), s.Δmax, s.chan)
 end
 
 Base.length(s::ChanSpec) = length(s.blocks)
@@ -345,7 +345,7 @@ function evaluate_blocks(S::ChanSpec, xs)
     nbs = length(bs)
 
     # Preallocate thread-local results
-    thread_results = [Dict{CDorField,Vector{T}}() for _ = 1:max_thread_id()]
+    thread_results = [Dict{CDorField,Vector{Acb}}() for _ = 1:max_thread_id()]
 
     bs_vals = collect(values(bs))
 
@@ -355,7 +355,7 @@ function evaluate_blocks(S::ChanSpec, xs)
     end
 
     # Merge all thread-local dictionaries into a single result
-    results = Dict{CDorField,Vector{T}}()
+    results = Dict{CDorField,Vector{Acb}}()
     for d in thread_results
         merge!(results, d)
     end
@@ -430,24 +430,24 @@ end
 channel_position(x, _::Correlation4, chan) = crossratio(chan, x)
 channel_position(x, _::Correlation1, chan) = modular_param(chan, x)
 
-function choose_block_eval_points(npositions, _::Correlation1{T}) where {T}
-    Vector{T}(random_points(npositions, transfo = x -> τfromx(x)))
+function choose_block_eval_points(npositions, _::Correlation1)
+    Vector{Acb}(random_points(npositions, transfo = x -> τfromx(x)))
 end
-function choose_block_eval_points(npositions, _::Correlation4{T}) where {T}
-    Vector{T}(random_points(npositions, transfo = nothing))
+function choose_block_eval_points(npositions, _::Correlation4)
+    Vector{Acb}(random_points(npositions, transfo = nothing))
 end
 
 function BootstrapSystem(
-    S::Channels{ChanSpec{T}};
+    S::Channels{ChanSpec};
     knowns = nothing,
     extrapoints::Int = 6,
     pos = nothing,
     rels = nothing,
-) where {T}
+)
     co = S.s.corr
     channels = collect(keys(S))
     if knowns === nothing
-        knowns = Channels(Dict(chan => StrCst{T}() for chan in channels))
+        knowns = Channels(Dict(chan => StrCst() for chan in channels))
     end
     # st_op means that the s and t channel verify
     # (-1)^(r * s) d_(r, s)^(s) = d_(r, s)^(t)
@@ -495,13 +495,13 @@ function BootstrapSystem(
     end
 
     # blocks = evaluate_blocks(S, pos_cache)
-    blocks = Channels(Dict(chan => Dict{CDorField,Vector{T}}() for chan in keys(S)))
+    blocks = Channels(Dict(chan => Dict{CDorField,Vector{Acb}}() for chan in keys(S)))
     unknowns = Channels(Dict(chan => Vector{CDorField}() for chan in keys(S)))
-    LHS = Matrix{T}(undef, 0, 0)
-    RHS = Vector{T}()
+    LHS = Matrix{Acb}(undef, 0, 0)
+    RHS = Vector{Acb}()
     factors = Channels(Dict(chan => [factor(co, chan, p) for p in pos] for chan in keys(S)))
 
-    return BootstrapSystem{T}(
+    return BootstrapSystem(
         channels,
         unknowns,
         LHS,
@@ -517,8 +517,8 @@ function BootstrapSystem(
     )
 end
 
-factor(_::Correlation4{T}, chan, x) where {T} = one(T)
-function factor(co::Correlation1{T}, chan, τ) where {T}
+factor(_::Correlation4, chan, x) = one(T)
+function factor(co::Correlation1, chan, τ)
     chan === :s && return one(T)
     Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
     chan === :t && return τ^-Δ₁ * conj(τ)^-bΔ₁
@@ -546,7 +546,7 @@ function hasdiagonal(b::BootstrapSystem)
     return (false, :s, nothing)
 end
 
-function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
+function computeLHScolumn(b::BootstrapSystem, chan, V)
     rels = b.relations
     chans = b.channels
     zer = zeros(T, length(b.positions))
@@ -637,7 +637,7 @@ function computeLHScolumn(b::BootstrapSystem{T}, chan, V) where {T}
     end
 end
 
-function sumknowns(b::BootstrapSystem{T}, knowns, chan, i) where {T}
+function sumknowns(b::BootstrapSystem, knowns, chan, i)
     sum(b.str_cst[chan].constants[V] *
         b.factors[chan][i] *
         b.block_values[chan][V][i]
@@ -667,7 +667,7 @@ function computeRHS(b, knowns)
     end
 end
 
-function compute_linear_system!(b::BootstrapSystem{T}) where {T}
+function compute_linear_system!(b::BootstrapSystem)
     known_consts = b.str_cst
 
     unknowns = Channels(Dict(
@@ -707,7 +707,7 @@ function compute_linear_system!(b::BootstrapSystem{T}) where {T}
 
     # form the matrix of the linear system
     # keep a record of the columns where we put each field.
-    LHS = Matrix{T}(undef, nb_lines, nb_unknowns)
+    LHS = Matrix{Acb}(undef, nb_lines, nb_unknowns)
     col_idx = 0
     for chan in b.channels
         for V in unknowns[chan]
@@ -861,9 +861,9 @@ function solve_bootstrap(specs::Channels, diag_blocks; fix = nothing, rels = not
     return res
 end
 
-function clear!(b::BootstrapSystem{T}) where {T}
+function clear!(b::BootstrapSystem)
     b.str_cst = @channels StrCst(b.spectra[chan])
-    # b.matrix = BootstrapMatrix{T}([chan for chan in keys(b.spectra)])
+    # b.matrix = BootstrapMatrix([chan for chan in keys(b.spectra)])
 end
 
 function evaluate_correlation(sys, chan, z)

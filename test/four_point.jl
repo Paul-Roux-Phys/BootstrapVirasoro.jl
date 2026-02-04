@@ -82,7 +82,7 @@ end
 
     h = eval_series(b, complex(x))
 
-    @test h ≈ Base.evalpoly(16q, b.coeffs)
+    @test isapprox(h, Base.evalpoly(16q, b.coeffs), rtol=1e-15)
     @test isapprox(h, 0.9999955375834808 - 2.735498726466085e-6im, atol = 1e-8) # value from Sylvain's code
 end
 

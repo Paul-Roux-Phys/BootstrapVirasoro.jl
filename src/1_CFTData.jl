@@ -23,6 +23,7 @@ struct CentralCharge
     B::Acb
     b::Acb
     c::Acb
+    n::Acb
 end
 # convenience alias
 const CC = CentralCharge
@@ -104,15 +105,14 @@ Central charges
 function Bfrom(s::Symbol, x)
     a = (x - 1) * (x - 25)
     s === :β && return -x^2
-    s === :c && return
-            (x - 13 + sqrt(complex((x - 1) * (x - 25)))) / 12
+    s === :c && return (x - 13 + sqrt((x - 1) * (x - 25))) / 12
     s === :b && return x^2
     s === :B && return x
     error("unsupported parameter: $s")
 end
 
 function Bto(s::Symbol, x)
-    rx = sqrt(complex(x))
+    rx = sqrt(x)
     s === :β && return im * rx
     s === :c && return 13 + 6 * x + 6 / x
     s === :b && return rx
@@ -129,7 +129,7 @@ function _CentralCharge(s::Symbol, x::Acb)
     CentralCharge(β, B, b, c, n)
 end
 
-_CentralCharge(s::Symbol, x) = CentralCharge(s, Acb(x))
+_CentralCharge(s::Symbol, x) = _CentralCharge(s, Acb(x))
 
 function CentralCharge(;
     β = missing,
@@ -248,7 +248,7 @@ function _ConformalDimension(c::CC, sym::Symbol, P::Acb, r, s)
     ConformalDimension(c, P, p, δ, Δ, r, s, isKac, degenerate)
 end
 
-_ConformalDimension(c::CC, sym::Symbol, P, r, s) = _ConformalDimension(c, sym, P, r, s)
+_ConformalDimension(c::CC, sym::Symbol, P, r, s) = _ConformalDimension(c, sym, Acb(P), r, s)
 
 function ConformalDimension(
     c::CC;
