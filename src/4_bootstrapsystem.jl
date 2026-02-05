@@ -34,7 +34,7 @@ end
 Structure constants
 ======================================================================================#
 function StructureConstants()
-    constants = Dict{CDorField,T}()
+    constants = Dict{CDorField,Acb}()
     errors = Dict{CDorField,Float64}()
     return StructureConstants(constants, errors)
 end
@@ -93,11 +93,11 @@ function tex_tuple(s::AbstractString)
     return L"$\left(%$a_tex,%$b_tex\right)$"
 end
 
-function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
+function Base.show(io::IO, c::SC; rmax = nothing, backend = :text, digits=8)
     t = columntable(to_columntable(c, rmax))
     hl_conv = Highlighter(
         (table, i, j) ->
-            table[:RelativeError][i] < 2^(-precision(BigFloat, base = 10) / 2) &&
+            table[:RelativeError][i] < 2^(-precision(Acb, base = 10) / 2) &&
                 j >= 2,
         crayon"green",
     )
@@ -105,7 +105,7 @@ function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
         (table, i, j) ->
             table[:RelativeError][i] > 1e-2 &&
                 abs(table[:StructureConstant][i]) <
-                2^(-precision(BigFloat, base = 10) / 3) &&
+                2^(-precision(Acb, base = 10) / 3) &&
                 j >= 2,
         crayon"green",
     )
@@ -113,7 +113,7 @@ function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
         (table, i, j) ->
             table[:RelativeError][i] > 1e-2 &&
                 abs(table[:StructureConstant][i]) >
-                2^(-precision(BigFloat, base = 10) / 3) &&
+                2^(-precision(Acb, base = 10) / 3) &&
                 j >= 2,
         crayon"red",
     )
@@ -122,13 +122,13 @@ function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
             (
                 t.RelativeError[i] > 1e-2 &&
                 abs(t.StructureConstant[i]) <
-                2^(-precision(BigFloat, base = 10) / 3) &&
+                2^(-precision(Acb, base = 10) / 3) &&
                 j == 2
             ) ? 0 : v
     fmt_relerr = (v, i, j) -> j == 3 && v isa Real ? format(Format("%.2g"), v) : v
     fmt_indices = (v, i, j) -> j == 1 ? tex_tuple(v) : v
-    fmt_vals = (v, i, j) -> j == 2 ? tex_complex(v) : v
     if backend == :latex
+        fmt_vals = (v, i, j) -> j == 2 ? tex_complex(v) : v
         pretty_table(
             io,
             t,
@@ -140,6 +140,7 @@ function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
         )
         print(io, "\\\\")
     else
+        fmt_vals = (v, i, j) -> j == 2 ? format_complex(v, digits=digits) : v
         pretty_table(
             io,
             t,
@@ -148,7 +149,7 @@ function Base.show(io::IO, c::SC; rmax = nothing, backend = :text)
             alignment = :l,
             header_crayon = crayon"blue",
             highlighters = (hl_conv, hl_zero, hl_not_conv),
-            formatters = (fmt_zero, fmt_relerr),
+            formatters = (fmt_zero, fmt_relerr, fmt_vals),
             backend = Val(backend),
             crop = :none,
         )
@@ -341,7 +342,6 @@ end
 
 function evaluate_blocks(S::ChanSpec, xs)
     bs = S.blocks
-    T = typeof(bs).parameters[2].parameters[1]
     nbs = length(bs)
 
     # Preallocate thread-local results
@@ -517,9 +517,9 @@ function BootstrapSystem(
     )
 end
 
-factor(_::Correlation4, chan, x) = one(T)
+factor(_::Correlation4, chan, x) = one(Acb)
 function factor(co::Correlation1, chan, τ)
-    chan === :s && return one(T)
+    chan === :s && return one(Acb)
     Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
     chan === :t && return τ^-Δ₁ * conj(τ)^-bΔ₁
     chan === :u && return (τ - 1)^-Δ₁ * conj(τ - 1)^-bΔ₁
@@ -549,7 +549,7 @@ end
 function computeLHScolumn(b::BootstrapSystem, chan, V)
     rels = b.relations
     chans = b.channels
-    zer = zeros(T, length(b.positions))
+    zer = zeros(Acb, length(b.positions))
     sign = 1
     if rels in (:st_op, :su_op, :tu_op) && abs(spin(V)) % 2 == 1
         sign *= -1
@@ -642,7 +642,7 @@ function sumknowns(b::BootstrapSystem, knowns, chan, i)
         b.factors[chan][i] *
         b.block_values[chan][V][i]
         for V in knowns[chan];
-            init = zero(T))
+            init = zero(Acb))
 end
 
 function computeRHS(b, knowns)
@@ -794,8 +794,11 @@ end
 
 function solve!(s::BootstrapSystem)
     # solve for two different sets of positions
-    sol1 = s.LHS[3:end, :] \ s.RHS[3:end]
-    sol2 = s.LHS[1:(end-2), :] \ s.RHS[1:(end-2)]
+    LHS = convert(Matrix{Complex{BigFloat}}, s.LHS)
+    RHS = convert(Vector{Complex{BigFloat}}, s.RHS) # convert to BigFloat to use Julia's solver
+
+    sol1 = LHS[3:end, :] \ RHS[3:end]
+    sol2 = LHS[1:(end-2), :] \ RHS[1:(end-2)]
 
     # compare the two solutions
     errors = @. Float64(abs((sol1 - sol2) / sol2))
@@ -803,7 +806,7 @@ function solve!(s::BootstrapSystem)
     for chan in s.channels
         for V in s.unknowns[chan]
             index = findcol(s, s.spectra[chan].blocks[V].chan_field, chan)
-            s.str_cst[chan].constants[V] = sol1[index]
+            s.str_cst[chan].constants[V] = Acb(sol1[index])
             s.str_cst[chan].errors[V] = errors[index]
         end
     end
@@ -877,7 +880,7 @@ function evaluate_correlation(sys, chan, z)
 end
 
 function Base.show(io::IO, b::BootstrapSystem)
-    println(io, "BootstrapSystem{$(typeof(b).parameters[1])}")
+    println(io, "BootstrapSystem")
     println(io, b.correlation)
     println(io, "Number of positions: $(length(b.positions))")
     println(io, "Matrix size: $(size(b.LHS))")

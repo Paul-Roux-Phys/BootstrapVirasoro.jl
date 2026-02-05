@@ -43,9 +43,9 @@ Aliased to CBlock.
 struct ChiralBlock <: Block
     corr::CCo
     chan_field::CD
-    coeffs::Vector{Acb}
-    coeffs_der::Vector{Acb}
-    missing_terms::Vector{Acb}
+    coeffs::AcbVector
+    coeffs_der::AcbVector
+    missing_terms::AcbVector
     chan::Symbol
     Δmax::Int
 end
@@ -64,7 +64,7 @@ struct ChiralPosCache
     q::Acb
     τ::Acb
     logq::Acb
-    q_powers::Vector{Acb}
+    q_powers::AcbVector
 end
 
 """
@@ -180,7 +180,7 @@ function series_H(d::CD, Δmax, CNmn)
     isKac = d.isKac
     r, s = d.r, d.s
 
-    coeffs = [zero(Acb) for _ = 1:Δmax+2, _ = 1:Δmax+2]
+    coeffs = [zero(P) for _ = 1:Δmax+2, _ = 1:Δmax+2]
     all_mns = union([CNmn.keys[N] for N = 1:Δmax]...)
     buf = zero(P)
     four = convert(Acb, 4)
@@ -197,9 +197,9 @@ function series_H(d::CD, Δmax, CNmn)
         end
     end
 
-    H = [zero(Acb) for _ = 1:Δmax+1]
-    H[1] = one(Acb)
-    buf = zero(Acb)
+    H = [zero(P) for _ = 1:Δmax+1]
+    H[1] = one(P)
+    buf = zero(P)
     for N = 1:Δmax
         for (m, n) in CNmn.keys[N]
             (N > Δmax || m > Δmax || n > Δmax) && continue
@@ -208,16 +208,16 @@ function series_H(d::CD, Δmax, CNmn)
         end
     end
 
-    return H
+    return AcbVector(H)
 end
 
 function series_H_der(d::CD, Δmax, CNmn) 
     P = d.P
     P2 = d.δ
     mtwoP = -2P
-    buf = zero(Acb)
+    buf = zero(P)
 
-    H = [zero(Acb) for _ = 1:Δmax+1]
+    H = [zero(P) for _ = 1:Δmax+1]
 
     # coeffs = Dict(
     #     (m, n) => -2P / (P2 - CNmn.δs[m, n])^2 for
@@ -225,7 +225,7 @@ function series_H_der(d::CD, Δmax, CNmn)
     # )
 
     all_mns = union([CNmn.keys[N] for N = 1:Δmax]...)
-    coeffs = Dict((m, n) => zero(Acb) for (m, n) in all_mns)
+    coeffs = Dict((m, n) => zero(P) for (m, n) in all_mns)
     for (m, n) in all_mns
         # -2P / (P2 - CNmn.deltas[m, n])^2
         Arblib.sub!(buf, P2, CNmn.δs[m, n])
@@ -241,7 +241,7 @@ function series_H_der(d::CD, Δmax, CNmn)
         end
     end
 
-    return H
+    return AcbVector(H)
 end
 
 function ChiralBlock(
@@ -254,15 +254,15 @@ function ChiralBlock(
     Δmax === missing && (Δmax = co.Δmax)
     CNmn = getCNmn(co, chan)
     coeffs = series_H(d, Δmax, CNmn)
-    coeffs_der = Vector{Acb}()
+    coeffs_der = AcbVector(0)
     der && (coeffs_der = series_H_der(d, Δmax, CNmn))
     if !d.degenerate
-        missing_terms = Vector{Acb}()
+        missing_terms = AcbVector(0)
     else
         r, s = d.r, d.s
-        missing_terms = [
-            (N > 0 && (r, s) in CNmn.keys[N]) ? CNmn[N, r, s] : zero(Acb) for N = 0:Δmax
-        ]
+        missing_terms = AcbVector([
+            (N > 0 && (r, s) in CNmn.keys[N]) ? CNmn[N, r, s] : zero(d.P) for N = 0:Δmax
+        ])
     end
 
     CBlock(co, d, coeffs, coeffs_der, missing_terms, chan, Δmax)
@@ -296,23 +296,23 @@ function ChiralPosCache(x::Acb, ds::NTuple{4,CD}, chan::Symbol, Δmax)
     prefactor = x^e0 * (1 - x)^e1 * jtheta3(τ)^(-4 * e2)
 
     sq = 16q
-    q_powers = ones(Acb, Δmax + 1)
+    q_powers = ones(x, Δmax + 1)
     for i = 2:(Δmax+1)
         q_powers[i] = q_powers[i-1] * sq
     end
 
-    return ChiralPosCache(x, prefactor, q, τ, log(sq), q_powers)
+    return ChiralPosCache(x, prefactor, q, τ, log(sq), AcbVector(q_powers))
 end
 
 function ChiralPosCache(τ::Acb, _::NTuple{1,CD}, _::Symbol, Δmax) 
     q = qfromτ(τ)
     prefactor = 1 / etaDedekind(τ)
-    q_powers = ones(Acb, Δmax + 1)
+    q_powers = ones(τ, Δmax + 1)
     for i = 2:(Δmax+1)
         q_powers[i] = q_powers[i-1] * q
     end
 
-    return ChiralPosCache(τ, prefactor, q, τ, log(q), q_powers)
+    return ChiralPosCache(τ, prefactor, q, τ, log(q), AcbVector(q_powers))
 end
 
 ChiralPosCache(x, ds, chan, Δmax) = ChiralPosCache(Acb(x), ds, chan, Δmax)
@@ -320,13 +320,9 @@ ChiralPosCache(x, co::CCo, chan) = ChiralPosCache(x, co.fields, chan, co.Δmax)
 PosCache(x, co::CCo, chan) = ChiralPosCache(x, co.fields, chan, co.Δmax)
 PosCache(x, b::CBlock) = PosCache(x, b.corr, b.chan)
 
-function evalpoly(x::ChiralPosCache, coeffs::Vector{Acb}) 
+function evalpoly(x::ChiralPosCache, coeffs::AcbVector) 
     res = zero(x.x)
-    buf = zero(x.x)
-    for i = 1:length(coeffs)
-        # res += coeffs[i] * x.q_powers[i]
-        Arblib.addmul!(res, coeffs[i], x.q_powers[i])
-    end
+    Arblib.dot!(res, zero(x.x), 0, x.q_powers, 1, coeffs, 1, length(coeffs)) # dot product
     return res
 end
 
@@ -413,7 +409,8 @@ function LogBlock(co::NCCo, chan, V, Δmax)
         CBlock(co[lr], chan, v.dims[lr], Δmax, false) for lr in (:left, :right)
         for v in VV
     )
-    R, Rbar, l = zero(Acb), zero(Acb), zero(Acb)
+    c = co.c.c
+    R, Rbar, l = zero(c), zero(c), zero(c)
     cl, cr = co[:left], co[:right]
     if isaccidentallynonlogarithmic(co, chan, V)
         chiral_blocks_der = nothing
@@ -422,7 +419,7 @@ function LogBlock(co::NCCo, chan, V, Δmax)
             Rbar = getRmnreg(cr, chan)[r, s]
         end
         nbzeros = Rmn_zero_order(r, s, left.corr.fields)
-        l = zero(Acb)
+        l = zero(c)
     else
         leftder = CBlock(cl, chan, VV[2][:left], Δmax, true)
         rightder = CBlock(cr, chan, VV[1].dims.right, Δmax, true)
@@ -538,7 +535,7 @@ end
 function (b::LogBlock)(x::NonChiralPosCache)::Acb 
     V = b.chan_field
     s = V.s
-    s < 0 && return zero(Acb) # by convention G_(r, s<0) = 0
+    s < 0 && return zero(V.dims.left.P) # by convention G_(r, s<0) = 0
     Prs = V[:left].P
 
     Freg, Fbar = eval_lr(b, x)

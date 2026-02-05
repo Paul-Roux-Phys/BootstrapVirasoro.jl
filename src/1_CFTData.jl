@@ -184,7 +184,7 @@ function Base.show(io::IO, ::MIME"text/latex", c::CC)
 end
 
 function Base.isequal(c1::CC, c2::CC)
-    return c1.β == c2.β
+    return Arblib.overlaps(c1.β, c2.β)
 end
 
 function Base.hash(c::CC, h::UInt)
@@ -278,7 +278,7 @@ end
 
 function Base.isequal(a::CD, b::CD)
     c = isequal(a.c, b.c)
-    p = isequal(a.P, b.P)
+    p = Arblib.overlaps(a.P, b.P)
     k = (a.isKac == b.isKac) && a.r == b.r && a.s == b.s
     return c && p && k
 end
@@ -377,7 +377,7 @@ function Field(ds::LeftRight{CD})
 end
 Field(ds::Tuple{CD,CD}) = Field(LeftRight{CD}(ds[1], ds[2]))
 Field(d1::CD, d2::CD) = Field(LeftRight{CD}(d1, d2))
-Field(d::CD) = Field(LeftRight{CD}(d, d))
+Field(d::CD) = Field(d.c, LeftRight{CD}(d, d), d.r, d.s, true, d.degenerate, d.isKac)
 Field() = Field(CC())
 
 Base.getindex(V::Field, s::Symbol) = getfield(V.dims, s)
@@ -407,8 +407,8 @@ total_dimension(V::Field) = V.dims[:left].Δ + V.dims[:right].Δ
 function Base.isequal(a::Field, b::Field)
     d = (a.diagonal == b.diagonal)
     a.isKac && b.isKac && return a.r == b.r && a.s == b.s
-    l = isequal(a.dims[:left], b.dims[:left])
-    r = isequal(a.dims[:right], b.dims[:right])
+    l = isequal(a.dims.left, b.dims.left)
+    r = isequal(a.dims.right, b.dims.right)
     return d && l && r
 end
 

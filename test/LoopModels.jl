@@ -161,7 +161,7 @@ x = xfromτ(τ)
         s_S2 = shift_D(co_S2.fields, V_S2)
 
         # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^{-1}/2))
-        @test isapprox(s_S2 / s / 16^(4 / c.β^2 * (V.s + 1)), 1)
+        @test isapprox(s_S2 / s / 16^(4 / c.β^2 * (V.s + 1)), 1, rtol=1e-30)
 
         b = IBlock(co, :s, V)
         prefactor =
@@ -192,29 +192,37 @@ x = xfromτ(τ)
         )
 end
 
-function prefA(τ, co_S2, chan, lr)
+function prefA(τ::Acb, co_S2, chan, lr)
         x_cache = PosCache(xfromτ(τ), co_S2[lr], chan)
         return inv(etaDedekind(τ) * x_cache.prefactor)
 end
+prefA(τ, co_S2, chan, lr) = prefA(Acb(τ), co_S2, chan, lr)
 
 # non-chiral prefactor
 ncprefA(τ, co_S2, chan) =
         prefA(τ, co_S2, chan, :left) * prefA(-conj(τ), co_S2, chan, :right)
 
 @testset "Interchiral" begin
-        V = Field(c, r=11 // 2, s=2 // 11)
-        P, Pbar = V[:left].P, V[:right].P
-        V_S2 = Field(c_S2, r=2 * V.r, s=V.s)
-        b = IBlock(co, V)
-        b_S2 = @channels IBlock(co_S2, chan, V_S2)
-        chan = :u
-        t = BootstrapVirasoro.modular_param(chan, τ)
-        X = BootstrapVirasoro.crossratio(chan, x)
-        @test b(t) * 16^(2P^2 + 2Pbar^2) ≈ b_S2[chan](X) * ncprefA(t, co_S2, chan)
-        @test b.blocks[2](t) * 16^(2(P - 1 / c.β)^2 + 2(Pbar + 1 / c.β)^2) ≈
-              b_S2[chan].blocks[2](X) * ncprefA(t, co_S2, chan)
+    V = Field(c, r=11 // 2, s=2 // 11)
+    P, Pbar = V[:left].P, V[:right].P
+    V_S2 = Field(c_S2, r=2 * V.r, s=V.s)
+    b = IBlock(co, V)
+    b_S2 = @channels IBlock(co_S2, chan, V_S2)
+    chan = :u
+    t = BootstrapVirasoro.modular_param(chan, τ)
+    X = BootstrapVirasoro.crossratio(chan, x)
+    @test isapprox(b(t) * 16^(2P^2 + 2Pbar^2),
+                   b_S2[chan](X) * ncprefA(t, co_S2, chan),
+                   rtol=1e-30)
+
+    @test isapprox(b.blocks[2](t) * 16^(2(P - 1 / c.β)^2 + 2(Pbar + 1 / c.β)^2),
+                   b_S2[chan].blocks[2](X) * ncprefA(t, co_S2, chan),
+                   rtol=1e-30)
+
         # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^{-1}/2))
-        @test b.coeffs[2] * 16^(-4 / c.β^2 * (V.s + 1)) ≈ b_S2.u.coeffs[2]
+    @test isapprox(b.coeffs[2] * 16^(-4 / c.β^2 * (V.s + 1)),
+                   b_S2.u.coeffs[2],
+                   rtol=1e-30)
 
         for ind in [
                 (5, 1),
