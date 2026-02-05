@@ -388,7 +388,7 @@ isdiagonal(V::Field) = V.diagonal
 function spin(V::Field)::Union{Int,Rational,Acb}
     V.diagonal && return 0
     spin = V.isKac ? V.r * V.s : V[:left].Δ - V.dims.right.Δ
-    return spin % 1 == 0 ? Int(spin) : spin
+    return (spin isa Int || spin isa Rational || Arblib.contains_int(spin)) ? round(Int, spin) : spin
 end
 
 function swap_lr(V::Field)

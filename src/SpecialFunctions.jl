@@ -26,3 +26,18 @@ end
 function etaDedekind(τ::Acb)
     Arblib.modular_eta!(zero(τ), τ)
 end
+
+gamma(z::Acb) = Arblib.gamma!(zero(z), z)
+gamma(z) = gamma(Acb(z))
+digamma(z::Acb) = Arblib.digamma!(zero(z), z)
+digamma(z) = digamma(Acb(z))
+
+function digamma_reg(z::Acb)
+    if real(z) > 0
+        return digamma(z)
+    elseif Arblib.contains_int(z)
+        return digamma(1-z)
+    else
+        return digamma(1-z) - π*cot(π * z)
+    end
+end

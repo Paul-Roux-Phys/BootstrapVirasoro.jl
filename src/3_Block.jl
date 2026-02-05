@@ -153,10 +153,11 @@ end
 
 qfromx(x::Acb) = exp(-(π * ellipticK(1 - x) / ellipticK(x)))
 qfromx(x) = qfromx(Acb(x))
-function xfromq(q)
+function xfromq(q::Acb)
     τ = log(q) / im / π
     jtheta2(τ)^4 / jtheta3(τ)^4
 end
+xfromq(q) = xfromq(Acb(q))
 qfromτ(τ) = exp(2 * im * (π * τ))
 τfromx(x) = (log(qfromx(x)) / π) / im
 xfromτ(τ) = xfromq(exp(im * (π * τ)))
@@ -175,27 +176,24 @@ Chiral Blocks
 =============================================================================#
 function series_H(d::CD, Δmax, CNmn) 
     P = d.P
-    P2 = P^2
+    P2 = d.δ
     isKac = d.isKac
     r, s = d.r, d.s
 
     coeffs = [zero(Acb) for _ = 1:Δmax+2, _ = 1:Δmax+2]
     all_mns = union([CNmn.keys[N] for N = 1:Δmax]...)
-    buf = zero(Acb)
-    o = one(Acb)
+    buf = zero(P)
     four = convert(Acb, 4)
     for (m, n) in all_mns
         if isKac && m == r && n == s
             # coeffs[m, n] = -inv(4CNmn.δs[r, s])
-            buf = MA.operate_to!!(buf, *, four, CNmn.δs[r, s]) # 4 * δrs
-            buf = MA.operate_to!!(buf, /, o, buf) # 1/ (4*δrs)
-            buf = MA.operate!!(-, buf) # -1/ (4*δrs)
-            MA.operate_to!!(coeffs[m, n], copy, buf) # store the result
+            Arblib.mul!(buf, four, CNmn.δs[r, s])
+            Arblib.inv!(buf, buf)
+            Arblib.neg!(coeffs[m, n], buf)
         else
             # coeffs[m, n] = 1 / (P2 - CNmn.δs[m, n])
-            buf = MA.operate_to!!(buf, -, P2, CNmn.δs[m, n])
-            buf = MA.operate_to!!(buf, /, o, buf)
-            coeffs[m, n] = MA.operate_to!!(coeffs[m, n], copy, buf)
+            Arblib.sub!(buf, P2, CNmn.δs[m, n])
+            Arblib.inv!(coeffs[m, n], buf)
         end
     end
 
@@ -206,9 +204,7 @@ function series_H(d::CD, Δmax, CNmn)
         for (m, n) in CNmn.keys[N]
             (N > Δmax || m > Δmax || n > Δmax) && continue
             # H[N+1] += CNmn[N, m, n] * coeffs[m, n]
-            buf = MA.operate_to!!(buf, *, CNmn[N, m, n], coeffs[m, n])
-            buf = MA.operate_to!!(buf, +, H[N+1], buf)
-            H[N+1] = MA.operate_to!!(H[N+1], copy, buf)
+            Arblib.addmul!(H[N+1], CNmn[N, m, n], coeffs[m, n])
         end
     end
 
@@ -217,7 +213,7 @@ end
 
 function series_H_der(d::CD, Δmax, CNmn) 
     P = d.P
-    P2 = P^2
+    P2 = d.δ
     mtwoP = -2P
     buf = zero(Acb)
 
@@ -232,19 +228,16 @@ function series_H_der(d::CD, Δmax, CNmn)
     coeffs = Dict((m, n) => zero(Acb) for (m, n) in all_mns)
     for (m, n) in all_mns
         # -2P / (P2 - CNmn.deltas[m, n])^2
-        buf = MA.operate_to!!(buf, -, P2, CNmn.δs[m, n])
-        buf = MA.operate_to!!(buf, *, buf, buf)
-        buf = MA.operate_to!!(buf, /, mtwoP, buf)
-        coeffs[(m, n)] = MA.operate_to!!(coeffs[(m, n)], copy, buf)
+        Arblib.sub!(buf, P2, CNmn.δs[m, n])
+        Arblib.sqr!(buf, buf)
+        Arblib.div!(coeffs[m, n], mtwoP, buf)
     end
 
     for N = 1:Δmax
         for (m, n) in CNmn.keys[N]
             (N > Δmax || m > Δmax || n > Δmax) && continue
             # H[N+1] += CNmn[N, m, n] * coeffs[(m, n)]
-            buf = MA.operate_to!!(buf, *, CNmn[N, m, n], coeffs[(m, n)])
-            buf = MA.operate_to!!(buf, +, H[N+1], buf)
-            H[N+1] = MA.operate_to!!(H[N+1], copy, buf)
+            Arblib.addmul!(H[N+1], CNmn[N, m, n], coeffs[m, n])
         end
     end
 
@@ -311,7 +304,7 @@ function ChiralPosCache(x::Acb, ds::NTuple{4,CD}, chan::Symbol, Δmax)
     return ChiralPosCache(x, prefactor, q, τ, log(sq), q_powers)
 end
 
-function ChiralPosCache(τ, _::NTuple{1,CD}, _::Symbol, Δmax) 
+function ChiralPosCache(τ::Acb, _::NTuple{1,CD}, _::Symbol, Δmax) 
     q = qfromτ(τ)
     prefactor = 1 / etaDedekind(τ)
     q_powers = ones(Acb, Δmax + 1)
@@ -328,12 +321,11 @@ PosCache(x, co::CCo, chan) = ChiralPosCache(x, co.fields, chan, co.Δmax)
 PosCache(x, b::CBlock) = PosCache(x, b.corr, b.chan)
 
 function evalpoly(x::ChiralPosCache, coeffs::Vector{Acb}) 
-    res = zero(Acb)
-    buf = zero(Acb)
+    res = zero(x.x)
+    buf = zero(x.x)
     for i = 1:length(coeffs)
         # res += coeffs[i] * x.q_powers[i]
-        buf = MA.operate_to!!(buf, *, coeffs[i], x.q_powers[i])
-        res = MA.operate!!(+, res, buf)
+        Arblib.addmul!(res, coeffs[i], x.q_powers[i])
     end
     return res
 end
@@ -485,7 +477,9 @@ function ell(V::NTuple{4,Field}, r, s)
         digamma_reg(
             1 // 2 +
                 (lr == :left ? -1 : 1) *
-                (Prs(r, j, β) + pm1 * V[a].dims[lr].P + pm2 * V[b].dims[lr].P) / β,
+                ((r - j / βsq) / 2 + pm1 * V[a].dims[lr].P/β + pm2 * V[b].dims[lr].P/β)
+                # (Prs(r, j, β) + pm1 * V[a].dims[lr].P + pm2 * V[b].dims[lr].P) / β,
+                # P / β = (r - s/β^2)/2
         ) for pm1 in (-1, 1) for pm2 in (-1, 1) for j = (1-s):2:(s-1) for
             (a, b) in ((1, 2), (3, 4)) for lr in (:left, :right)
                 )

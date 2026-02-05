@@ -392,14 +392,15 @@ function computeCNmns(Nmax, c::CC, Rs)
                             if haskey(Cs, (Np, mp, np))
                                 # we do
                                 # _sum += Cs[Np, mp, np] / (δ0 - Cs.δs[mp, np])
-                                # below is the version with mutable arithmetics. much faster because it does not allocate.
-                                buf = MA.operate_to!!(buf, -, δ0, Cs.δs[mp, np])
-                                buf = MA.operate_to!!(buf, /, Cs[Np, mp, np], buf)
-                                _sum = MA.operate_to!!(_sum, +, _sum, buf)
+                                Arblib.sub!(buf, δ0, Cs.δs[mp, np])
+                                Arblib.inv!(buf, buf)
+                                Arblib.addmul!(_sum, Cs[Np, mp, np], buf)
                             end
                         end
                     end
                     Cs[N, m, n] *= _sum
+                    # Arblib.mul!(Cs[N, m, n], Cs[N, m, n], _sum)
+                    # push!(Cs.keys[N], (m, n))
                     # Cs.values[N, m, n] = MA.operate_to!!(Cs.values[N, m, n], *, Cs.values[N, m, n], _sum)
                     # push!(Cs.keys[N], (m, n))
                 end

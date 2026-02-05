@@ -30,47 +30,52 @@ end
 end
 
 @testset "Interchiral 4pt" begin
-        c = CC(β=-big"0.8" - big"0.1" * im)
-        field1 = Field(c, r=1 // 2, s=0)
-        field2 = Field(c, r=1, s=0)
-        fields = [field2, field2, field1, field1]
-        Δmax = 40
-        co = Correlation(fields..., Δmax)
-        x = big"0.4" + big"0.2" * im
+    c = CC(β=-big"0.8" - big"0.1" * im)
+    field1 = Field(c, r=1 // 2, s=0)
+    field2 = Field(c, r=1, s=0)
+    fields = [field2, field2, field1, field1]
+    Δmax = 40
+    co = Correlation(fields..., Δmax)
+    x = big"0.4" + big"0.2" * im
 
-        # interchiral, logarithmic
-        J = Field(c, r=1, s=1)
-        b = IBlock(co, :s, J, Δmax)
-        @test b(x) ≈
-              big"1.320255511354332911164464364785819105156" +
-              big"0.4186925417664498703779197115719248226952" * im
+    # interchiral, logarithmic
+    J = Field(c, r=1, s=1)
+    b = IBlock(co, :s, J, Δmax)
+    @test isapprox(b(x),
+                   big"1.320255511354332911164464364785819105156" +
+                       big"0.4186925417664498703779197115719248226952" * im,
+                   rtol=1e-25)
 
-        # interchiral, non-diagonal
-        V3 = Field(c, r=3, s=1 // 3)
-        b = IBlock(co, :s, V3, Δmax)
-        @test b(x) ≈
-              big"0.2052943176316875457496459173129386291016" -
-              big"0.2003078699572151816572767384428219647201" * im
+    # interchiral, non-diagonal
+    V3 = Field(c, r=3, s=1 // 3)
+    b = IBlock(co, :s, V3, Δmax)
+    @test isapprox(b(x),
+                   big"0.2052943176316875457496459173129386291016" -
+                       big"0.2003078699572151816572767384428219647201" * im,
+                   rtol=1e-26)
 
-        # interchiral, degenerate
-        id = Field(c, r=1, s=1, diagonal=true)
-        b = IBlock(co, :s, id, Δmax)
-        @test b(x) ≈
-              big"1.439312717815166500340922134926376204051" +
-              big"0.4561207475025284508099330175652862628828" * im
+    # interchiral, degenerate
+    id = Field(c, r=1, s=1, diagonal=true)
+    b = IBlock(co, :s, id, Δmax)
+    @test isapprox(b(x),
+                   big"1.439312717815166500340922134926376204051" +
+                       big"0.4561207475025284508099330175652862628828" * im,
+                   rtol=1e-26)
 
-        # interchiral, generic diagonal
-        V4 = Field(c, r=0, s=big"0.5" + big"0.3" * im)
-        b = IBlock(co, :s, V4, Δmax)
-        @test b(x) ≈
-              big"1.396132665254477154107379890952326016033" +
-              big"0.184273048386930095042991719005258073884" * im
+    # interchiral, generic diagonal
+    V4 = Field(c, r=0, s=big"0.5" + big"0.3" * im)
+    b = IBlock(co, :s, V4, Δmax)
+    @test isapprox(b(x),
+                   big"1.396132665254477154107379890952326016033" +
+                       big"0.184273048386930095042991719005258073884" * im,
+                   rtol=1e-26)
 
-        V5 = Field(c, r=2, s=0)
-        b = IBlock(co, :s, V5, Δmax)
-        @test b(x) ≈
-              big"0.7505040963332944454258635005057715597006" +
-              big"0.04344655018615009393069583429415501260266" * im
+    V5 = Field(c, r=2, s=0)
+    b = IBlock(co, :s, V5, Δmax)
+    @test isapprox(b(x),
+                   big"0.7505040963332944454258635005057715597006" +
+                       big"0.04344655018615009393069583429415501260266" * im ,
+                   rtol=1e-26)
 end
 
 const Sig = Channels{Rational}

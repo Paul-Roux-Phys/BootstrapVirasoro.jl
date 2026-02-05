@@ -30,7 +30,6 @@ export evaluate_correlation
 Third-party functions
 =========================================================================#
 using Arblib
-using BarnesDoubleGamma: DoubleGamma, gamma, digamma_reg
 using LaTeXStrings
 using PrettyTables: pretty_table, @crayon_str, Highlighter, Tables.columntable
 using Random
@@ -84,11 +83,8 @@ else
     max_thread_id() = Threads.nthreads()
 end
 
-# Include generic interface for in-place arithmetics on bigfloats
-include("MutableArithmetics_ComplexBigFloat.jl")
-
 # Implementations
-include("AcbElliptic.jl")
+include("SpecialFunctions.jl")
 include("1_CFTData.jl")
 include("2_Correlation.jl")
 include("3_Block.jl")

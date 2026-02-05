@@ -9,11 +9,11 @@ export divide_by_reference, substract_res
 export Polyfit, fit!
 
 using ..BootstrapVirasoro
+using ..BootstrapVirasoro: gamma
 using Arblib
 using ..BootstrapVirasoro.LaTeXStrings
 import ..BootstrapVirasoro: getfields, total_dimension, reflect
 import ..BootstrapVirasoro: reflect, permute_4, Prs
-import SpecialFunctions: gamma
 import BarnesDoubleGamma: DoubleGamma
 
 struct InterchiralBlock <: LinearCombinationBlock
