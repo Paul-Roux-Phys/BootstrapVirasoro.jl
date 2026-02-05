@@ -62,6 +62,7 @@ struct ChiralPosCache
     x::Acb
     prefactor::Acb
     q::Acb
+    τ::Acb
     logq::Acb
     q_powers::Vector{Acb}
 end
@@ -150,8 +151,12 @@ struct GenericLCBlock <: LCBlock
     chan::Symbol
 end
 
-qfromx(x) = exp(-(π * ellipticK(1 - x) / ellipticK(x)))
-xfromq(q) = jtheta2(0, q)^4 / jtheta3(0, q)^4
+qfromx(x::Acb) = exp(-(π * ellipticK(1 - x) / ellipticK(x)))
+qfromx(x) = qfromx(Acb(x))
+function xfromq(q)
+    τ = log(q) / im / π
+    jtheta2(τ)^4 / jtheta3(τ)^4
+end
 qfromτ(τ) = exp(2 * im * (π * τ))
 τfromx(x) = (log(qfromx(x)) / π) / im
 xfromτ(τ) = xfromq(exp(im * (π * τ)))
@@ -284,17 +289,18 @@ getRmnreg(b::CBlock) = getRmnreg(b.corr, b.chan)
 getCNmn(b::CBlock) = getCNmn(b.corr, b.chan)
 getc(b::CBlock) = b.corr.c
 
-function ChiralPosCache(x, ds::NTuple{4,CD}, chan::Symbol, Δmax) 
+function ChiralPosCache(x::Acb, ds::NTuple{4,CD}, chan::Symbol, Δmax) 
     ds = permute_4(ds, chan)
 
     q = qfromx(x)
+    τ = log(q) / im / π
 
     e0 = -ds[1].Δ - ds[2].δ
     chan === :u && (e0 += 2ds[1].Δ)
     e1 = -ds[1].Δ - ds[4].δ
     e2 = sum(ds[i].δ for i = 1:3) + ds[4].Δ
 
-    prefactor = x^e0 * (1 - x)^e1 * jtheta3(0, q)^(-4 * e2)
+    prefactor = x^e0 * (1 - x)^e1 * jtheta3(τ)^(-4 * e2)
 
     sq = 16q
     q_powers = ones(Acb, Δmax + 1)
@@ -302,20 +308,21 @@ function ChiralPosCache(x, ds::NTuple{4,CD}, chan::Symbol, Δmax)
         q_powers[i] = q_powers[i-1] * sq
     end
 
-    return ChiralPosCache(x, prefactor, q, log(sq), q_powers)
+    return ChiralPosCache(x, prefactor, q, τ, log(sq), q_powers)
 end
 
 function ChiralPosCache(τ, _::NTuple{1,CD}, _::Symbol, Δmax) 
     q = qfromτ(τ)
-    prefactor = 1 / etaDedekind(complex(τ))
+    prefactor = 1 / etaDedekind(τ)
     q_powers = ones(Acb, Δmax + 1)
     for i = 2:(Δmax+1)
         q_powers[i] = q_powers[i-1] * q
     end
 
-    return ChiralPosCache(τ, prefactor, q, log(q), q_powers)
+    return ChiralPosCache(τ, prefactor, q, τ, log(q), q_powers)
 end
 
+ChiralPosCache(x, ds, chan, Δmax) = ChiralPosCache(Acb(x), ds, chan, Δmax)
 ChiralPosCache(x, co::CCo, chan) = ChiralPosCache(x, co.fields, chan, co.Δmax)
 PosCache(x, co::CCo, chan) = ChiralPosCache(x, co.fields, chan, co.Δmax)
 PosCache(x, b::CBlock) = PosCache(x, b.corr, b.chan)
