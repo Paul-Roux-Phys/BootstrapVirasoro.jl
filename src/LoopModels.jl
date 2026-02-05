@@ -140,7 +140,6 @@ end
 
 function _InterchiralBlock(co::Correlation, chan, V, Δmax, _shift)
     Δmax === missing && (Δmax = co.Δmax)
-    @assert real(V.c.β^2) > 0 "interchiral blocks are implemented for Re(β^2) > 0"
     blocks = []
     shifts = []
     extfields = getfields(co, chan)
