@@ -30,47 +30,52 @@ end
 end
 
 @testset "Interchiral 4pt" begin
-        c = CC(β=-big"0.8" - big"0.1" * im)
-        field1 = Field(c, r=1 // 2, s=0)
-        field2 = Field(c, r=1, s=0)
-        fields = [field2, field2, field1, field1]
-        Δmax = 40
-        co = Correlation(fields..., Δmax)
-        x = big"0.4" + big"0.2" * im
+    c = CC(β=-big"0.8" - big"0.1" * im)
+    field1 = Field(c, r=1 // 2, s=0)
+    field2 = Field(c, r=1, s=0)
+    fields = [field2, field2, field1, field1]
+    Δmax = 40
+    co = Correlation(fields..., Δmax)
+    x = big"0.4" + big"0.2" * im
 
-        # interchiral, logarithmic
-        J = Field(c, r=1, s=1)
-        b = IBlock(co, :s, J, Δmax)
-        @test b(x) ≈
-              big"1.320255511354332911164464364785819105156" +
-              big"0.4186925417664498703779197115719248226952" * im
+    # interchiral, logarithmic
+    J = Field(c, r=1, s=1)
+    b = IBlock(co, :s, J, Δmax)
+    @test isapprox(b(x),
+                   big"1.320255511354332911164464364785819105156" +
+                       big"0.4186925417664498703779197115719248226952" * im,
+                   rtol=1e-25)
 
-        # interchiral, non-diagonal
-        V3 = Field(c, r=3, s=1 // 3)
-        b = IBlock(co, :s, V3, Δmax)
-        @test b(x) ≈
-              big"0.2052943176316875457496459173129386291016" -
-              big"0.2003078699572151816572767384428219647201" * im
+    # interchiral, non-diagonal
+    V3 = Field(c, r=3, s=1 // 3)
+    b = IBlock(co, :s, V3, Δmax)
+    @test isapprox(b(x),
+                   big"0.2052943176316875457496459173129386291016" -
+                       big"0.2003078699572151816572767384428219647201" * im,
+                   rtol=1e-26)
 
-        # interchiral, degenerate
-        id = Field(c, r=1, s=1, diagonal=true)
-        b = IBlock(co, :s, id, Δmax)
-        @test b(x) ≈
-              big"1.439312717815166500340922134926376204051" +
-              big"0.4561207475025284508099330175652862628828" * im
+    # interchiral, degenerate
+    id = Field(c, r=1, s=1, diagonal=true)
+    b = IBlock(co, :s, id, Δmax)
+    @test isapprox(b(x),
+                   big"1.439312717815166500340922134926376204051" +
+                       big"0.4561207475025284508099330175652862628828" * im,
+                   rtol=1e-26)
 
-        # interchiral, generic diagonal
-        V4 = Field(c, r=0, s=big"0.5" + big"0.3" * im)
-        b = IBlock(co, :s, V4, Δmax)
-        @test b(x) ≈
-              big"1.396132665254477154107379890952326016033" +
-              big"0.184273048386930095042991719005258073884" * im
+    # interchiral, generic diagonal
+    V4 = Field(c, r=0, s=big"0.5" + big"0.3" * im)
+    b = IBlock(co, :s, V4, Δmax)
+    @test isapprox(b(x),
+                   big"1.396132665254477154107379890952326016033" +
+                       big"0.184273048386930095042991719005258073884" * im,
+                   rtol=1e-26)
 
-        V5 = Field(c, r=2, s=0)
-        b = IBlock(co, :s, V5, Δmax)
-        @test b(x) ≈
-              big"0.7505040963332944454258635005057715597006" +
-              big"0.04344655018615009393069583429415501260266" * im
+    V5 = Field(c, r=2, s=0)
+    b = IBlock(co, :s, V5, Δmax)
+    @test isapprox(b(x),
+                   big"0.7505040963332944454258635005057715597006" +
+                       big"0.04344655018615009393069583429415501260266" * im ,
+                   rtol=1e-26)
 end
 
 const Sig = Channels{Rational}
@@ -156,7 +161,7 @@ x = xfromτ(τ)
         s_S2 = shift_D(co_S2.fields, V_S2)
 
         # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^{-1}/2))
-        @test isapprox(s_S2 / s / 16^(4 / c.β^2 * (V.s + 1)), 1)
+        @test isapprox(s_S2 / s / 16^(4 / c.β^2 * (V.s + 1)), 1, rtol=1e-30)
 
         b = IBlock(co, :s, V)
         prefactor =
@@ -187,29 +192,37 @@ x = xfromτ(τ)
         )
 end
 
-function prefA(τ, co_S2, chan, lr)
+function prefA(τ::Acb, co_S2, chan, lr)
         x_cache = PosCache(xfromτ(τ), co_S2[lr], chan)
         return inv(etaDedekind(τ) * x_cache.prefactor)
 end
+prefA(τ, co_S2, chan, lr) = prefA(Acb(τ), co_S2, chan, lr)
 
 # non-chiral prefactor
 ncprefA(τ, co_S2, chan) =
         prefA(τ, co_S2, chan, :left) * prefA(-conj(τ), co_S2, chan, :right)
 
 @testset "Interchiral" begin
-        V = Field(c, r=11 // 2, s=2 // 11)
-        P, Pbar = V[:left].P, V[:right].P
-        V_S2 = Field(c_S2, r=2 * V.r, s=V.s)
-        b = IBlock(co, V)
-        b_S2 = @channels IBlock(co_S2, chan, V_S2)
-        chan = :u
-        t = BootstrapVirasoro.modular_param(chan, τ)
-        X = BootstrapVirasoro.crossratio(chan, x)
-        @test b(t) * 16^(2P^2 + 2Pbar^2) ≈ b_S2[chan](X) * ncprefA(t, co_S2, chan)
-        @test b.blocks[2](t) * 16^(2(P - 1 / c.β)^2 + 2(Pbar + 1 / c.β)^2) ≈
-              b_S2[chan].blocks[2](X) * ncprefA(t, co_S2, chan)
+    V = Field(c, r=11 // 2, s=2 // 11)
+    P, Pbar = V[:left].P, V[:right].P
+    V_S2 = Field(c_S2, r=2 * V.r, s=V.s)
+    b = IBlock(co, V)
+    b_S2 = @channels IBlock(co_S2, chan, V_S2)
+    chan = :u
+    t = BootstrapVirasoro.modular_param(chan, τ)
+    X = BootstrapVirasoro.crossratio(chan, x)
+    @test isapprox(b(t) * 16^(2P^2 + 2Pbar^2),
+                   b_S2[chan](X) * ncprefA(t, co_S2, chan),
+                   rtol=1e-30)
+
+    @test isapprox(b.blocks[2](t) * 16^(2(P - 1 / c.β)^2 + 2(Pbar + 1 / c.β)^2),
+                   b_S2[chan].blocks[2](X) * ncprefA(t, co_S2, chan),
+                   rtol=1e-30)
+
         # shift(D^S2) = shift(D) * 16^(-8β^-1 (P - β^{-1}/2))
-        @test b.coeffs[2] * 16^(-4 / c.β^2 * (V.s + 1)) ≈ b_S2.u.coeffs[2]
+    @test isapprox(b.coeffs[2] * 16^(-4 / c.β^2 * (V.s + 1)),
+                   b_S2.u.coeffs[2],
+                   rtol=1e-30)
 
         for ind in [
                 (5, 1),

@@ -10,6 +10,7 @@ module BootstrapVirasoro
 #=========================================================================
 API
 =========================================================================#
+export Acb
 export CentralCharge, CC
 export ConformalDimension, CD
 export LeftRight, Field, swap_lr, total_dimension, spin
@@ -28,12 +29,11 @@ export evaluate_correlation
 #=========================================================================
 Third-party functions
 =========================================================================#
-import EllipticFunctions: jtheta2, jtheta3, ellipticK, etaDedekind
-import BarnesDoubleGamma: DoubleGamma, gamma, digamma_reg
+using Arblib
 using LaTeXStrings
-import PrettyTables: pretty_table, @crayon_str, Highlighter, Tables.columntable
-import Random
-import Printf: Format, format
+using PrettyTables: pretty_table, @crayon_str, Highlighter, Tables.columntable
+using Random
+using Printf: Format, format
 
 #========================================================================
 Package-wide definitions
@@ -83,10 +83,8 @@ else
     max_thread_id() = Threads.nthreads()
 end
 
-# Include generic interface for in-place arithmetics on bigfloats
-include("MutableArithmetics_ComplexBigFloat.jl")
-
 # Implementations
+include("SpecialFunctions.jl")
 include("1_CFTData.jl")
 include("2_Correlation.jl")
 include("3_Block.jl")

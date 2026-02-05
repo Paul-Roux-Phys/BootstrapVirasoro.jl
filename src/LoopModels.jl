@@ -9,16 +9,17 @@ export divide_by_reference, substract_res
 export Polyfit, fit!
 
 using ..BootstrapVirasoro
+using ..BootstrapVirasoro: gamma
+using Arblib
 using ..BootstrapVirasoro.LaTeXStrings
 import ..BootstrapVirasoro: getfields, total_dimension, reflect
 import ..BootstrapVirasoro: reflect, permute_4, Prs
-import SpecialFunctions: gamma
 import BarnesDoubleGamma: DoubleGamma
 
-struct InterchiralBlock{T} <: LinearCombinationBlock{T}
-    chan_field::Field{T}
-    blocks::Vector{Block{T}}
-    coeffs::Vector{T}
+struct InterchiralBlock <: LinearCombinationBlock
+    chan_field::Field
+    blocks::Vector{Block}
+    coeffs::Vector{Acb}
     chan::Symbol
 end
 const IBlock = InterchiralBlock
@@ -137,9 +138,8 @@ function my_mod2(s)
     return s > 1 ? s - 2 : s
 end
 
-function _InterchiralBlock(co::Correlation{T}, chan, V, Δmax, _shift) where {T}
+function _InterchiralBlock(co::Correlation, chan, V, Δmax, _shift)
     Δmax === missing && (Δmax = co.Δmax)
-    @assert real(V.c.β^2) > 0 "interchiral blocks are implemented for Re(β^2) > 0"
     blocks = []
     shifts = []
     extfields = getfields(co, chan)
@@ -166,7 +166,7 @@ function _InterchiralBlock(co::Correlation{T}, chan, V, Δmax, _shift) where {T}
         end
     end
 
-    InterchiralBlock{T}(V, blocks, shifts, chan)
+    InterchiralBlock(V, blocks, shifts, chan)
 end
 
 function InterchiralBlock(
@@ -255,7 +255,7 @@ function find_diagonals(s::BootstrapSystem)
     return res
 end
 
-function delete_diags!(s::BootstrapSystem{T}) where {T}
+function delete_diags!(s::BootstrapSystem)
     for (chan, Vs) in find_diagonals(s)
         for V in Vs
             delete!(s.spectra[chan].blocks, V)
@@ -321,7 +321,7 @@ function Bref(V, DG)
     return res
 end
 
-function compute_reference(Vext::NTuple{4, Field{T}}, V::Field, chan, DG) where {T}
+function compute_reference(Vext::NTuple{4, Field}, V::Field, chan, DG)
     V₁, V₂, V₃, V₄ = permute_4(Vext, chan)
     res = Cref(V₁, V₂, V, DG) * Cref(V₃, V₄, V, DG) / Bref(V, DG)
     return res
@@ -335,7 +335,7 @@ function compute_reference(V₁::Field, V::Field, _, DG)
     return res
 end
 
-compute_reference(V1::NTuple{1, Field{T}}, V::Field, _, DG) where {T} =
+compute_reference(V1::NTuple{1, Field}, V::Field, _, DG) =
     compute_reference(V1[1], V, :s, DG)
 
 compute_reference(b::Block, DG) =
@@ -453,7 +453,7 @@ function fit!(pf::Polyfit, data)
 You must provide more data points
 "
     T = typeof(data[1][2])
-    mat = Matrix{T}(undef, length(data), pf.nb_monoms)
+    mat = Matrix{Acb}(undef, length(data), pf.nb_monoms)
     for (i, d) in enumerate(data)
         xvec = d[1]
         for (j, m) in enumerate(pf.monomials)
