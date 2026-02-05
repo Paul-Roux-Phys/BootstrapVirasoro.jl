@@ -1,6 +1,6 @@
 name = "BootstrapVirasoro"
 uuid = "ca6c609c-7c6b-4ea6-be06-ee6e3ced7d6c"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Paul_Roux"]
 
 [deps]
@@ -13,7 +13,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [compat]
 Arblib = "1.6.1"
-BarnesDoubleGamma = "1.2.4"
+BarnesDoubleGamma = "1.2.5"
 LaTeXStrings = "1"
 PrettyTables = "2"
 Printf = "1"
