@@ -145,7 +145,7 @@ abstract type LinearCombinationBlock <: Block end
 const LCBlock = LinearCombinationBlock
 
 struct GenericLCBlock <: LCBlock
-    chan_field::Field
+    chan_field::CDorField
     blocks::Vector{Block}
     coeffs::Vector{Acb}
     chan::Symbol

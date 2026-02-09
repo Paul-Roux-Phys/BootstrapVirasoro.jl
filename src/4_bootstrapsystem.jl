@@ -1,5 +1,3 @@
-const CDorField = Union{CD, Field}
-
 struct StructureConstants
     constants::Dict{CDorField,Acb}
     errors::Dict{CDorField,Float64}
@@ -826,6 +824,17 @@ function eval_blocks_compute_system(specs::Channels; fix = nothing, rels = nothi
     return sys
 end
 
+function evaluate_correlation(sys, chan, z)
+    co = sys.correlation
+    consts = sys.str_cst[chan]
+    cache = PosCache(channel_position(z, co, chan), co, chan)
+    block_values =
+        Dict(V => sys.spectra[chan].blocks[V](cache)
+             for (V, b) in consts.constants)
+    return sum(consts.constants[V] * block_values[V]
+               for V in keys(block_values))
+end
+
 function solve_bootstrap(specs::Channels; fix = nothing, rels = nothing)
     sys = eval_blocks_compute_system(specs, fix = fix, rels = rels)
     solve!(sys)
@@ -867,16 +876,6 @@ end
 function clear!(b::BootstrapSystem)
     b.str_cst = @channels StrCst(b.spectra[chan])
     # b.matrix = BootstrapMatrix([chan for chan in keys(b.spectra)])
-end
-
-function evaluate_correlation(sys, chan, z)
-    co = sys.correlation
-    consts = sys.str_cst
-    cache = PosCache(channel_position(z, co, chan), co, chan)
-    block_values =
-        Dict(V => sys.spectra[chan].blocks[V](cache)
-             for (V, b) in consts[chan].constants)
-    return sum(consts[chan].constants[V] * block_values[V] for V in keys(block_values))
 end
 
 function Base.show(io::IO, b::BootstrapSystem)

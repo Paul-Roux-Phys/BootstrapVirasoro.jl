@@ -99,6 +99,10 @@ struct Field
     isKac::Bool
 end
 
+# many methods need to work equally on conformal dimensions and fields
+# since a conformal dimension represents a chiral field
+const CDorField = Union{CD, Field}
+
 #======================================================================================
 Central charges
 ======================================================================================#
