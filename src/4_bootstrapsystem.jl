@@ -473,9 +473,14 @@ function BootstrapSystem(
         error("rels has to be one of :stu, :st, :st_op, :su, :su_op, :tu, :tu_op, nothing")
     end
     nb_channels = length(channels)
-    nb_unknowns = [length(S[chan]) for chan in channels]
-    nb_unknowns .-= length.([knowns[chan] for chan in channels])
-    nb_lines = 2 * ((sum(nb_unknowns) + extrapoints) ÷ 2)
+    nb_unknowns = 0
+    for chan in channels
+        nb_unknowns += length(S[chan])
+        if chan in keys(knowns)
+            nb_unknowns -= length(knowns[chan])
+        end
+    end
+    nb_lines = 2 * ((nb_unknowns + extrapoints) ÷ 2)
     if pos !== nothing
         nb_positions = length(pos)
         @assert nb_positions > nb_lines ÷ (nb_channels - 1) "
@@ -675,13 +680,12 @@ function compute_linear_system!(b::BootstrapSystem)
 
     unknowns = Channels(Dict(
         chan => sort(CDorField[V for V in fields(b.spectra[chan]) if
-                                   !(V in keys(known_consts[chan].constants))
-                                   ],
+                                   !(chan in keys(known_consts) && V in keys(known_consts[chan].constants))],
                      by = V -> real(total_dimension(V)))
         for chan in b.channels))
 
     # if no consts are known, fix a normalisation
-    if all([isempty(known_consts[chan].constants) for chan in b.channels])
+    if all([isempty(known_consts[chan].constants) for chan in keys(known_consts)])
         hasdiag, chan, diag = hasdiagonal(b)
         if hasdiag
             normalised_field = diag
@@ -699,14 +703,18 @@ function compute_linear_system!(b::BootstrapSystem)
     end
 
     knowns = Channels(Dict(chan => [V for V in fields(b.spectra[chan])
-                                        if V in keys(b.str_cst[chan].constants)]
+                                        if chan in keys(b.str_cst) && V in keys(b.str_cst[chan].constants)]
                            for chan in keys(b.spectra)))
 
     nb_positions = length(b.positions)
     nb_lines = nb_positions * (length(keys(b.spectra)) - 1)
-    nb_unknowns = sum(
-        length(b.spectra[chan]) - length(known_consts[chan]) for chan in b.channels
-    )
+    nb_unknowns = 0
+    for chan in b.channels
+        nb_unknowns += length(b.spectra[chan])
+        if chan in keys(known_consts)
+            nb_unknowns -= length(known_consts[chan])
+        end
+    end
 
     # form the matrix of the linear system
     # keep a record of the columns where we put each field.
@@ -751,6 +759,9 @@ function solve!(s::BootstrapSystem)
     errors = @. Float64(abs((sol1 - sol2) / sol2))
 
     for chan in s.channels
+        if !haskey(s.str_cst, chan)
+            s.str_cst[chan] = StructureConstants()
+        end
         for V in s.unknowns[chan]
             index = findcol(s, s.spectra[chan].blocks[V].chan_field, chan)
             s.str_cst[chan].constants[V] = Acb(sol1[index])
@@ -780,19 +791,6 @@ function eval_blocks_compute_system(specs::Channels; fix = nothing, rels = nothi
     return sys
 end
 
-function evaluate_correlation(sys, chan, z)
-    co = sys.correlation
-    consts = sys.str_cst[chan]
-    pos = channel_position(z, co, chan)
-    cache = PosCache(pos, co, chan)
-    block_values =
-        Dict(V => sys.spectra[chan].blocks[V](cache)
-             for (V, b) in consts.constants)
-    fac = factor(co, chan, z)
-    return sum(consts.constants[V] * block_values[V] * fac
-               for V in keys(block_values))
-end
-
 function solve_bootstrap(specs::Channels; fix = nothing, rels = nothing)
     sys = eval_blocks_compute_system(specs, fix = fix, rels = rels)
     solve!(sys)
@@ -804,6 +802,19 @@ function solve_bootstrap(specs::Channels; fix = nothing, rels = nothing)
         println("Difference between $(chans[1]) and $(chans[2]) channels: $(vals[1]-vals[2])")
     end
     return sys
+end
+
+function evaluate_correlation(sys, chan, z)
+    co = sys.correlation
+    consts = sys.str_cst[chan]
+    pos = channel_position(z, co, chan)
+    cache = PosCache(pos, co, chan)
+    block_values =
+        Dict(V => sys.spectra[chan].blocks[V](cache)
+             for (V, b) in consts.constants)
+    fac = factor(co, chan, z)
+    return sum(consts.constants[V] * block_values[V] * fac
+               for V in keys(block_values))
 end
 
 function clear!(b::BootstrapSystem)

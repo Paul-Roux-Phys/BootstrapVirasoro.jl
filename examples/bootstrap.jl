@@ -3,7 +3,7 @@ using BootstrapVirasoro
 # set the precision of high-precision floats
 setprecision(BigFloat, 40, base=10)
 
-β    = big"0.3" + big"0.6"*im
+β    = big"0.8" + big"0.1"*im
 # define a central charge
 c    = CC(β = β)
 
@@ -18,17 +18,17 @@ Vd   = [Field(c, r=1, s=1, diagonal=true),
 # vcat concatenates arrays.
 V    = vcat(VPpm, Vd) 
 
-Cor  = Correlation(V12, VP, V12, VP, 70) # define the correlation
+Cor  = Correlation(V12, VP, V12, VP, 60) # define the correlation
 
 # We need to define ChannelSpectrum objects for each channel.
 # They are created as ChannelSpectrum(correlation, channel, listoffields, function)
 # where the function is a function that takes as input a field and outputs a block object.
 fs(V) = NCBlock(Cor, :s, V) # map fields to blocks
-Cs    = ChannelSpectrum(Cor, :s, V, fs) # create s-channel spectrum
+Cs    = ChannelSpectrum(Cor, :s, VPpm, fs) # create s-channel spectrum
 ft(V) = NCBlock(Cor, :t, V)
 Ct    = ChannelSpectrum(Cor, :t, V, ft) # t-channel
 fu(V) = NCBlock(Cor, :u, V)
-Cu    = ChannelSpectrum(Cor, :u, V, fu) # u-channel
+Cu    = ChannelSpectrum(Cor, :u, Vd, fu) # u-channel
 
 sol = solve_bootstrap(Channels(Cs, Ct, Cu)) # setup and solve the crossing equations
 sol.str_cst # return the structure constants
