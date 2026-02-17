@@ -47,6 +47,10 @@ end
 
 Base.length(c::SC) = length(c.constants)
 
+function Base.getindex(c::SC, V::CDorField)
+    return c.constants[V]
+end
+
 function fix!(cnst, field, value; error = 0)
     cnst.constants[field] = value
     cnst.errors[field] = error
@@ -399,7 +403,7 @@ square = whether to use a square (otherwise, a rectangle)
 function random_points(N; transfo = nothing, square = true, cond = p -> true)
     # Set a temporary seed
     rng = copy(Random.default_rng())
-    Random.seed!(1234)
+    Random.seed!(3456)
     res = []
     for _ = 1:N
         new_random_point!(res, N, square = square, cond = cond)
@@ -461,7 +465,8 @@ function BootstrapSystem(
         filter!(!=(:s), channels)
         knowns.u = knowns.t
     elseif rels === :stu
-        channels = (:s,)
+        filter!(!=(:t), channels)
+        filter!(!=(:u), channels)
         knowns.t = knowns.s
         knowns.u = knowns.s
     else
@@ -722,72 +727,16 @@ function compute_linear_system!(b::BootstrapSystem)
 end
 
 function findcol(s::BootstrapSystem, V::CDorField, chan)
-    col = 1
-    uk = s.unknowns
-    if chan === :t
-        if haskey(uk, :s)
-            col += length(uk.s) # t blocks start at this col
-        end
-    elseif chan === :u
-        if haskey(uk, :s)
-            col += length(uk.s)
-        end
-        if haskey(uk, :t)
-            col += length(uk.t)
+    col = 0
+    for ch in s.channels
+        for v in s.unknowns[ch]
+            col += 1
+            if ch == chan && v == V
+                return col
+            end
         end
     end
-    return col - 1 + findfirst(isequal(V), uk[chan])
-end
-
-function replacediagLHS!(s::BootstrapSystem, new::Block)
-    # locate the column of the block to remove.
-    chan = new.chan
-    old = removediag!(s.spectra[chan])
-    remove!(s.spectra[chan], old.chan_field)
-    add!(s.spectra[chan], new)
-    newV = new.chan_field
-    col = findcol(s, old.chan_field, chan)
-    s.unknowns[chan][findfirst(==(old.chan_field), s.unknowns[chan])] = newV
-    delete!(s.block_values[chan], old.chan_field)
-    s.block_values[chan][newV] = [new(x) for x in s.positions_cache[chan]]
-    s.LHS[:, col] = computeLHScolumn(s, chan, new.chan_field)
-end
-
-function replacediagRHS!(sys::BootstrapSystem, new::Block, str_cst = 1)
-    chan = new.chan
-    old = removediag!(sys.spectra[chan])
-    remove!(sys.spectra[chan], old.chan_field)
-    add!(sys.spectra[chan], new)
-    newV = new.chan_field
-    oldV = old.chan_field
-    sys.block_values[chan][newV] = [new(x) for x in sys.positions_cache[chan]]
-    to_add =
-        sys.str_cst[chan].constants[oldV] .* sys.block_values[chan][oldV] .-
-        str_cst .* sys.block_values[chan][newV]
-    if chan === :s
-        sys.RHS[1:length(sys.positions)] .+= to_add
-        sys.RHS[length(sys.positions)+1:end] .+= to_add
-    elseif chan === :t
-        sys.RHS[1:length(sys.positions)] .-= to_add
-    elseif chan === :u
-        sys.RHS[length(sys.positions)+1:end] .-= to_add
-    end
-    delete!(sys.block_values[chan], oldV)
-    delete!(sys.str_cst[chan], oldV)
-    fix!(sys.str_cst[chan], newV, str_cst)
-end
-
-function replacediag!(sys::BootstrapSystem, new::Block, str_cst = 1)
-    # if sys has a diagonal field with unknown str_cst in this channel, change LHS
-    # else change RHS
-    for V in sys.unknowns[new.chan]
-        if V.diagonal
-            replacediagLHS!(sys, new)
-            return
-        end
-    end
-    replacediagRHS!(sys, new, str_cst)
-    return
+    error("The field $V does not exist in the channel $chan")
 end
 
 function solve!(s::BootstrapSystem)
@@ -813,13 +762,20 @@ function solve!(s::BootstrapSystem)
 end
 
 function eval_blocks_compute_system(specs::Channels; fix = nothing, rels = nothing)
-    sys = BootstrapSystem(specs, rels = rels)
-    evaluate_blocks!(sys)
     if fix !== nothing
+        knowns = Dict{Symbol, StructureConstants}()
         for (chan, V, cst) in fix
-            fix!(sys.str_cst[chan], V, cst)
+            if !(chan in keys(knowns))
+                knowns[chan] = StructureConstants()
+            end
+            fix!(knowns[chan], V, cst)
         end
+        knowns = Channels(knowns)
+    else
+        knowns = nothing
     end
+    sys = BootstrapSystem(specs, rels = rels, knowns=knowns)
+    evaluate_blocks!(sys)
     compute_linear_system!(sys)
     return sys
 end
@@ -827,50 +783,27 @@ end
 function evaluate_correlation(sys, chan, z)
     co = sys.correlation
     consts = sys.str_cst[chan]
-    cache = PosCache(channel_position(z, co, chan), co, chan)
+    pos = channel_position(z, co, chan)
+    cache = PosCache(pos, co, chan)
     block_values =
         Dict(V => sys.spectra[chan].blocks[V](cache)
              for (V, b) in consts.constants)
-    return sum(consts.constants[V] * block_values[V]
+    fac = factor(co, chan, z)
+    return sum(consts.constants[V] * block_values[V] * fac
                for V in keys(block_values))
 end
 
 function solve_bootstrap(specs::Channels; fix = nothing, rels = nothing)
     sys = eval_blocks_compute_system(specs, fix = fix, rels = rels)
     solve!(sys)
-    z = new_random_point()
-    chans = collect(sys.channels)
-    vals = [evaluate_correlation(sys, chan, z) for chan in chans]
-    println("Difference between $(chans[1]) and $(chans[2]) channels: $(vals[1]-vals[2])")
-    return sys
-end
 
-# expects diag_blocks as a struct Channels(collection of diagonal blocks)
-# if several channels have a non-empty list, the lists must be identical.
-function solve_bootstrap(specs::Channels, diag_blocks; fix = nothing, rels = nothing)
-    sys = eval_blocks_compute_system(specs, fix = fix, rels = rels)
-    res = []
-    chans = []
-    if all([isempty(diag_blocks[chan]) for chan in keys(specs)])
-        error(
-            "You need to provide diagonal blocks in at least one of the channels to use this method",
-        )
+    if length(sys.spectra) > 1
+        z = new_random_point()
+        chans = collect(keys(sys.spectra))
+        vals = [evaluate_correlation(sys, chan, z) for chan in chans]
+        println("Difference between $(chans[1]) and $(chans[2]) channels: $(vals[1]-vals[2])")
     end
-    bs = []
-    for chan in keys(specs)
-        if !isempty(diag_blocks[chan])
-            bs = diag_blocks[chan]
-            push!(chans, chan)
-        end
-    end
-    for i in eachindex(diag_blocks[chans[1]])
-        for chan in chans
-            replacediag!(sys, diag_blocks[chan][i])
-        end
-        solve!(sys)
-        push!(res, deepcopy(sys))
-    end
-    return res
+    return sys
 end
 
 function clear!(b::BootstrapSystem)

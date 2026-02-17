@@ -299,9 +299,9 @@ Cref(V₁, V₂, V₃) = Cref(V₁, V₂, V₃, DoubleGamma(V₁.c.β))
 
 function κrs(r, s, β²)
     r == 1//2 && return 1
-    res = ldexp(one(typeof(real(β²))), Int(2r)-1) # 2^(2r-1)
+    res = ldexp(one(real(β²)), Int(2r)-1) # 2^(2r-1)
     if !(r isa Int)
-        res /= cospi(s)
+        res /= cospi(oftype(β², s))
     end
     for j = 1-r:r-1
         if j != 0

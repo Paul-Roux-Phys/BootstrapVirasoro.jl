@@ -283,7 +283,11 @@ end
 function Base.isequal(a::CD, b::CD)
     c = isequal(a.c, b.c)
     p = Arblib.overlaps(a.P, b.P)
-    k = (a.isKac == b.isKac) && a.r == b.r && a.s == b.s
+    if a.isKac && b.isKac
+        k = (a.r == b.r && a.s == b.s)
+    else
+        k = true
+    end
     return c && p && k
 end
 

@@ -23,7 +23,7 @@ export LinearCombinationBlock, LCBlock, Block
 export ChannelSpectrum, ChanSpec, add!, remove!
 export StructureConstants, StrCst, SC, find_normalised
 export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!
-export solve_bootstrap, solve_bootstrap_manyP
+export solve_bootstrap
 export evaluate_correlation
 
 #=========================================================================
