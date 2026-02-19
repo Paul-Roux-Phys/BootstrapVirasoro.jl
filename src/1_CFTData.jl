@@ -160,7 +160,7 @@ end
 
 function tex_complex(x)
     # If it's not a Complex, return as LaTeXString unchanged
-    !(x isa Complex) && return L"$x$"
+    !(x isa Complex || x isa Acb) && return L"$x$"
 
     re = real(x)
     im = imag(x)
