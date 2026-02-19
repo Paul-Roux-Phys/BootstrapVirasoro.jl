@@ -462,7 +462,7 @@ function BootstrapSystem(
         filter!(!=(:u), channels)
         knowns.u = knowns.s
     elseif rels === :tu || rels === :tu_op
-        filter!(!=(:s), channels)
+        filter!(!=(:u), channels)
         knowns.u = knowns.t
     elseif rels === :stu
         filter!(!=(:t), channels)
