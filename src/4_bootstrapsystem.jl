@@ -249,7 +249,7 @@ function hasdiagonals(s::ChanSpec)
     return false
 end
 
-function ChannelSpectrum(co::Co, chan, Vs::Vector{<:CDorField}, f::Function)
+function ChannelSpectrum(co::Co, chan, Vs::Vector, f::Function)
     s = ChannelSpectrum(co, Dict{CDorField,Block}(), co.Δmax, chan)
     to_add = [V for V in Vs if real(total_dimension(V)) < s.Δmax]
     blocks = Vector(undef, length(to_add))
@@ -269,7 +269,7 @@ function ChannelSpectrum(co::Co, chan, Vs::Vector{<:CDorField}, f::Function)
     return s
 end
 
-ChannelSpectrum(co::Co, Vs::Vector{<:CDorField}, f::Function) =
+ChannelSpectrum(co::Co, Vs::Vector, f::Function) =
     ChannelSpectrum(co, :τ, Vs, f)
 
 function _remove_one!(s::ChanSpec, V)
