@@ -390,7 +390,7 @@ end
 # !V.diagonal && r * s != 0 && r % 1 == s % 1 == 0 && r > 0 && s > 0
 # end
 
-islogarithmic(V::Field) = !V.diagonal && V[:left].degenerate
+islogarithmic(V::Field) = V.isKac && !V.diagonal && V[:left].degenerate
 islogarithmic(b::NCBlock) = islogarithmic(b.chan_field)
 
 function isaccidentallynonlogarithmic(co::NCCo, chan, V)

@@ -378,11 +378,18 @@ end
 function Field(ds::LeftRight{CD})
     c = ds.left.c
     degenerate = ds.left.degenerate && ds.right.degenerate
-    isKac = ds.left.isKac && ds.right.isKac
+    isKac = ds.left.isKac && ds.right.isKac && 
+        ds.left.r == ds.right.r &&
+        (ds.left.s == -ds.right.s || ds.left.s == ds.right.s)
+    if isKac
+        r, s = ds.left.r, ds.left.s
+    else
+        r, s = 0, 0
+    end
     ds.left == ds.right ? diagonal = true : diagonal = false
-    r, s = ds.left.r, ds.left.s
     Field(c, ds, r, s, diagonal, degenerate, isKac)
 end
+
 Field(ds::Tuple{CD,CD}) = Field(LeftRight{CD}(ds[1], ds[2]))
 Field(d1::CD, d2::CD) = Field(LeftRight{CD}(d1, d2))
 Field(d::CD) = Field(d.c, LeftRight{CD}(d, d), d.r, d.s, true, d.degenerate, d.isKac)
@@ -447,7 +454,11 @@ end
 function latexstring(V::Field)
     V.degenerate && return L"$V^d_{\langle %$(V.r), %$(V.s) \rangle}$"
     V.diagonal && return L"V_{P = %$(strip(tex_complex(V[:left].P), '$'))}"
-    return L"$V_{( %$(strip(latexstring(V.r), '$')), %$(strip(latexstring(V.s), '$')) )}$"
+    if V.isKac
+        return L"$V_{( %$(strip(latexstring(V.r), '$')), %$(strip(latexstring(V.s), '$')) )}$"
+    else
+        return L"$V_{(PL=%$(strip(tex_complex(V[:left].P), '$')), PR=%$(strip(tex_complex(V[:right].P), '$')) )}$"
+    end
 end
 
 function Base.show(io::IO, ::MIME"text/latex", V::Field)
@@ -513,7 +524,9 @@ function Base.show(io::IO, V::Field)
             P = V.dims[:left].P
             print(io, "P = ($(format_complex(P, digits=3)))")
         end
+    elseif V.isKac
+            print(io, "($(V.r), $(V.s))")
     else
-        print(io, "($(V.r), $(V.s))")
+        print(io, "PL=$(format_complex(V.dims.left.P, digits=3)),PR=$(format_complex(V.dims.right.P, digits=2))")
     end
 end
