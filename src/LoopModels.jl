@@ -311,6 +311,28 @@ function κrs(r, s, β²)
     return res
 end
 
+function κrs_n(r, s, n)
+    mpi = oftype(n, π)
+    if r == 0
+        return 1 / 2 / (sin(mpi * s))^2
+    elseif r == 1//2
+        return 1
+    elseif r % 1 == 0
+        n2 = n^2
+        return 2 * prod(
+            n2 - 4*(cos(mpi * (k + s) / j))^2
+            for j in 1:r-1 for k in 0:j-1;
+                init = one(n)
+        )
+    else
+        return (-1)^(r-1//2) / cos(mpi * s) * prod(
+            n + 2cos(2mpi * (k + s) / j)
+            for j in 1:2:2r-2 for k in 0:j-1;
+                init = one(n)
+        )
+    end
+end
+
 function Bref(V, DG)
     β = V.c.β
     r, s = indices(V)

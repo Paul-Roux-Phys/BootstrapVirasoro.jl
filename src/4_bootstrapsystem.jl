@@ -690,6 +690,8 @@ function compute_linear_system!(b::BootstrapSystem)
         if hasdiag
             normalised_field = diag
         else
+            channels = sort(collect(keys(unknowns)))
+            chan = channels[findfirst(c -> !isempty(unknowns[c]), channels)]
             normalised_field = reduce(
                 (V1, V2) ->
                     real(total_dimension(V1)) < real(total_dimension(V2)) ? V1 : V2,

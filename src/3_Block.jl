@@ -578,8 +578,11 @@ end
 #====================================================================================
 Linear Combinations of blocks
 ====================================================================================#
-function LinearCombinationBlock(bs::Vector{<:Block}, coeffs) 
-    GenericLCBlock(bs[1].chan_field, bs, coeffs, bs[1].chan)
+function LinearCombinationBlock(bs::Vector{<:Block}, coeffs; chan_field=nothing) 
+    if chan_field === nothing
+        chan_field = bs[1].chan_field
+    end
+    GenericLCBlock(chan_field, bs, coeffs, bs[1].chan)
 end
 
 function Base.:+(b1::LCBlock, b2::LCBlock)
