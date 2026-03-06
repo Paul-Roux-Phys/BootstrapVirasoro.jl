@@ -352,20 +352,20 @@ end
 function compute_reference(V₁::Field, V::Field, _, DG)
     res = Cref(V₁, V, V, DG) / Bref(V, DG)
     if !(V.diagonal)
-        res /= κrs(V.r, V.s, V.c.β^2)
+        if 2V.r < V₁.r && V₁.r * floor(Int, V.s) % 2 == 1
+            res *= -1
+        end
     end
     return res
 end
 
 compute_reference(V1::NTuple{1, Field}, V::Field, _, DG) =
     compute_reference(V1[1], V, :s, DG)
-
 compute_reference(b::Block, DG) =
     compute_reference(b.blocks[1].corr, b.chan_field, b.chan, DG)
-
 compute_reference(co::Correlation, V::Field, chan, DG) = compute_reference(co.fields, V, chan, DG)
 
-# residue of non-diagonal structure constants
+# residues of structure constants
 function ρ_residue(β², r, s, r1, s1, r2, s2)
     res = 1
     if r1 < r2 && s * min(r, abs(r1 - r2)) % 2 == 1
@@ -393,6 +393,7 @@ function ρ_residue(V, V1, V2, V3, V4)
 end
 
 function δ1rs(r, s, r1, s1, β²)
+    @assert r isa Int && s isa Int
     res = 1
     for j = (r1+1)/2-r:1:r-(r1+1)/2
         res *= 2cospi(j * β² + s - s1 / 2)
@@ -402,54 +403,11 @@ end
 
 function ρ_residue(V, V1)
     (V.diagonal || !(V.r isa Int) || !(V.s isa Int)) && return 0
-    β² = V.c.β^2
-    r, s = V.r, V.s
-    r1, s1 = V1.r, V1.s
-    res = -1
-    # if ((r + 1) * s) % 2 == 0
-    if s % 2 == 1
-        res *= -1
+    sign = 1
+    if 2V.r < V1.r && V.s == 1
+        sign = -1 
     end
-    res *= δ1rs(r, s, r1, s1, β²)
-    return res
-end
-
-function divide_by_reference(s::SC, co)
-    res = deepcopy(s)
-    DG = DoubleGamma(co.fields[1].c.β)
-    normalised, chan = find_normalised(s)
-    norm = compute_reference(co, normalised, chan, DG)
-    for chan in BootstrapVirasoro.CHANNELS
-        for k in keys(s.constants[chan])
-            if res.errors[chan][k] < 1e-4
-                res.constants[chan][k] *= norm / compute_reference(co, k, chan, DG)
-            else
-                delete!(res.constants[chan], k)
-                delete!(res.errors[chan], k)
-            end
-        end
-    end
-    return res
-end
-
-function substract_res(s::SC, co)
-    res = deepcopy(s)
-    diag, _ = find_normalised(s)
-    β = diag.c.β
-    w = 2cos(2 * (π * β * diag[:left].P))
-    for chan in BootstrapVirasoro.CHANNELS
-        Vs = permute_4(co.fields, chan)
-        for k in keys(s.constants[chan])
-            if res.errors[chan][k] < 1e-4 && k.r isa Int && k.s isa Int
-                res.constants[chan][k] -=
-                    ρ_residue(k, Vs...) / (w - 2cos(2 * (π * β * Prs(k.r, k.s, β))))
-            else
-                delete!(res.constants[chan], k)
-                delete!(res.errors[chan], k)
-            end
-        end
-    end
-    return res
+    return sign * (V.s % 2 == 0 ? -1 : 1) * δ1rs(V.r, V.s, V1.r, V1.s, V.c.β^2)
 end
 
 #===============================================================
@@ -475,14 +433,14 @@ function fit!(pf::Polyfit, data)
 You must provide more data points
 "
     T = typeof(data[1][2])
-    mat = Matrix{Acb}(undef, length(data), pf.nb_monoms)
+    mat = Matrix{Complex{BigFloat}}(undef, length(data), pf.nb_monoms)
     for (i, d) in enumerate(data)
         xvec = d[1]
         for (j, m) in enumerate(pf.monomials)
             mat[i, j] = prod(x^m[k] for (k, x) in enumerate(xvec))
         end
     end
-    vals = [v for (_, v) in data]
+    vals = [Complex{BigFloat}(v) for (_, v) in data]
     pf.coeffs = mat \ vals
     return pf
 end
