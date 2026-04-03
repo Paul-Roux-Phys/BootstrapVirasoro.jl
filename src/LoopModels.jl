@@ -298,8 +298,8 @@ end
 Cref(V₁, V₂, V₃) = Cref(V₁, V₂, V₃, DoubleGamma(V₁.c.β))
 
 function κrs(r, s, β²)
-    r == 1//2 && return 1
-    res = ldexp(one(real(β²)), Int(2r)-1) # 2^(2r-1)
+    r == 1//2 && return 2
+    res = ldexp(one(real(β²)), 2floor(Int, r + 1//2)-1) # 2^(2⌊r + 1/2⌋-1)
     if !(r isa Int)
         res /= cospi(oftype(β², s))
     end
@@ -316,7 +316,7 @@ function κrs_n(r, s, n)
     if r == 0
         return 1 / 2 / (sin(mpi * s))^2
     elseif r == 1//2
-        return 1
+        return 2
     elseif r % 1 == 0
         n2 = n^2
         return 2 * prod(
@@ -325,7 +325,7 @@ function κrs_n(r, s, n)
                 init = one(n)
         )
     else
-        return (-1)^(r-1//2) / cos(mpi * s) * prod(
+        return 2 * (-1)^(r-1//2) / cos(mpi * s) * prod(
             n + 2cos(2mpi * (k + s) / j)
             for j in 1:2:2r-2 for k in 0:j-1;
                 init = one(n)
@@ -396,18 +396,14 @@ function δ1rs(r, s, r1, s1, β²)
     @assert r isa Int && s isa Int
     res = 1
     for j = (r1+1)/2-r:1:r-(r1+1)/2
-        res *= 2cospi(j * β² + s - s1 / 2)
+        res *= 2cospi(j * β² - s1 / 2)
     end
     return res
 end
 
 function ρ_residue(V, V1)
     (V.diagonal || !(V.r isa Int) || !(V.s isa Int)) && return 0
-    sign = 1
-    if 2V.r < V1.r && V.s == 1
-        sign = -1 
-    end
-    return sign * (V.s % 2 == 0 ? -1 : 1) * δ1rs(V.r, V.s, V1.r, V1.s, V.c.β^2)
+    return (-1)^(V1.r * V.s + V.s + 1) * δ1rs(V.r, V.s, V1.r, V1.s, V.c.β^2)
 end
 
 #===============================================================
