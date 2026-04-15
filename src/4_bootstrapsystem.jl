@@ -801,7 +801,8 @@ function solve_bootstrap(specs::Channels; fix = nothing, rels = nothing)
         z = new_random_point()
         chans = collect(keys(sys.spectra))
         vals = [evaluate_correlation(sys, chan, z) for chan in chans]
-        println("Difference between $(chans[1]) and $(chans[2]) channels: $(vals[1]-vals[2])")
+        rel = abs((vals[1]-vals[2]) / vals[1])
+        println("Relative difference between $(chans[1]) and $(chans[2]) channels: $rel")
     end
     return sys
 end
