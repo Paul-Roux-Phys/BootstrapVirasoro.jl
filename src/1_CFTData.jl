@@ -107,7 +107,6 @@ const CDorField = Union{CD, Field}
 Central charges
 ======================================================================================#
 function Bfrom(s::Symbol, x)
-    a = (x - 1) * (x - 25)
     s === :β && return -x^2
     s === :c && return (x - 13 + sqrt((x - 1) * (x - 25))) / 12
     s === :b && return x^2
@@ -226,8 +225,12 @@ function _ConformalDimension(c::CC, sym::Symbol, P::Acb, r, s)
     degenerate = false
     isKac = false
     if (r !== missing && s !== missing)
-        r isa Real && r % 1 == 0 ? r = Int(r) : nothing
-        s isa Real && s % 1 == 0 ? s = Int(s) : nothing
+        if r isa Real && r % 1 == 0
+            r = Int(r)
+        end
+        if s isa Real && s % 1 == 0
+            s = Int(s)
+        end
         P = Prs(r, s, β)
         if (r isa Rational || r isa Integer) && (s isa Rational || s isa Integer)
             isKac = true
@@ -326,9 +329,9 @@ end
 Fields
 ======================================================================================#
 function _Field(c::CC, sym::Symbol, dim::Acb, r, s, diagonal)
-    @assert !(ismissing(r) ⊻ ismissing(s)) "
-    You cannot give only r or only s, you must give neither or both
-"
+    if ismissing(r) ⊻ ismissing(s)
+        error("You cannot give only r or only s, you must give neither or both")
+    end
 
     if ismissing(r) || r == 0
         diagonal = true
@@ -386,7 +389,7 @@ function Field(ds::LeftRight{CD})
     else
         r, s = 0, 0
     end
-    ds.left == ds.right ? diagonal = true : diagonal = false
+    diagonal = (ds.left == ds.right ? true : false)
     Field(c, ds, r, s, diagonal, degenerate, isKac)
 end
 

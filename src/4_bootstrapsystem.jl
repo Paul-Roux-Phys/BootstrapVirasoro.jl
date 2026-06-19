@@ -507,7 +507,12 @@ function BootstrapSystem(
     unknowns = Channels(Dict(chan => Vector{CDorField}() for chan in keys(S)))
     LHS = Matrix{Acb}(undef, 0, 0)
     RHS = Vector{Acb}()
-    factors = Channels(Dict(chan => [factor(co, chan, p) for p in pos] for chan in keys(S)))
+    if typeof(co) <: NonChiralCorrelation1
+        s = spin(S.s)
+    else
+        s = 0
+    end
+    factors = Channels(Dict(chan => [factor(co, chan, p, s) for p in pos] for chan in keys(S)))
 
     return BootstrapSystem(
         channels,
@@ -525,16 +530,29 @@ function BootstrapSystem(
     )
 end
 
+factor(_::Correlation4, chan, x, spin) = one(Acb)
 factor(_::Correlation4, chan, x) = one(Acb)
-function factor(co::Correlation1, chan, τ)
-    chan === :s && return one(Acb)
-    Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
-    chan === :t && return τ^-Δ₁ * conj(τ)^-bΔ₁
-    chan === :u && return (τ - 1)^-Δ₁ * conj(τ - 1)^-bΔ₁
+function factor(co::Correlation1, chan, τ, spin=0)
+    if chan === :s
+        return one(Acb)
+    else
+        Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
+        if chan === :t
+            phase = exp(6 * im * Acb(π) * spin)
+            return τ^-Δ₁ * conj(τ)^-bΔ₁
+        elseif chan === :u
+            phase = exp(8 * im * Acb(π) * spin)
+            return (τ - 1)^(-Δ₁) * conj(τ - 1)^(-bΔ₁)
+        end
+    end
 end
 
 function hasdiagonal(spec::ChannelSpectrum, ::CCo)
     return (false, nothing)
+end
+
+function spin(spec::ChannelSpectrum)
+    return spin(first(keys(spec.blocks)))
 end
 
 function hasdiagonal(spec::ChannelSpectrum, ::NCCo)
