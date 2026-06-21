@@ -538,11 +538,11 @@ function factor(co::Correlation1, chan, τ, spin=0)
     else
         Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
         if chan === :t
-            phase = exp(6 * im * Acb(π) * spin)
-            return τ^-Δ₁ * conj(τ)^-bΔ₁
+            phase = exp(-6 * im * Acb(π) * spin)
+            return phase * τ^-Δ₁ * conj(τ)^-bΔ₁
         elseif chan === :u
-            phase = exp(8 * im * Acb(π) * spin)
-            return (τ - 1)^(-Δ₁) * conj(τ - 1)^(-bΔ₁)
+            phase = exp(-8 * im * Acb(π) * spin)
+            return phase * (τ - 1)^(-Δ₁) * conj(τ - 1)^(-bΔ₁)
         end
     end
 end
