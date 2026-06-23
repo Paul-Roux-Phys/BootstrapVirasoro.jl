@@ -817,7 +817,14 @@ function solve_bootstrap(specs::Channels; fix = nothing, rels = nothing)
 
     if length(sys.spectra) > 1
         z = new_random_point()
-        chans = collect(keys(sys.spectra))
+        if (typeof(specs.s.corr) <: Correlation1)
+            z = τfromx(z)
+        end
+        if length(sys.spectra) > 2
+            chans = (:t, :u)
+        else
+            chans = collect(keys(sys.spectra))
+        end
         vals = [evaluate_correlation(sys, chan, z) for chan in chans]
         rel = abs((vals[1]-vals[2]) / vals[1])
         println("Relative difference between $(chans[1]) and $(chans[2]) channels: $rel")
@@ -833,7 +840,8 @@ function evaluate_correlation(sys, chan, z)
     block_values =
         Dict(V => sys.spectra[chan].blocks[V](cache)
              for (V, b) in consts.constants)
-    fac = factor(co, chan, z)
+    s = spin(sys.spectra[chan])
+    fac = factor(co, chan, z, s)
     return sum(consts.constants[V] * block_values[V] * fac
                for V in keys(block_values))
 end
