@@ -20,11 +20,11 @@ export ChiralCorrelation, ChiralCorrelation4, ChiralCorrelation1
 export NonChiralCorrelation, NonChiralCorrelation4, NonChiralCorrelation1
 export ChiralBlock, CBlock, NonChiralBlock, NCBlock
 export LinearCombinationBlock, LCBlock, Block
-export ChannelSpectrum, ChanSpec, add!, remove!
-export StructureConstants, StrCst, SC, find_normalised
-export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!
-export solve_bootstrap
-export evaluate_correlation
+# export ChannelSpectrum, ChanSpec, add!, remove!
+# export StructureConstants, StrCst, SC, find_normalised
+# export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!
+# export solve_bootstrap
+# export evaluate_correlation
 
 #=========================================================================
 Third-party functions
@@ -90,6 +90,6 @@ include("1_CFTData.jl")
 include("2_Correlation.jl")
 include("3_Block.jl")
 include("4_bootstrapsystem.jl")
-include("LoopModels.jl")
+# include("LoopModels.jl")
 
 end # module BootstrapVirasoro

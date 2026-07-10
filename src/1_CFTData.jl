@@ -121,6 +121,7 @@ function Bto(s::Symbol, x)
     s === :b && return rx
     s === :B && return x
     s === :n && return -2cos(π * x)
+    error("unsupported parameter: $s")
 end
 
 function _CentralCharge(s::Symbol, x::Acb)
