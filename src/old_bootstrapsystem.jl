@@ -1,0 +1,859 @@
+struct StructureConstants
+    constants::Dict{CDorField,Acb}
+    errors::Dict{CDorField,Float64}
+end
+const StrCst = StructureConstants
+const SC = StructureConstants
+
+struct ChannelSpectrum
+    corr::Corr
+    blocks::Dict{CDorField,Block}
+    Δmax::Int
+    chan::Symbol
+end
+const ChanSpec = ChannelSpectrum
+
+mutable struct BootstrapSystem
+    channels::Vector{Symbol}
+    unknowns::Channels{Vector{CDorField}}
+    LHS::Matrix{Acb}
+    RHS::Vector{Acb}
+    correlation::Correlation
+    positions::Vector{Acb}
+    positions_cache # positions at which eqs are evaluated
+    spectra::Channels{ChanSpec}    # channel spectra
+    block_values::Channels{Dict{CDorField,Vector{Acb}}} # all blocks evaluated at all positions
+    factors::Channels{Vector{Acb}} # overall position-dependent factor multiplying blocks in each channel
+    str_cst::Any
+    relations::Any
+end
+
+#======================================================================================
+Structure constants
+======================================================================================#
+function StructureConstants()
+    constants = Dict{CDorField,Acb}()
+    errors = Dict{CDorField,Float64}()
+    return StructureConstants(constants, errors)
+end
+
+function Base.getproperty(c::SC, s::Symbol)
+    s === :fields && begin
+        consts = getfield(c, :constants)
+        return vcat([[V for V in keys(consts)]]...)
+    end
+    getfield(c, s)
+end
+
+Base.length(c::SC) = length(c.constants)
+
+function Base.getindex(c::SC, V::CDorField)
+    return c.constants[V]
+end
+
+function fix!(cnst, field, value; error = 0)
+    cnst.constants[field] = value
+    cnst.errors[field] = error
+    return
+end
+
+function Base.empty!(c::SC)
+    Base.empty!(c.constants)
+    Base.empty!(c.errors)
+    return
+end
+
+function to_columntable(c::SC, rmax=nothing)
+    fields = sort(collect(keys(c.constants)), by = V -> real(total_dimension(V)))
+    rmax !== nothing && (fields = filter(V -> V.r <= rmax, fields))
+    return (
+        Field = string.(fields),
+        StructureConstant = [c.constants[V] for V in fields],
+        RelativeError = [c.errors[V] for V in fields],
+    )
+end
+
+function Base.delete!(s::SC, V)
+    delete!(s.constants, V)
+    delete!(s.errors, V)
+end
+
+# Convert "(2, 1//2)" or "(1, 0)" into LaTeX math tuples
+function tex_tuple(s::AbstractString)
+    # Match "(a, b)" patterns where a,b may include rationals
+    m = match(r"\(([^,]+),\s*([^)]+)\)", s)
+    isnothing(m) && return L"$%$(s)$"  # fallback: just wrap whole string
+
+    a = m.captures[1]
+    b = m.captures[2]
+
+    # Convert rationals inside strings, e.g. 1//2 → \frac{1}{2}
+    a_tex = replace(a, r"(-?\d+)//(\d+)" => s"\\frac{\1}{\2}")
+    b_tex = replace(b, r"(-?\d+)//(\d+)" => s"\\frac{\1}{\2}")
+
+    # Wrap result in \left(...\right)
+    return L"$\left(%$a_tex,%$b_tex\right)$"
+end
+
+function Base.show(io::IO, c::SC; rmax = nothing, backend = :text, digits=8)
+    t = columntable(to_columntable(c, rmax))
+    hl_conv = Highlighter(
+        (table, i, j) ->
+            table[:RelativeError][i] < 2^(-precision(Acb, base = 10) / 2) &&
+                j >= 2,
+        crayon"green",
+    )
+    hl_zero = Highlighter(
+        (table, i, j) ->
+            table[:RelativeError][i] > 1e-2 &&
+                abs(table[:StructureConstant][i]) <
+                2^(-precision(Acb, base = 10) / 3) &&
+                j >= 2,
+        crayon"green",
+    )
+    hl_not_conv = Highlighter(
+        (table, i, j) ->
+            table[:RelativeError][i] > 1e-2 &&
+                abs(table[:StructureConstant][i]) >
+                2^(-precision(Acb, base = 10) / 3) &&
+                j >= 2,
+        crayon"red",
+    )
+    fmt_zero =
+        (v, i, j) ->
+            (
+                t.RelativeError[i] > 1e-2 &&
+                abs(t.StructureConstant[i]) <
+                2^(-precision(Acb, base = 10) / 3) &&
+                j == 2
+            ) ? 0 : v
+    fmt_relerr = (v, i, j) -> j == 3 && v isa Real ? format(Format("%.2g"), v) : v
+    fmt_indices = (v, i, j) -> j == 1 ? tex_tuple(v) : v
+    if backend == :latex
+        fmt_vals = (v, i, j) -> j == 2 ? tex_complex(v) : v
+        pretty_table(
+            io,
+            t,
+            header = ["Field", "Structure constant", "Rel. err."],
+            header_alignment = :l,
+            formatters = (fmt_relerr, fmt_zero, fmt_indices, fmt_vals),
+            backend = Val(backend),
+            alignment = :l,
+        )
+        print(io, "\\\\")
+    else
+        fmt_vals = (v, i, j) -> j == 2 ? format_complex(v, digits=digits) : v
+        pretty_table(
+            io,
+            t,
+            header = ["Field", "Structure constant", "Rel. err."],
+            header_alignment = :l,
+            alignment = :l,
+            header_crayon = crayon"blue",
+            highlighters = (hl_conv, hl_zero, hl_not_conv),
+            formatters = (fmt_zero, fmt_relerr, fmt_vals),
+            backend = Val(backend),
+            crop = :none,
+        )
+    end
+end
+
+function Base.show(io::IO, c::Channels{<:SC}; rmax = nothing, backend = :text)
+    for chan in keys(c)
+        channel_header = " Channel $chan\n"
+        if backend === :latex
+            print(io, channel_header)
+        else
+            printstyled(io, channel_header; bold = true)
+        end
+        show(io, c[chan], rmax = rmax, backend = backend)
+    end
+end
+
+function Base.:+(c1::SC, c2::SC)
+    consts = deepcopy(c1.constants)
+    errs = deepcopy(c1.errors)
+    for (k, v) in c2.constants
+        if k in keys(c1.constants)
+            consts[k] += v
+            errs[k] += c2.errors[k]
+        else
+            consts[k] = v
+            errs[k] = c2.errors[k]
+        end
+    end
+    return StructureConstants(consts, errs)
+end
+
+function Base.:-(c1::SC, c2::SC)
+    consts = deepcopy(c1.constants)
+    errs = deepcopy(c1.errors)
+    for (k, v) in c2.constants
+        if k in keys(c1.constants)
+            consts[k] -= v
+            errs[k] += c2.errors[k]
+        else
+            consts[k] = v
+            errs[k] = c2.errors[k]
+        end
+    end
+    return StructureConstants(consts, errs)
+end
+
+function find_normalised(c::SC)
+    for (k, v) in c.constants
+        if v ≈ 1 && c.errors[k] ≈ 0
+            return k
+        end
+    end
+    return nothing
+end
+
+function find_normalised(c::Channels)
+    for chan in keys(c)
+        find = find_normalised(c[chan])
+        if find  !== nothing
+            return find, chan
+        end
+    end
+    return nothing
+end
+
+#======================================================================================
+Channel spectra
+======================================================================================#
+fields(s::ChanSpec) = keys(s.blocks)
+
+function _add_one!(s::ChanSpec, b)
+    if !(b.chan_field in fields(s)) &&
+       real(total_dimension(b.chan_field)) < real(s.Δmax)
+        (s.blocks)[b.chan_field] = b
+        return b
+    end
+end
+
+_add!(s::ChanSpec, b::Block) = _add_one!(s, b)
+_add!(s::ChanSpec, blocks::Vector) = foreach(b -> _add_one!(s, b), blocks)
+add!(s, bs) = _add!(s, bs)
+
+function add(s, blocks)
+    s2 = deepcopy(s)
+    add!(s2, blocks)
+    return s2
+end
+
+function hasdiagonals(s::ChanSpec)
+    for V in keys(s.blocks)
+        V.diagonal && return true
+    end
+    return false
+end
+
+function ChannelSpectrum(co::Co, chan, Vs::Vector, f::Function)
+    s = ChannelSpectrum(co, Dict{CDorField,Block}(), co.Δmax, chan)
+    to_add = [V for V in Vs if real(total_dimension(V)) < s.Δmax]
+    blocks = Vector(undef, length(to_add))
+    Threads.@threads for i = eachindex(to_add)
+        V = to_add[i]
+        b = f(V)
+        blocks[i] = b
+    end
+    for b in blocks
+        _add_one!(s, b)
+    end
+    # for V in Vs
+    #     if real(total_dimension(V)) < s.Δmax
+    #         add!(s, f(V))
+    #     end
+    # end
+    return s
+end
+
+ChannelSpectrum(co::Co, Vs::Vector, f::Function) =
+    ChannelSpectrum(co, :τ, Vs, f)
+
+function _remove_one!(s::ChanSpec, V)
+    delete!(s.blocks, V)
+end
+
+_remove!(s::ChanSpec, V) = _remove_one!(s, V)
+_remove!(s::ChanSpec, fields::Vector) = foreach(V -> _remove_one!(s, V), fields)
+remove!(s, V) = _remove!(s, V)
+remove(s, Vs) = remove!(deepcopy(s), Vs)
+
+function finddiag(s)
+    for b in values(s.blocks)
+        b.chan_field.diagonal && return b
+    end
+    return nothing
+end
+
+function removediag!(s)
+    V = finddiag(s)
+    V !== nothing && remove!(s, V)
+    return V
+end
+
+function Base.filter(f, s::ChanSpec)
+    return ChanSpec(s.corr, filter(kv -> f(kv[1]), s.blocks), s.Δmax, s.chan)
+end
+
+Base.length(s::ChanSpec) = length(s.blocks)
+Base.size(s::ChanSpec) = size(s.blocks)
+nb_blocks(s::ChanSpec) = sum(length(b) for b in s.blocks)
+
+function Base.show(io::IO, s::ChanSpec)
+    println(io, "channel $(s.chan), Δmax = $(s.Δmax)")
+    nondiags =
+        sort([(V.r, V.s) for V in fields(s) if !isdiagonal(V)], by = x -> (x[1], x[2]))
+    diags = sort(
+        [V for V in fields(s) if isdiagonal(V) && !V.degenerate],
+        by = V -> real(total_dimension(V)),
+    )
+    degs = sort(
+        [V for V in fields(s) if V.degenerate],
+        by = V -> real(total_dimension(V)),
+    )
+    if !isempty(degs)
+        println(io, "Degenerate:")
+        for V in degs
+            println(io, V)
+        end
+    end
+    if !isempty(diags)
+        println(io, "Diagonal:")
+        for V in diags
+            println(io, V)
+        end
+    end
+    if !isempty(nondiags)
+        print(io, "Non-diagonal:")
+        r = -Inf
+        for rs in nondiags
+            if rs[1] != r
+                print(io, "\n")
+            else
+                print(io, ", ")
+            end
+            r = rs[1]
+            print(io, rs)
+        end
+    end
+    println(io, "")
+end
+
+function evaluate_blocks(S::ChanSpec, xs)
+    bs = S.blocks
+    nbs = length(bs)
+
+    # Preallocate thread-local results
+    thread_results = [Dict{CDorField,Vector{Acb}}() for _ = 1:max_thread_id()]
+
+    bs_vals = collect(values(bs))
+
+    Threads.@threads for i = 1:nbs
+        b = bs_vals[i]
+        thread_results[Threads.threadid()][b.chan_field] = [b(x) for x in xs]
+    end
+
+    # Merge all thread-local dictionaries into a single result
+    results = Dict{CDorField,Vector{Acb}}()
+    for d in thread_results
+        merge!(results, d)
+    end
+
+    return results
+end
+
+#======================================================================================
+Bootstrap System
+======================================================================================#
+function evaluate_blocks!(sys::BootstrapSystem)
+    sys.block_values =
+        Channels(Dict(chan => evaluate_blocks(sys.spectra[chan], sys.positions_cache[chan])
+             for chan in keys(sys.spectra)))
+    return sys.block_values
+end
+
+function new_random_point(; square=true)
+    xmin, xmax = square ? (0.1, 0.5) : (-0.4, 1.4)
+    return z = xmin + (xmax - xmin) * rand() + (1 + 4 * rand()) * im / 10
+end
+
+function new_random_point!(random_points, N; square = true, cond = p -> true)
+    while true
+        z = new_random_point(square=square)
+        sep = square ? 0.2 : 0.4
+        if minimum(append!(abs.(z .- random_points), 1)) > sep / sqrt(N) &&
+           cond(z) == true
+            push!(random_points, z)
+            break
+        end
+    end
+end
+
+"""
+Generates N points in the square (.1, .5) + (.1, .5)i, while respecting 
+a minimum distance .2/sqrt(N) between points. Or in the rectangle 
+(-.4, 1.4) + (.1, .5)i with a distance .4/sqrt(N).
+N = the number of points.
+function = a function that we may apply on the points
+square = whether to use a square (otherwise, a rectangle)
+"""
+function random_points(N; transfo = nothing, square = true, cond = p -> true)
+    # Set a temporary seed
+    rng = copy(Random.default_rng())
+    Random.seed!(3456)
+    res = []
+    for _ = 1:N
+        new_random_point!(res, N, square = square, cond = cond)
+    end
+    return transfo !== nothing ? transfo.(res) : res
+
+    # Restore RNG state
+    Random._GLOBAL_RNG[] = rng
+end
+
+function crossratio(chan, x)
+    chan === :s && return x
+    chan === :t && return 1 - x
+    chan === :u && return 1 / x
+    error("""Incorrect channel specification in crossratio(channel, x):
+          must be in (:s, :t, :u)""")
+end
+function modular_param(chan, τ)
+    chan === :s && return τ
+    chan === :t && return -1 / τ
+    chan === :u && return (τ - 2) / (τ - 1)
+    error("""Incorrect channel specification in crossratio(channel, x):
+          must be in (:s, :t, :u)""")
+end
+
+channel_position(x, _::Correlation4, chan) = crossratio(chan, x)
+channel_position(x, _::Correlation1, chan) = modular_param(chan, x)
+
+function choose_block_eval_points(npositions, _::Correlation1)
+    Vector{Acb}(random_points(npositions, transfo = x -> τfromx(x)))
+end
+function choose_block_eval_points(npositions, _::Correlation4)
+    Vector{Acb}(random_points(npositions, transfo = nothing))
+end
+
+function BootstrapSystem(
+    S::Channels{ChanSpec};
+    knowns = nothing,
+    extrapoints::Int = 6,
+    pos = nothing,
+    rels = nothing,
+)
+    co = S.s.corr
+    channels = collect(keys(S))
+    if knowns === nothing
+        knowns = Channels(Dict(chan => StrCst() for chan in channels))
+    end
+    # st_op means that the s and t channel verify
+    # (-1)^(r * s) d_(r, s)^(s) = d_(r, s)^(t)
+    # need to come up with a better name.
+    if rels === nothing
+    elseif rels === :st || rels === :st_op 
+        filter!(!=(:t), channels)
+        knowns.t = knowns.s
+    elseif rels === :su || rels === :su_op
+        filter!(!=(:u), channels)
+        knowns.u = knowns.s
+    elseif rels === :tu || rels === :tu_op
+        filter!(!=(:u), channels)
+        knowns.u = knowns.t
+    elseif rels === :stu
+        filter!(!=(:t), channels)
+        filter!(!=(:u), channels)
+        knowns.t = knowns.s
+        knowns.u = knowns.s
+    else
+        error("rels has to be one of :stu, :st, :st_op, :su, :su_op, :tu, :tu_op, nothing")
+    end
+    nb_channels = length(channels)
+    nb_unknowns = 0
+    for chan in channels
+        nb_unknowns += length(S[chan])
+        if chan in keys(knowns)
+            nb_unknowns -= length(knowns[chan])
+        end
+    end
+    nb_lines = 2 * ((nb_unknowns + extrapoints) ÷ 2)
+    if pos !== nothing
+        nb_positions = length(pos)
+        @assert nb_positions > nb_lines ÷ (nb_channels - 1) "
+           You must give enough positions for the system to be overdetermined
+       "
+    else
+        nb_positions = nb_channels == 1 ? nb_lines ÷ 2 : nb_lines ÷ (nb_channels - 1)
+        pos = choose_block_eval_points(nb_positions, co)
+    end
+
+    # compute position cache
+    pos_chan = Channels(Dict(chan => [channel_position(x, co, chan) for x in pos]
+                             for chan in keys(S)))
+    pos_cache = Channels(Dict(chan => Vector(undef, length(pos_chan[chan]))
+                              for chan in keys(S))) # result container
+    chans = collect(keys(S))
+    Threads.@threads for i = 1:length(chans)
+        chan = chans[i]
+        pos_cache[chan] = [PosCache(x, S[chan].corr, chan) for x in pos_chan[chan]]
+    end
+
+    # blocks = evaluate_blocks(S, pos_cache)
+    blocks = Channels(Dict(chan => Dict{CDorField,Vector{Acb}}() for chan in keys(S)))
+    unknowns = Channels(Dict(chan => Vector{CDorField}() for chan in keys(S)))
+    LHS = Matrix{Acb}(undef, 0, 0)
+    RHS = Vector{Acb}()
+    if typeof(co) <: NonChiralCorrelation1
+        s = spin(S.s)
+    else
+        s = 0
+    end
+    factors = Channels(Dict(chan => [factor(co, chan, p, s) for p in pos] for chan in keys(S)))
+
+    return BootstrapSystem(
+        channels,
+        unknowns,
+        LHS,
+        RHS,
+        co,
+        pos,
+        pos_cache,
+        S,
+        blocks,
+        factors,
+        knowns,
+        rels,
+    )
+end
+
+factor(_::Correlation4, chan, x, spin) = one(Acb)
+factor(_::Correlation4, chan, x) = one(Acb)
+function factor(co::Correlation1, chan, τ, spin=0)
+    if chan === :s
+        return one(Acb)
+    else
+        Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
+        if chan === :t
+            phase = exp(-6 * im * Acb(π) * spin)
+            return phase * τ^-Δ₁ * conj(τ)^-bΔ₁
+        elseif chan === :u
+            phase = exp(-8 * im * Acb(π) * spin)
+            return phase * (τ - 1)^(-Δ₁) * conj(τ - 1)^(-bΔ₁)
+        end
+    end
+end
+
+function hasdiagonal(spec::ChannelSpectrum, ::CCo)
+    return (false, nothing)
+end
+
+function spin(spec::ChannelSpectrum)
+    return spin(first(keys(spec.blocks)))
+end
+
+function hasdiagonal(spec::ChannelSpectrum, ::NCCo)
+    for V in keys(spec.blocks)
+        V.diagonal && return true, V
+    end
+    return (false, nothing)
+end
+
+function hasdiagonal(b::BootstrapSystem)
+    for chan in b.channels
+        has, V = hasdiagonal(b.spectra[chan], b.correlation)
+        if has
+            return true, chan, V
+        end
+    end
+    return (false, :s, nothing)
+end
+
+function computeLHScolumn(b::BootstrapSystem, chan, V)
+    rels = b.relations
+    chans = b.channels
+    zer = zeros(Acb, length(b.positions))
+    sign = 1
+    if rels in (:st_op, :su_op, :tu_op) && abs(spin(V)) % 2 == 1
+        sign *= -1
+    end
+    if Set(keys(b.spectra)) == Set([:s, :t, :u])
+        if rels === nothing #= [(Gs     -Gt        0
+                                 Gs       0      -Gu] =#
+            v = b.factors[chan] .* b.block_values[chan][V]
+            chan === :s && return vcat(v, v)
+            chan === :t && return vcat(-v, zer)
+            chan === :u && return vcat(zer, -v)
+        elseif rels == :st || rels == :st_op #= [(Gs-(-1)^rs*Gt)  0 ;
+                                                  Gs             -Gu] =#
+            if chan == :s
+                vs_s = b.factors[:s] .* b.block_values[:s][V]
+                vs_t = b.factors[:t] .* b.block_values[:t][V]
+                return vcat(vs_s .- sign * vs_t, vs_s)
+            else
+                vs_u = b.factors[:u] .* b.block_values[:u][V]
+                return vcat(zer, .-vs_u)
+            end
+        elseif rels == :su || rels == :su_op #= [Gs                -Gt;
+                                                 (Gs-(-1)^rs*Gu)     0] =#
+            if chan == :s
+                vs_s = b.factors[:s] .* b.block_values[:s][V]
+                vs_u = b.factors[:u] .* b.block_values[:u][V]
+                return vcat(vs_s, vs_s .- sign * vs_u)
+            else
+                vs_t = b.factors[:t] .* b.block_values[:t][V]
+                return vcat(.-vs_t, zer)
+            end
+        elseif rels == :tu || rels == :tu_op #= [Gs              -Gt;
+                                                 Gs     -(-1)^rs*Gu)] =#
+            if chan == :s
+                vs_s = b.factors[:s] .* b.block_values[:s][V]
+                return vcat(vs_s, vs_s)
+            else
+                vs_t = b.factors[:t] .* b.block_values[:t][V]
+                vs_u = b.factors[:u] .* b.block_values[:u][V]
+                return vcat(.- vs_t, .- sign * vs_u)
+            end
+        elseif rels == :stu #= [(Gs-Gt);
+                                (Gs-Gu)] =#
+            vs = @channels b.factors[chan] .* b.block_values[chan][V]
+            return vcat(vs.s .- vs.t, vs.s .- vs.u)
+        else
+            error("with channels = $chans rels should be in (:stu, :st, :su, :tu, :st_op, :su_op, :tu_op)")
+        end
+    elseif Set(keys(b.spectra)) == Set([:s, :t])
+        if rels === nothing #= [Gs  -Gt] =#
+            v = b.factors[chan] .* b.block_values[chan][V]
+            chan === :s && return v
+            chan === :t && return -v
+        elseif rels === :st || rels === :st_op
+            v_s = b.factors[:s] .* b.block_values[:s][V]
+            v_t = b.factors[:t] .* b.block_values[:t][V]
+            return v_s .- sign * v_t
+        else
+             error("with channels = $chans rels should be in (:st, :st_op)")
+        end
+    elseif Set(keys(b.spectra)) == Set([:s, :u])
+        if rels === nothing #= [Gs  -Gu] =#
+            v = b.factors[chan] .* b.block_values[chan][V]
+            chan === :s && return v
+            chan === :u && return -v
+        elseif rels === :su || rels === :su_op
+            v_s = b.factors[:s] .* b.block_values[:s][V]
+            v_u = b.factors[:u] .* b.block_values[:u][V]
+            return v_s .- sign * v_u
+        else
+             error("with channels = $chans rels should be in (:su, :su_op)")
+        end
+    elseif Set(keys(b.spectra)) == Set([:t, :u])
+        if rels === nothing #= [Gt  -Gu] =#
+            v = b.factors[chan] .* b.block_values[chan][V]
+            chan === :t && return v
+            chan === :u && return -v
+        elseif rels === :tu || rels === :tu_op
+            v_t = b.factors[:t] .* b.block_values[:t][V]
+            v_u = b.factors[:u] .* b.block_values[:u][V]
+            return v_t .- sign * v_u
+        else
+            error("with channels = $chans rels should be in (:tu, :tu_op)")
+        end
+    end
+end
+
+function sumknowns(b::BootstrapSystem, knowns, chan, i)
+    sum(b.str_cst[chan].constants[V] *
+        b.factors[chan][i] *
+        b.block_values[chan][V][i]
+        for V in knowns[chan];
+            init = zero(Acb))
+end
+
+function computeRHS(b, knowns)
+    # Form the right hand side: [  Σ_knowns (chan2 - chan1),  Σ_knowns (chan3 - chan1) ]
+    nb_positions = length(b.positions)
+    if Set(keys(b.spectra)) == Set([:s, :t, :u])
+        return vcat(
+            [sumknowns(b, knowns, :t, i) - sumknowns(b, knowns, :s, i)
+             for i in eachindex(b.positions)],
+            [sumknowns(b, knowns, :u, i) - sumknowns(b, knowns, :s, i)
+             for i in eachindex(b.positions)]
+        )
+    elseif Set(b.channels) == Set([:s, :t])
+        return [sumknowns(b, knowns, :t, i) - sumknowns(b, knowns, :s, i)
+             for i in eachindex(b.positions)]
+    elseif Set(b.channels) == Set([:s, :u])
+        return [sumknowns(b, knowns, :u, i) - sumknowns(b, knowns, :s, i)
+             for i in eachindex(b.positions)]
+    elseif Set(b.channels) == Set([:t, :u])
+        return [sumknowns(b, knowns, :u, i) - sumknowns(b, knowns, :t, i)
+             for i in eachindex(b.positions)]
+    end
+end
+
+function compute_linear_system!(b::BootstrapSystem)
+    known_consts = b.str_cst
+
+    unknowns = Channels(Dict(
+        chan => sort(CDorField[V for V in fields(b.spectra[chan]) if
+                                   !(chan in keys(known_consts) && V in keys(known_consts[chan].constants))],
+                     by = V -> real(total_dimension(V)))
+        for chan in b.channels))
+
+    # if no consts are known, fix a normalisation
+    if all([isempty(known_consts[chan].constants) for chan in keys(known_consts)])
+        hasdiag, chan, diag = hasdiagonal(b)
+        if hasdiag
+            normalised_field = diag
+        else
+            channels = sort(collect(keys(unknowns)))
+            chan = channels[findfirst(c -> !isempty(unknowns[c]), channels)]
+            normalised_field = reduce(
+                (V1, V2) ->
+                    real(total_dimension(V1)) < real(total_dimension(V2)) ? V1 : V2,
+                unknowns[chan],
+            )
+        end
+        fix!(known_consts[chan], normalised_field, 1)
+        b.str_cst = known_consts
+        idx = findfirst(==(normalised_field), unknowns[chan])
+        deleteat!(unknowns[chan], idx)
+    end
+
+    knowns = Channels(Dict(chan => [V for V in fields(b.spectra[chan])
+                                        if chan in keys(b.str_cst) && V in keys(b.str_cst[chan].constants)]
+                           for chan in keys(b.spectra)))
+
+    nb_positions = length(b.positions)
+    nb_lines = nb_positions * (length(keys(b.spectra)) - 1)
+    nb_unknowns = 0
+    for chan in b.channels
+        nb_unknowns += length(b.spectra[chan])
+        if chan in keys(known_consts)
+            nb_unknowns -= length(known_consts[chan])
+        end
+    end
+
+    # form the matrix of the linear system
+    # keep a record of the columns where we put each field.
+    LHS = Matrix{Acb}(undef, nb_lines, nb_unknowns)
+    col_idx = 0
+    for chan in b.channels
+        for V in unknowns[chan]
+            col_idx += 1
+            LHS[:, col_idx] = computeLHScolumn(b, chan, V)
+        end
+    end
+
+    RHS = computeRHS(b, knowns)
+    b.unknowns = unknowns
+    b.LHS = LHS
+    b.RHS = RHS
+    return
+end
+
+function findcol(s::BootstrapSystem, V::CDorField, chan)
+    col = 0
+    for ch in s.channels
+        for v in s.unknowns[ch]
+            col += 1
+            if ch == chan && v == V
+                return col
+            end
+        end
+    end
+    error("The field $V does not exist in the channel $chan")
+end
+
+function solve!(s::BootstrapSystem)
+    # solve for two different sets of positions
+    LHS = convert(Matrix{Complex{BigFloat}}, s.LHS)
+    RHS = convert(Vector{Complex{BigFloat}}, s.RHS) # convert to BigFloat to use Julia's solver
+
+    sol1 = LHS[3:end, :] \ RHS[3:end]
+    sol2 = LHS[1:(end-2), :] \ RHS[1:(end-2)]
+
+    # compare the two solutions
+    errors = @. Float64(abs((sol1 - sol2) / sol2))
+
+    for chan in s.channels
+        if !haskey(s.str_cst, chan)
+            s.str_cst[chan] = StructureConstants()
+        end
+        for V in s.unknowns[chan]
+            index = findcol(s, s.spectra[chan].blocks[V].chan_field, chan)
+            s.str_cst[chan].constants[V] = Acb(sol1[index])
+            s.str_cst[chan].errors[V] = errors[index]
+        end
+    end
+
+    return s.str_cst
+end
+
+function eval_blocks_compute_system(specs::Channels; fix = nothing, rels = nothing)
+    if fix !== nothing
+        knowns = Dict{Symbol, StructureConstants}()
+        for (chan, V, cst) in fix
+            if !(chan in keys(knowns))
+                knowns[chan] = StructureConstants()
+            end
+            fix!(knowns[chan], V, cst)
+        end
+        knowns = Channels(knowns)
+    else
+        knowns = nothing
+    end
+    sys = BootstrapSystem(specs, rels = rels, knowns=knowns)
+    evaluate_blocks!(sys)
+    compute_linear_system!(sys)
+    return sys
+end
+
+function solve_bootstrap(specs::Channels; fix = nothing, rels = nothing)
+    sys = eval_blocks_compute_system(specs, fix = fix, rels = rels)
+    solve!(sys)
+
+    if length(sys.spectra) > 1
+        z = new_random_point()
+        if (typeof(specs.s.corr) <: Correlation1)
+            z = τfromx(z)
+        end
+        if length(sys.spectra) > 2
+            chans = (:t, :u)
+        else
+            chans = collect(keys(sys.spectra))
+        end
+        vals = [evaluate_correlation(sys, chan, z) for chan in chans]
+        rel = abs((vals[1]-vals[2]) / vals[1])
+        println("Relative difference between $(chans[1]) and $(chans[2]) channels: $rel")
+    end
+    return sys
+end
+
+function evaluate_correlation(sys, chan, z)
+    co = sys.correlation
+    consts = sys.str_cst[chan]
+    pos = channel_position(z, co, chan)
+    cache = PosCache(pos, co, chan)
+    block_values =
+        Dict(V => sys.spectra[chan].blocks[V](cache)
+             for (V, b) in consts.constants)
+    s = spin(sys.spectra[chan])
+    fac = factor(co, chan, z, s)
+    return sum(consts.constants[V] * block_values[V] * fac
+               for V in keys(block_values))
+end
+
+function clear!(b::BootstrapSystem)
+    b.str_cst = @channels StrCst(b.spectra[chan])
+    # b.matrix = BootstrapMatrix([chan for chan in keys(b.spectra)])
+end
+
+function Base.show(io::IO, b::BootstrapSystem)
+    println(io, "BootstrapSystem")
+    println(io, b.correlation)
+    println(io, "Number of positions: $(length(b.positions))")
+    println(io, "Matrix size: $(size(b.LHS))")
+end
