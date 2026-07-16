@@ -90,10 +90,27 @@ function BootstrapSystem(co::Correlation, blocks;
                 [b(x) for x in moduli_cache[chan]]
         end
         # Merge all thread-local dictionaries, and compute prefactors
+        spin_ = spin(unknowns.s[1])
         for d in thread_results
             for (V, vals) in d
                 if prefactors === nothing
-                    fact = ones(Acb, moduli_count)
+                    if typeof(co) <: Correlation1 # on the torus, prefactors default to
+                         # phase*|τ^Δ1|², phase*|(τ-1)^Δ1|², where phase is written below
+                        if chan === :s
+                            fact = ones(Acb, moduli_count)
+                        else
+                            Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
+                            if chan === :t
+                                phase = exp(-6 * im * Acb(π) * spin_)
+                                fact =  [phase * τ^-Δ₁ * conj(τ)^-bΔ₁ for τ in moduli]
+                            elseif chan === :u
+                                phase = exp(-8 * im * Acb(π) * spin_)
+                                fact = [phase * (τ - 1)^(-Δ₁) * conj(τ - 1)^(-bΔ₁) for τ in moduli]
+                            end
+                        end
+                    else
+                        fact = ones(Acb, moduli_count)
+                    end
                 else
                     fact = [prefactors(chan, V, moduli[k]) for k in 1:moduli_count]
                 end
