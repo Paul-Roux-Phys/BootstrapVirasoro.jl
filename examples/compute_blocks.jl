@@ -1,24 +1,24 @@
 using BootstrapVirasoro
 
-# set the precision of high-precision floats
-setprecision(BigFloat, 30, base=10)
+# set the precision of high-precision complex numbers
+setprecision(Acb, 30, base=10)
 
 # Define a high precision number (BigFloat type) from float literals:
-β = big"0.3" + big"0.6"*im
+β = Acb("0.3", "0.6")
 
 # Define a corresponding central charge
 c = CC(β = β)
 
 # Define ConformalDimension objects.
-D1 = CD(c, P = big"1.2")
+D1 = CD(c, P = Acb("1.2"))
 D2 = CD(c, r = 2, s = 1//2) # a // b is the Julia syntax for rational numbers.
 # we can use regular floats as well, but beware that they will not be correctly rounded
 # when they are converted to a BigFloat type.
 D3 = CD(c, P=1.2) # D3 not strictly equal to D2.
 
 # Define Field objects.
-V1 = Field(c, P = big"1" + big"0.8"*im)      # diagonal field of momentum P
-VΔ = Field(c, Δ = big"0.4" + big"0.3"*im)    # diagonal field of conformal dimension Δ
+V1 = Field(c, P = Acb("1", "0.8"))      # diagonal field of momentum P
+VΔ = Field(c, Δ = Acb("0.4", "0.3"))    # diagonal field of conformal dimension Δ
 V2 = Field(c, r = 2 , s= 1//2)               # non-diagonal field defined from Kac indices
 V3 = Field(c, r = 2, s = 1, diagonal = true) # degenerate field
 V4 = Field(D1, D2)                           # define a field from a pair of conformal dimensions
@@ -54,8 +54,9 @@ b4(0.95 + 2.04im)
 
 # define a chiral s-channel block
 bndry = CBlock(bndrycor, :s, D2)
-x = big"0.84"+big"0.3"*im
+x = Acb("0.84", "0.3")
 # evaluate it at a position
+println("Time to evaluate block without cached modulus:")
 @time bndry(x)
 
 # we can linearly combine block and easily evaluate the linear combination
@@ -63,12 +64,13 @@ x = big"0.84"+big"0.3"*im
 # here we compute 2 b2 + 3 b4.
 Lc = LinearCombinationBlock([b2, b4], [2, 3])
 # evaluate
-Lc(big"1"+big"1"*im)
+Lc(Acb("1", "1"))
 
 # when evaluating many blocks at the same position, we can compute once and for all
 # all the data about the positions that is common to all blocks, i.e. the nome q, powers
 # of q, and the prefactors x^E1 (1-x)^E3 theta_3(q)^E_4. The evaluation of the blocks is
-# orders of magnitude faster if we input the cache instead of the raw position.
-# the cache is created with BootstrapVirasoro.PosCache.
-cache = BootstrapVirasoro.PosCache(x, bndrycor.fields, :s, 20)
+# several orders of magnitude faster if we input the cache instead of the raw position.
+# The cache is created with BootstrapVirasoro.ChiralPosCache, or NonChiralPosCache.
+cache = BootstrapVirasoro.ChiralPosCache(x, bndrycor.fields, :s, 20)
+println("Time to evaluate block with cached modulus:")
 @time bndry(cache)

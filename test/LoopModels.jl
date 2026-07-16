@@ -112,7 +112,7 @@ function precompute_blocks(co, fields; parity)
         )
 end
 
-function solve(specs, signature)
+function solve_(specs, signature)
     for chan in keys(specs)
         filter!(b -> b.chan_field.r >= signature[chan], specs[chan].blocks)
     end
@@ -127,7 +127,7 @@ co = Correlation([Field(c, r=r, s=s) for (r, s) in ind], Δmax)
 blocks_even = precompute_blocks(co, fields, parity=1)
 
 sig = Channels{Rational}(0, 1, 1)
-sol = solve(blocks_even, sig)
+sol = solve_(blocks_even, sig)
 
 @testset "Crossing" begin
     for chan in (:s, :t, :u)
