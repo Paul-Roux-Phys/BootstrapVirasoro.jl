@@ -1,4 +1,5 @@
 # Julia setup
+
 The directory also contains an example of a `startup.jl` file. I recommend putting a copy of this file in your `$HOME/.julia/config` folder, where `$HOME` is your home directory. This will ensure you have a few general purpose Julia packages installed and available, which makes the experience with Julia more comfortable.
 
 I also recommend adding a line

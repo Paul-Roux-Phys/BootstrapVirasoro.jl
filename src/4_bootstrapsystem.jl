@@ -188,7 +188,7 @@ rels: one of `:s`, `:st`, `:su`, `:tu`, `:stu`.
       default: `:s` 
 """
 function BootstrapMatrix(s::BootstrapSystem; rels=:s)
-    unknowns, knowns = s.unknowns, s.knowns
+    unknowns = s.unknowns
     cache = s.fields_cache
     moduli_count = length(s.moduli_cache.s)
     if length(cache) == 3 # 3 channels
@@ -199,6 +199,7 @@ function BootstrapMatrix(s::BootstrapSystem; rels=:s)
             offset_u = 0
             cols_count = length(unknowns.s)
             indep_channels = (:s,)
+            knowns = Channels(Dict(chan => s.knowns.s for chan in (:s, :t, :u)))
         elseif rels === :st #= [(Gs-Gt)  0 ;
                                  Gs     -Gu] =#
 
@@ -206,24 +207,28 @@ function BootstrapMatrix(s::BootstrapSystem; rels=:s)
             offset_u = length(unknowns.s)
             cols_count = length(unknowns.s) + length(unknowns.u)
             indep_channels = (:s,:u)
+            knowns = Channels(Dict(:s => s.knowns.s, :t => s.knowns.s, :u => s.knowns.u))
         elseif rels === :su #= [Gs        -Gt;
                                 (Gs-Gu)     0] =#
             offset_t = length(unknowns.s)
             offset_u = 0
             cols_count = length(unknowns.s) + length(unknowns.t)
             indep_channels = (:s,:t)
+            knowns = Channels(Dict(:s => s.knowns.s, :t => s.knowns.t, :u => s.knowns.s))
         elseif rels === :tu #= [Gs     -Gt;
                                 Gs     Gu)] =#
             offset_t = length(unknowns.s)
             offset_u = length(unknowns.s)
             cols_count = length(unknowns.s) + length(unknowns.t)
             indep_channels = (:s,:t)
+            knowns = Channels(Dict(:s => s.knowns.s, :t => s.knowns.t, :u => s.knowns.t))
         elseif rels === :s        #= [(Gs     -Gt        0
                                        Gs       0      -Gu] =#
             offset_t = length(unknowns.s)
             offset_u = length(unknowns.s) + length(unknowns.t)
             cols_count = length(unknowns.s) + length(unknowns.t) + length(unknowns.u)
             indep_channels = (:s,:t,:u)
+            knowns = s.knowns
         else
             error("rels = $rels is not supported")
         end

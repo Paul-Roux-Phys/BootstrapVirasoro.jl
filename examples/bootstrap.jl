@@ -25,10 +25,10 @@ Cor  = Correlation(V12, VP, V12, VP, 60) # define the correlation
 # where the function is a function that takes as input a field and outputs a block object.
 f(V, chan) = NCBlock(Cor, chan, V) # map fields to blocks
 Cs    = ChannelSpectrum(Cor, :s, VPpm, V -> f(V, :s)) # create s-channel spectrum
-Ct    = ChannelSpectrum(Cor, :t, V,    V -> f(V, :t)) # t-channel
-Cu    = ChannelSpectrum(Cor, :u, V,    V -> f(V, :u)) # u-channel
+Ct    = ChannelSpectrum(Cor, :t, VPpm, V -> f(V, :t)) # t-channel
+Cu    = ChannelSpectrum(Cor, :u, Vd,   V -> f(V, :u)) # u-channel
 
-sol = solve_bootstrap(Channels(Cs, Ct, Cu), rels=:tu) # setup and solve the crossing equations
+sol = solve_bootstrap(Channels(Cs, Ct, Cu)) # setup and solve the crossing equations
 sol # return the structure constants
 
 # you can display the structure constants with
