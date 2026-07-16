@@ -21,21 +21,23 @@ c = CC(β = β)
 # Define ConformalDimension objects.
 D1 = CD(c, P = big"1.2")
 D2 = CD(c, r = 2, s = 1//2) # a // b is the Julia syntax for rational numbers.
-# we can use regular floats as well, but beware that the will not be correctly rounded
+# we can use regular floats as well, but beware that they will not be correctly rounded
 # when they are converted to a BigFloat type.
 D3 = CD(c, P=1.2) # D3 not strictly equal to D2.
 
 # Define Field objects.
-V1 = Field(c, P = big"1" + big"0.8"*im)           # diagonal field of momentum P
-VΔ = Field(c, Δ = big"0.4" + big"0.3"*im)         # diagonal field of conformal dimension Δ
-V2 = Field(c, r = 2 , s= 1//2)                    # non-diagonal field defined from Kac indices
-V2diag = Field(c, r = 2 , s= 1//2, diagonal=true) # we can force the field to be diagonal
-V3 = Field(c, r = 2, s = 1, diagonal = true)      # degenerate field
-V4 = Field(D1, D2)                                # define a field from a pair of conformal dimensions
-V2.dims                                           # inspect left and right conformal dimensions
+V1 = Field(c, P = big"1" + big"0.8"*im)      # diagonal field of momentum P
+VΔ = Field(c, Δ = big"0.4" + big"0.3"*im)    # diagonal field of conformal dimension Δ
+V2 = Field(c, r = 2 , s= 1//2)               # non-diagonal field defined from Kac indices
+V3 = Field(c, r = 2, s = 1, diagonal = true) # degenerate field
+V4 = Field(D1, D2)                           # define a field from a pair of conformal dimensions
+V2.dims                                      # inspect left and right conformal dimensions
 V2.dims.left
-swap_lr(V2)                                       # swap the left and right conformal dimensions (space parity)
+swap_lr(V2)                                  # swap the left and right conformal dimensions (space parity)
 swap_lr(V4)
+
+const BField = ConformalDimension # define a new name for the type (type alias)
+BField(c, P=0.4)                  # this is now equivalent to CD(c, P=0.4)
 
 #=
 define a correlation with Correlation(fields, Nmax)
@@ -75,7 +77,7 @@ Lc(big"1"+big"1"*im)
 # when evaluating many blocks at the same position, we can compute once and for all
 # all the data about the positions that is common to all blocks, i.e. the nome q, powers
 # of q, and the prefactors x^E1 (1-x)^E3 theta_3(q)^E_4. The evaluation of the blocks is
-# several orders of magnitude faster if we input the cache instead of the raw position.
+# orders of magnitude faster if we input the cache instead of the raw position.
 # the cache is created with BootstrapVirasoro.PosCache.
 cache = BootstrapVirasoro.PosCache(x, bndrycor.fields, :s, 20)
 @time bndry(cache)

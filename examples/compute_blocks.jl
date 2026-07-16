@@ -12,7 +12,7 @@ c = CC(β = β)
 # Define ConformalDimension objects.
 D1 = CD(c, P = big"1.2")
 D2 = CD(c, r = 2, s = 1//2) # a // b is the Julia syntax for rational numbers.
-# we can use regular floats as well, but beware that the will not be correctly rounded
+# we can use regular floats as well, but beware that they will not be correctly rounded
 # when they are converted to a BigFloat type.
 D3 = CD(c, P=1.2) # D3 not strictly equal to D2.
 
