@@ -40,4 +40,20 @@ sol = solve_bootstrap(Channels(Cs, Ct, Cu)) # setup and solve the crossing equat
 # Other options for rels are :su, :tu, :stu
 solve_bootstrap(Channels(Cs, Ct, Cu), rels=:st)
 
+# We can also use only 2 channels
+solve_bootstrap(Channels(Dict(:s => Cs, :t => Ct)))
+
+# Rels also works with 2 channels:
+solve_bootstrap(Channels(Dict(:s => Cs, :t => Ct)), rels=:st)
+
+# If we need to, we can first create the linear system, and then solve it:
+sys = BootstrapSystem(Channels(Cs, Ct, Cu))
+# sys is a struct that contains all of the cached data needed to create the linear
+# system: values of the blocks, prefactors per field and per channel, cache associated
+# to the moduli.
+# This is sometimes useful, because we can modify something in the bootstrap data, for instance
+# modify the momentum of a diagonal field, without recomputing everything.
+mysol = solve(sys, rels=:st) # this constructs and solves the linear system, and stores the
+                             # corresponding structure constants in the variable mysol
+
 return sol # return the structure constants
