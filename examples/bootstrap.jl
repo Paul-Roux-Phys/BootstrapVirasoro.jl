@@ -1,14 +1,14 @@
 using BootstrapVirasoro
 
 # set the precision of high-precision floats
-setprecision(BigFloat, 40, base=10)
+setprecision(Acb, 40, base=10)
 
-β    = big"0.8" + big"0.1"*im
+β    = Acb("0.8", "0.1")
 # define a central charge
 c    = CC(β = β)
 
 V12  = Field(c, r=1, s=2, diagonal=true) # the external, degenerate field
-P    = big"0.67"
+P    = Acb("0.67")
 VP   = Field(c, P=P) # the external diagonal field
 VPpm = [Field(c, P = P + pm*1/(2β)) for pm in (-1, 1)] # shifted fields
 Vd   = [Field(c, r=1, s=1, diagonal=true),
