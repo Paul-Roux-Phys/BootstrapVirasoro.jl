@@ -20,6 +20,9 @@ export ChiralCorrelation, ChiralCorrelation4, ChiralCorrelation1
 export NonChiralCorrelation, NonChiralCorrelation4, NonChiralCorrelation1
 export ChiralBlock, CBlock, NonChiralBlock, NCBlock
 export LinearCombinationBlock, LCBlock, Block
+export ChannelSpectrum, ChanSpec
+export BootstrapSystem, solve, solve_bootstrap
+
 # export ChannelSpectrum, ChanSpec, add!, remove!
 # export StructureConstants, StrCst, SC, find_normalised
 # export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!
