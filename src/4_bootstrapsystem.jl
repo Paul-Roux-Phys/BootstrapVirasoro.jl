@@ -183,8 +183,10 @@ rels: one of `:s`, `:st`, `:su`, `:tu`, `:stu`.
 function BootstrapMatrix(s::BootstrapSystem; rels=:s)
     cache = s.fields_cache
     moduli_count = length(s.moduli_cache.s)
+    cols_count = 0
+
     if length(cache) == 3 # 3 channels
-        cols_count = 0
+
         if rels === :stu #= [(Gs-Gt);
                              (Gs-Gu)] =#
             offset_t = 0
@@ -194,7 +196,7 @@ function BootstrapMatrix(s::BootstrapSystem; rels=:s)
             knowns = Channels(Dict(chan => s.knowns.s for chan in (:s, :t, :u)))
             unknowns = Channels(Dict(chan => s.unknowns.s for chan in (:s, :t, :u)))
         elseif rels === :st #= [(Gs-Gt)  0 ;
-                                 Gs     -Gu] =#
+                                Gs     -Gu] =#
 
             offset_t = 0
             offset_u = length(s.unknowns.s)
@@ -232,46 +234,73 @@ function BootstrapMatrix(s::BootstrapSystem; rels=:s)
 
         A = zeros(Acb, 2*moduli_count, cols_count)
         b = zeros(Acb, 2*moduli_count)
-        fields = Vector{Tuple{Symbol,CDorField}}(undef, cols_count)
-        j = 0
-        for chan in indep_channels
-            for V in unknowns[chan]
-                j += 1
-                fields[j] = (chan, V)
-            end
+
+    elseif length(cache) == 2 # 2 channels
+
+        if rels === :st #= [(Gs-Gt)] =#
+            offset_t = 0
+            cols_count = length(s.unknowns.s)
+            indep_channels = (:s,)
+            knowns   = Channels(Dict(chan => s.knowns.s   for chan in (:s, :t)))
+            unknowns = Channels(Dict(chan => s.unknowns.s for chan in (:s, :t)))
+        else
+            offset_t = length(s.unknowns.s)
+            cols_count = length(s.unknowns.s) + length(s.unknowns.t)
+            indep_channels = (:s,:t)
+            knowns   = Channels(Dict(chan => s.knowns[chan]   for chan in (:s, :t)))
+            unknowns = Channels(Dict(chan => s.unknowns[chan] for chan in (:s, :t)))
         end
-        for k in 1:moduli_count
-            for (j, V) in enumerate(unknowns.s)
-                A[k, j]                       += cache.s[V].factors[k] * cache.s[V].block_values[k]
-                if k == 1 && j == 1
-                    println("A[k, j] = $(A[k, j])")
-                end
+
+        A = zeros(Acb, moduli_count, cols_count)
+        b = zeros(Acb, moduli_count)
+
+    else
+
+        error("Only 2 or 3 channels are supported")
+
+    end
+
+    fields = Vector{Tuple{Symbol,CDorField}}(undef, cols_count)
+
+    j = 0
+    for chan in indep_channels
+        for V in unknowns[chan]
+            j += 1
+            fields[j] = (chan, V)
+        end
+    end
+
+    for k in 1:moduli_count
+        for (j, V) in enumerate(unknowns.s)
+            A[k, j]                       += cache.s[V].factors[k] * cache.s[V].block_values[k]
+            if length(cache) == 3
                 A[k+moduli_count, j]          += cache.s[V].factors[k] * cache.s[V].block_values[k]
             end
-            for (j, V) in enumerate(unknowns.t)
-                A[k, j+offset_t]              -= cache.t[V].factors[k] * cache.t[V].block_values[k]
-                if k == 1 && j == 1
-                    println("A[k, j] = $(A[k, j])")
-                end
-            end
+        end
+        for (j, V) in enumerate(unknowns.t)
+            A[k, j+offset_t]              -= cache.t[V].factors[k] * cache.t[V].block_values[k]
+        end
+        if length(cache) == 3
             for (j, V) in enumerate(unknowns.u)
                 A[k+moduli_count, j+offset_u] -= cache.u[V].factors[k] * cache.u[V].block_values[k]
             end
+        end
 
-            # right-hand side of the linear system
-            for (V, D) in knowns.s
-                b[k] -= cache.s[V].factors[k] * D * cache.s[V].block_values[k]
+        # right-hand side of the linear system
+        for (V, D) in knowns.s
+            b[k] -= cache.s[V].factors[k] * D * cache.s[V].block_values[k]
+            if length(cache) == 3
                 b[k + moduli_count] -= cache.s[V].factors[k] * D * cache.s[V].block_values[k]
             end
-            for (V, D) in knowns.t
-                b[k] += cache.t[V].factors[k] * D * cache.t[V].block_values[k]
-            end
+        end
+        for (V, D) in knowns.t
+            b[k] += cache.t[V].factors[k] * D * cache.t[V].block_values[k]
+        end
+        if length(cache) == 3
             for (V, D) in knowns.u
                 b[k + moduli_count] += cache.u[V].factors[k] * D * cache.u[V].block_values[k]
             end
         end
-    else
-        error("BootstrapSystem with 2 channels not implemented yet")
     end
     return BootstrapMatrix(fields, A, b)
 end

@@ -29,10 +29,15 @@ Ct    = ChannelSpectrum(Cor, :t, VPpm, V -> f(V, :t)) # t-channel
 Cu    = ChannelSpectrum(Cor, :u, Vd,   V -> f(V, :u)) # u-channel
 
 sol = solve_bootstrap(Channels(Cs, Ct, Cu)) # setup and solve the crossing equations
-sol # return the structure constants
 
 # you can display the structure constants with
 # println(sol)
 # or
 # show(stdout, sol)
 # changing stdout to a file IO will print to a file instead.
+
+# We can impose that the s and t channels structure constants are equal.
+# Other options for rels are :su, :tu, :stu
+solve_bootstrap(Channels(Cs, Ct, Cu), rels=:st)
+
+return sol # return the structure constants
