@@ -113,12 +113,11 @@ function precompute_blocks(co, fields; parity)
 end
 
 function solve(specs, signature)
-        specs = @channels filter(V -> V.r >= signature[chan], specs[chan])
-        sys = BootstrapSystem(specs)
-        evaluate_blocks!(sys)
-        compute_linear_system!(sys)
-        solve!(sys)
-        return sys
+    for chan in keys(specs)
+        filter!(b -> b.chan_field.r >= signature[chan], specs[chan].blocks)
+    end
+    sys = BootstrapSystem(specs)
+    return BootstrapVirasoro.solve(sys)
 end
 
 ind = ((1 // 2, 0), (1 // 2, 0), (1 // 2, 0), (1 // 2, 0))
@@ -131,11 +130,11 @@ sig = Channels{Rational}(0, 1, 1)
 sol = solve(blocks_even, sig)
 
 @testset "Crossing" begin
-        for chan in (:s, :t, :u)
-                for (V, err) in sol.str_cst[chan].errors
-                        @test abs(err * sol.str_cst[chan].constants[V]) < 1e-4
-                end
+    for chan in (:s, :t, :u)
+        for (V, (str_cst, err)) in sol[chan].dict
+            @test abs(err * str_cst) < 1e-4
         end
+    end
 end
 
 setprecision(BigFloat, 133)

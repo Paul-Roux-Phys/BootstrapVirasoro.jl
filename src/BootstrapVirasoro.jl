@@ -93,6 +93,6 @@ include("1_CFTData.jl")
 include("2_Correlation.jl")
 include("3_Block.jl")
 include("4_bootstrapsystem.jl")
-# include("LoopModels.jl")
+include("LoopModels.jl")
 
 end # module BootstrapVirasoro

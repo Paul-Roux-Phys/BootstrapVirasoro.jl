@@ -316,14 +316,20 @@ function ChannelSpectrum(co::Correlation, chan, Vs, f::Function;
     return ChannelSpectrum(co, blocks, Δmax)
 end
 
-function solve_bootstrap(specs::Channels{ChannelSpectrum}; rels=:s)
+Base.length(s::ChanSpec) = length(s.blocks)
+
+function BootstrapSystem(specs::Channels{ChannelSpectrum};
+                         fix=nothing, moduli=nothing, extrapoints::Int=6,
+                         prefactors=nothing)
     co = specs.s.correlation
-    sys = BootstrapSystem(
-        co,
-        Channels(Dict(
-            chan => specs[chan].blocks
-            for chan in keys(specs)))
-    )
+    blocks = Channels(Dict(chan => specs[chan].blocks
+                           for chan in keys(specs)))
+    return BootstrapSystem(co, blocks;
+                           fix=fix, moduli=moduli, extrapoints=extrapoints, prefactors=prefactors)
+end
+
+function solve_bootstrap(specs::Channels{ChannelSpectrum}; rels=:s)
+    sys = BootstrapSystem(specs)
     solve(sys, rels=rels)
 end
 
