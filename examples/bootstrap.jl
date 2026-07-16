@@ -46,6 +46,11 @@ solve_bootstrap(Channels(Dict(:s => Cs, :t => Ct)))
 # Rels also works with 2 channels:
 solve_bootstrap(Channels(Dict(:s => Cs, :t => Ct)), rels=:st)
 
+# We can fix the value of a certain number of structure constants
+# The format is an array of triples (channel, field, value)
+fixed = [(:s, VPpm[1], 2), (:t, VPpm[1], 2), (:u, Vd[3], 0)]
+solve_bootstrap(Channels(Cs, Ct, Cu), fix=fixed)
+
 # If we need to, we can first create the linear system, and then solve it:
 sys = BootstrapSystem(Channels(Cs, Ct, Cu))
 # sys is a struct that contains all of the cached data needed to create the linear
@@ -53,7 +58,10 @@ sys = BootstrapSystem(Channels(Cs, Ct, Cu))
 # to the moduli.
 # This is sometimes useful, because we can modify something in the bootstrap data, for instance
 # modify the momentum of a diagonal field, without recomputing everything.
-mysol = solve(sys, rels=:st) # this constructs and solves the linear system, and stores the
-                             # corresponding structure constants in the variable mysol
+solve(sys, rels=:st) # this constructs and solves the linear system, and returns the
+                     # corresponding structure constants
+# We can remove a certain number of fields:
+deleteat!(sys.unknowns.u, 2) # remove the second field in unknowns of u channel, which here is V^d_<1,5>
+mysol2 = solve(sys)
 
 return sol # return the structure constants
