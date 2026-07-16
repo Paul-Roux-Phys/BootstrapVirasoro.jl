@@ -11,13 +11,6 @@ const SC = StructureConstants
 
 """
 data required to build a system of bootstrap equations
-
-# Fields
-
-unknowns: list of fields whose structure constant is unknown, in a Channels struct
-knowns: list of known (fields, structure_constant), in a Channels struct
-block_values: values of the conformal blocks, in a Channels struct
-factors: prefactors multiplying the block values. May depend on the moduli, the fields
 """
 struct BootstrapSystem
     unknowns     ::Channels{Vector{CDorField}}
@@ -188,7 +181,6 @@ rels: one of `:s`, `:st`, `:su`, `:tu`, `:stu`.
       default: `:s` 
 """
 function BootstrapMatrix(s::BootstrapSystem; rels=:s)
-    unknowns = s.unknowns
     cache = s.fields_cache
     moduli_count = length(s.moduli_cache.s)
     if length(cache) == 3 # 3 channels
@@ -197,38 +189,43 @@ function BootstrapMatrix(s::BootstrapSystem; rels=:s)
                              (Gs-Gu)] =#
             offset_t = 0
             offset_u = 0
-            cols_count = length(unknowns.s)
+            cols_count = length(s.unknowns.s)
             indep_channels = (:s,)
             knowns = Channels(Dict(chan => s.knowns.s for chan in (:s, :t, :u)))
+            unknowns = Channels(Dict(chan => s.unknowns.s for chan in (:s, :t, :u)))
         elseif rels === :st #= [(Gs-Gt)  0 ;
                                  Gs     -Gu] =#
 
             offset_t = 0
-            offset_u = length(unknowns.s)
-            cols_count = length(unknowns.s) + length(unknowns.u)
+            offset_u = length(s.unknowns.s)
+            cols_count = length(s.unknowns.s) + length(s.unknowns.u)
             indep_channels = (:s,:u)
             knowns = Channels(Dict(:s => s.knowns.s, :t => s.knowns.s, :u => s.knowns.u))
+            unknowns = Channels(Dict(:s => s.unknowns.s, :t => s.unknowns.s, :u => s.unknowns.u))
         elseif rels === :su #= [Gs        -Gt;
                                 (Gs-Gu)     0] =#
-            offset_t = length(unknowns.s)
+            offset_t = length(s.unknowns.s)
             offset_u = 0
-            cols_count = length(unknowns.s) + length(unknowns.t)
+            cols_count = length(s.unknowns.s) + length(s.unknowns.t)
             indep_channels = (:s,:t)
             knowns = Channels(Dict(:s => s.knowns.s, :t => s.knowns.t, :u => s.knowns.s))
+            unknowns = Channels(Dict(:s => s.unknowns.s, :t => s.unknowns.u, :u => s.unknowns.s))
         elseif rels === :tu #= [Gs     -Gt;
-                                Gs     Gu)] =#
-            offset_t = length(unknowns.s)
-            offset_u = length(unknowns.s)
-            cols_count = length(unknowns.s) + length(unknowns.t)
+                                Gs     -Gu)] =#
+            offset_t = length(s.unknowns.s)
+            offset_u = length(s.unknowns.s)
+            cols_count = length(s.unknowns.s) + length(s.unknowns.t)
             indep_channels = (:s,:t)
             knowns = Channels(Dict(:s => s.knowns.s, :t => s.knowns.t, :u => s.knowns.t))
+            unknowns = Channels(Dict(:s => s.unknowns.s, :t => s.unknowns.u, :u => s.unknowns.t))
         elseif rels === :s        #= [(Gs     -Gt        0
                                        Gs       0      -Gu] =#
-            offset_t = length(unknowns.s)
-            offset_u = length(unknowns.s) + length(unknowns.t)
-            cols_count = length(unknowns.s) + length(unknowns.t) + length(unknowns.u)
+            offset_t = length(s.unknowns.s)
+            offset_u = length(s.unknowns.s) + length(s.unknowns.t)
+            cols_count = length(s.unknowns.s) + length(s.unknowns.t) + length(s.unknowns.u)
             indep_channels = (:s,:t,:u)
             knowns = s.knowns
+            unknowns = s.unknowns
         else
             error("rels = $rels is not supported")
         end
@@ -246,10 +243,16 @@ function BootstrapMatrix(s::BootstrapSystem; rels=:s)
         for k in 1:moduli_count
             for (j, V) in enumerate(unknowns.s)
                 A[k, j]                       += cache.s[V].factors[k] * cache.s[V].block_values[k]
+                if k == 1 && j == 1
+                    println("A[k, j] = $(A[k, j])")
+                end
                 A[k+moduli_count, j]          += cache.s[V].factors[k] * cache.s[V].block_values[k]
             end
             for (j, V) in enumerate(unknowns.t)
                 A[k, j+offset_t]              -= cache.t[V].factors[k] * cache.t[V].block_values[k]
+                if k == 1 && j == 1
+                    println("A[k, j] = $(A[k, j])")
+                end
             end
             for (j, V) in enumerate(unknowns.u)
                 A[k+moduli_count, j+offset_u] -= cache.u[V].factors[k] * cache.u[V].block_values[k]
@@ -324,8 +327,7 @@ end
 Base.length(s::ChanSpec) = length(s.blocks)
 
 function BootstrapSystem(specs::Channels{ChannelSpectrum};
-                         fix=nothing, moduli=nothing, extrapoints::Int=6,
-                         prefactors=nothing)
+                         fix=nothing, moduli=nothing, extrapoints::Int=6, prefactors=nothing)
     co = specs.s.correlation
     blocks = Channels(Dict(chan => specs[chan].blocks
                            for chan in keys(specs)))
@@ -333,8 +335,10 @@ function BootstrapSystem(specs::Channels{ChannelSpectrum};
                            fix=fix, moduli=moduli, extrapoints=extrapoints, prefactors=prefactors)
 end
 
-function solve_bootstrap(specs::Channels{ChannelSpectrum}; rels=:s)
-    sys = BootstrapSystem(specs)
+function solve_bootstrap(specs::Channels{ChannelSpectrum};
+                         fix=nothing, moduli=nothing, extrapoints::Int=6, prefactors=nothing,
+                         rels=:s)
+    sys = BootstrapSystem(specs, fix=fix, moduli=moduli, extrapoints=extrapoints, prefactors=prefactors)
     solve(sys, rels=rels)
 end
 
@@ -425,4 +429,20 @@ function Base.show(io::IO, c::Channels{<:SC}; rmax = nothing, backend = :text)
         end
         show(io, c[chan], rmax = rmax, backend = backend)
     end
+end
+
+function Base.show(io::IO, b::BootstrapSystem)
+    println(io, "BootstrapSystem")
+    println(io, "Blocks evaluated at $(length(b.moduli_cache.s)) values of the modulus")
+    for chan in sort(collect(keys(b.unknowns)))
+        println(io, "Channel $chan:")
+        println(io, "Knowns: $(b.knowns[chan])")
+        println(io, "Unknowns: $(b.unknowns[chan])")
+    end
+end
+
+function Base.show(io::IO, mat::BootstrapMatrix)
+    println(io, "BootstrapMatrix")
+    println(io, "Size: $(size(mat.A))")
+    println(io, "unknowns: $(mat.fields)")
 end

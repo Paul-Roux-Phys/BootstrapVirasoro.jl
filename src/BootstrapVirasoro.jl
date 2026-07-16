@@ -1,33 +1,27 @@
-#===========================================================================================
+#=========================================================================
 
-Written by Paul Roux, adapting and extending a Python code written by Sylvain Ribault &
-Rongvoram Nivesvivat.
+Written by Paul Roux, inspired by a Python code written by Sylvain Ribault
+& Rongvoram Nivesvivat.
 
-===========================================================================================#
+=========================================================================#
 
 module BootstrapVirasoro
 
 #=========================================================================
 API
 =========================================================================#
-export Acb
+export Acb # multiprecision numbers
 export CentralCharge, CC
 export ConformalDimension, CD
 export LeftRight, Field, swap_lr, total_dimension, spin
 export Channels, @channels, Chans
-export Correlation, Corr, Co, Correlation4, Correlation1
-export ChiralCorrelation, ChiralCorrelation4, ChiralCorrelation1
-export NonChiralCorrelation, NonChiralCorrelation4, NonChiralCorrelation1
-export ChiralBlock, CBlock, NonChiralBlock, NCBlock
-export LinearCombinationBlock, LCBlock, Block
-export ChannelSpectrum, ChanSpec
-export BootstrapSystem, solve, solve_bootstrap
-
-# export ChannelSpectrum, ChanSpec, add!, remove!
-# export StructureConstants, StrCst, SC, find_normalised
-# export BootstrapSystem, evaluate_blocks!, compute_linear_system!, solve!
-# export solve_bootstrap
-# export evaluate_correlation
+export Correlation, Corr, Co, Correlation4, Correlation1, ChiralCorrelation,
+    ChiralCorrelation4, ChiralCorrelation1, NonChiralCorrelation,
+    NonChiralCorrelation4, NonChiralCorrelation1
+export ChiralBlock, CBlock, NonChiralBlock, NCBlock,
+    LinearCombinationBlock, LCBlock, Block
+export ChannelSpectrum, ChanSpec, BootstrapSystem, BootstrapMatrix, solve,
+    solve_bootstrap
 
 #=========================================================================
 Third-party functions
@@ -38,9 +32,9 @@ using PrettyTables: pretty_table, @crayon_str, Highlighter, Tables.columntable
 using Random
 using Printf: Format, format
 
-#========================================================================
+#=========================================================================
 Package-wide definitions
-========================================================================#
+=========================================================================#
 struct LeftRight{T}
     left::T
     right::T
