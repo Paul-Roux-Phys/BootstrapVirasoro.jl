@@ -226,6 +226,7 @@ function _ConformalDimension(c::CC, sym::Symbol, P::Acb, r, s)
     degenerate = false
     isKac = false
     if (r !== missing && s !== missing)
+        isKac = true
         if r isa Real && r % 1 == 0
             r = Int(r)
         end
@@ -234,12 +235,11 @@ function _ConformalDimension(c::CC, sym::Symbol, P::Acb, r, s)
         end
         P = Prs(r, s, β)
         if (r isa Rational || r isa Integer) && (s isa Rational || s isa Integer)
-            isKac = true
             if (r isa Integer && r > 0 && s isa Integer && s > 0)
                 degenerate = true
             end
         end
-        if r == 0 && !(s isa Int || s isa Rational)
+        if !(s isa Int || s isa Rational)
             s = convert(Acb, s)
         end
     else
@@ -304,7 +304,12 @@ end
 
 function Base.show(io::IO, ::MIME"text/plain", d::CD)
     if d.isKac
-        print(io, "ConformalDimension with Kac indices r = $(d.r), s = $(d.s)")
+        print(io, "ConformalDimension with Kac indices r = $(d.r), ")
+        if typeof(d.s) == Acb
+            print(io, "s = $(format_complex(d.s, digits=3))")
+        else
+            print(io, "s = $(d.s)")
+        end
     else
         print(io, "ConformalDimension with\nΔ = $(d.Δ), P = $(d.P)")
     end
@@ -320,7 +325,13 @@ end
 
 function Base.show(io::IO, d::CD)
     if d.isKac
-        print(io, "Δ_{$(d.r), $(d.s)}")
+        print(io, "Δ_{$(d.r), ")
+        if typeof(d.s) == Acb
+            print(io, "$(format_complex(d.s, digits=3))")
+        else
+            print(io, "$(d.s)")
+        end
+        print(io, "}")
     else
         print(io, "Δ_{P=$(format_complex(d.P, digits=3))}")
     end
