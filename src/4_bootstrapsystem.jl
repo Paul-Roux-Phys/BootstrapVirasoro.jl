@@ -15,8 +15,31 @@ data required to build a system of bootstrap equations
 struct BootstrapSystem
     unknowns     ::Channels{Vector{CDorField}}
     knowns       ::Channels{Vector{Tuple{CDorField,Acb}}}
+    blocks       ::Channels
     moduli_cache ::Channels
     fields_cache ::Channels{Dict{CDorField,FieldCache}}
+end
+
+function default_prefactors(co::Correlation1, chan, moduli_count, spin)
+    # on the torus, prefactors default to
+    # phase*|τ^Δ1|², phase*|(τ-1)^Δ1|², where phase is written below
+    if chan === :s
+        fact = ones(Acb, moduli_count)
+    else
+        Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
+        if chan === :t
+            phase = exp(-6 * im * Acb(π) * spin)
+            fact =  [phase * τ^-Δ₁ * conj(τ)^-bΔ₁ for τ in moduli]
+        elseif chan === :u
+            phase = exp(-8 * im * Acb(π) * spin)
+            fact = [phase * (τ - 1)^(-Δ₁) * conj(τ - 1)^(-bΔ₁) for τ in moduli]
+        end
+    end
+    return fact
+end
+
+function default_prefactors(co::Correlation, chan, moduli_count, spin)
+    return ones(Acb, moduli_count)
 end
 
 function BootstrapSystem(co::Correlation, blocks;
@@ -30,14 +53,13 @@ function BootstrapSystem(co::Correlation, blocks;
     knowns = Channels(Dict(chan => Tuple{CDorField, Acb}[] for chan in chans))
 
     # if nothing is fixed, fix the structure constant of the first found diagonal field to 1
-    for chan in chans
-        if fix !== nothing
-            break
-        end
-        for V in unknowns_set[chan]
-            if V.diagonal
-                fix = [(chan, V, one(Acb))]
-                break
+    if fix === nothing
+        for chan in chans
+            for V in unknowns_set[chan]
+                if V.diagonal
+                    fix = [(chan, V, one(Acb))]
+                    break
+                end
             end
         end
     end
@@ -56,16 +78,15 @@ function BootstrapSystem(co::Correlation, blocks;
     
     unknowns_count = sum(length(unknowns[chan]) for chan in chans)
     lines_count = 2 * ((unknowns_count + extrapoints) ÷ 2)
-    if moduli !== nothing
+    if moduli === nothing
+        moduli_count = chan_count == 1 ? lines_count ÷ 2 : lines_count ÷ (chan_count - 1)
+        moduli = choose_random_moduli(moduli_count, co)
+    else
         moduli_count = length(moduli)
         if !(moduli_count > lines_count ÷ (chan_count - 1))
             error("You must give enough positions for the system to be overdetermined")
         end
-    else
-        moduli_count = chan_count == 1 ? lines_count ÷ 2 : lines_count ÷ (chan_count - 1)
     end
-
-    moduli = choose_random_moduli(moduli_count, co)
      
     # compute the cache for all moduli, in each channel
     moduli_chan = Channels(Dict(chan => [channel_modulus(x, co, chan) for x in moduli]
@@ -94,23 +115,7 @@ function BootstrapSystem(co::Correlation, blocks;
         for d in thread_results
             for (V, vals) in d
                 if prefactors === nothing
-                    if typeof(co) <: Correlation1 # on the torus, prefactors default to
-                         # phase*|τ^Δ1|², phase*|(τ-1)^Δ1|², where phase is written below
-                        if chan === :s
-                            fact = ones(Acb, moduli_count)
-                        else
-                            Δ₁, bΔ₁ = (co.fields[1].dims[lr].Δ for lr in (:left, :right))
-                            if chan === :t
-                                phase = exp(-6 * im * Acb(π) * spin_)
-                                fact =  [phase * τ^-Δ₁ * conj(τ)^-bΔ₁ for τ in moduli]
-                            elseif chan === :u
-                                phase = exp(-8 * im * Acb(π) * spin_)
-                                fact = [phase * (τ - 1)^(-Δ₁) * conj(τ - 1)^(-bΔ₁) for τ in moduli]
-                            end
-                        end
-                    else
-                        fact = ones(Acb, moduli_count)
-                    end
+                    fact = default_prefactors(co, chan, moduli_count, spin_)
                 else
                     fact = [prefactors(chan, V, moduli[k]) for k in 1:moduli_count]
                 end
@@ -119,7 +124,7 @@ function BootstrapSystem(co::Correlation, blocks;
         end
     end
 
-    return BootstrapSystem(unknowns, knowns, moduli_cache, fields_cache)
+    return BootstrapSystem(unknowns, knowns, blocks, moduli_cache, fields_cache)
 end
 
 function new_random_point(; square=true)
@@ -381,11 +386,45 @@ function BootstrapSystem(specs::Channels{ChannelSpectrum};
                            fix=fix, moduli=moduli, extrapoints=extrapoints, prefactors=prefactors)
 end
 
+function evaluate_correlation(co::Correlation, specs, consts, chan, z; prefactors=nothing)
+    pos          = channel_modulus(z, co, chan)
+    cache        = PosCache(pos, co, chan)
+    block_values = Dict(b.chan_field => b(cache) for b in specs[chan].blocks)
+    s = spin(specs[chan].blocks[1].chan_field)
+    if prefactors === nothing
+        fac = Dict(b.chan_field => default_prefactors(co, chan, 1, s)[1] for b in specs[chan].blocks)
+    else
+        fac = Dict(b.chan_field => prefactors(chan, b.chan_field, pos) for b in specs[chan].blocks)
+    end
+    return sum(consts[chan].dict[V][1] * block_values[V] * fac[V]
+               for V in keys(block_values))
+end
+
 function solve_bootstrap(specs::Channels{ChannelSpectrum};
                          fix=nothing, moduli=nothing, extrapoints::Int=6, prefactors=nothing,
                          rels=:s)
     sys = BootstrapSystem(specs, fix=fix, moduli=moduli, extrapoints=extrapoints, prefactors=prefactors)
-    solve(sys, rels=rels)
+    res = solve(sys, rels=rels)
+
+    # show the relative difference between the result in the two channels, once resummed this is
+    # useful to detect if there are multiple solutions of the equations then the two solutions
+    # we obtain might be different, but still each be a solution
+    if length(sys.fields_cache) > 1
+        z = new_random_point()
+        if (typeof(specs.s.correlation) <: Correlation1)
+            z = τfromx(z)
+        end
+        if length(sys.fields_cache) > 2
+            chans = [:t, :u]
+        else
+            chans = collect(keys(sys.fields_cache))
+        end
+        vals = [evaluate_correlation(specs.s.correlation, specs, res, chan, z) for chan in chans]
+        rel = abs((vals[1]-vals[2]) / vals[1])
+        println("Relative difference between $(chans[1]) and $(chans[2]) channels: $rel")
+    end
+
+    return res
 end
 
 function to_columntable(c::SC, rmax=nothing)

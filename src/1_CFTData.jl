@@ -424,6 +424,8 @@ function spin(V::Field)::Union{Int,Rational,Acb}
     Arblib.contains_int(spin) && return round(Int, spin)
 end
 
+spin(::ConformalDimension) = 0
+
 function swap_lr(V::Field)
     return Field((V.dims[:right], V.dims[:left]))
 end
